@@ -41,8 +41,11 @@ class Database:
         await self._conn.execute("PRAGMA foreign_keys = ON")
         await self._conn.execute("PRAGMA busy_timeout = 5000")
         if str(self.path) != ":memory:":
-            await self._conn.execute("PRAGMA journal_mode = WAL")
-            await self._conn.execute("PRAGMA synchronous = NORMAL")
+            try:
+                await self._conn.execute("PRAGMA journal_mode = WAL")
+                await self._conn.execute("PRAGMA synchronous = NORMAL")
+            except Exception:  # بعض ذاكرات الموبايل ما تدعم WAL، نكمل بالوضع العادي
+                log.warning("وضع WAL غير مدعوم هنا، راح أكمل بالوضع العادي")
         await self._migrate()
 
     async def close(self) -> None:

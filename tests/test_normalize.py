@@ -15,3 +15,13 @@ def test_unifies_letters():
 def test_invisible_chars_and_spaces():
     assert normalize("‏ايدي‏   ") == "ايدي"
     assert normalize("") == ""
+
+
+def test_env_txt_fallback(tmp_path, monkeypatch):
+    import zhoo.config as cfg
+    monkeypatch.delenv("BOT_TOKEN", raising=False)
+    monkeypatch.delenv("OWNER_ID", raising=False)
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    (tmp_path / "env.txt").write_text("BOT_TOKEN=123456:" + "A" * 35 + "\nOWNER_ID=8864617026\n", encoding="utf-8")
+    s = cfg.load_settings()
+    assert s.owner_id == 8864617026
