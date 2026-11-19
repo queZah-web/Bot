@@ -1,0 +1,17 @@
+# أسرار — لا ترفعها أبداً
+.env
+config.py
+
+# بيانات وسجلات
+data/
+logs/
+*.db
+*.db-*
+*.sqlite*
+
+# بايثون
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
