@@ -44,6 +44,7 @@ class Settings:
     db_path: Path
     log_dir: Path
     log_level: str = "INFO"
+    proxy_url: str | None = field(default=None, repr=False)
 
 
 def load_settings(env_file: Path | None = None) -> Settings:
@@ -72,7 +73,12 @@ def load_settings(env_file: Path | None = None) -> Settings:
     if level not in {"DEBUG", "INFO", "WARNING", "ERROR"}:
         level = "INFO"
 
+    proxy = os.environ.get("PROXY_URL", "").strip() or None
+    if proxy and not proxy.startswith(("http://", "https://", "socks5://", "socks5h://")):
+        raise ConfigError("PROXY_URL لازم يبدأ بـ http:// أو socks5://")
+
     return Settings(
+        proxy_url=proxy,
         token=token,
         owner_id=int(owner_raw),
         db_path=db_path,

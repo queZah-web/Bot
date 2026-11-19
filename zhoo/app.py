@@ -56,15 +56,20 @@ async def _post_shutdown(app: Application) -> None:
 def build_application(settings: Settings) -> Application:
     defaults = Defaults(parse_mode=ParseMode.HTML,
                         link_preview_options=LinkPreviewOptions(is_disabled=True))
-    app = (
+    builder = (
         ApplicationBuilder()
         .token(settings.token)
         .defaults(defaults)
         .concurrent_updates(16)
+        # مهل أطول حتى يتحمل نت الموبايل البطيء
+        .connect_timeout(20).read_timeout(30).write_timeout(30).pool_timeout(10)
+        .get_updates_connect_timeout(20).get_updates_read_timeout(40)
         .post_init(_post_init)
         .post_shutdown(_post_shutdown)
-        .build()
     )
+    if settings.proxy_url:
+        builder = builder.proxy(settings.proxy_url).get_updates_proxy(settings.proxy_url)
+    app = builder.build()
     app.bot_data["services"] = Services.build(settings, Database(settings.db_path))
 
     chats = filters.ChatType.PRIVATE | filters.ChatType.GROUPS
