@@ -36,8 +36,7 @@ class Section:
 SECTIONS: tuple[Section, ...] = (
     Section("general", "العامة", "🧭"),
     Section("ranks", "الرتب والإدارة", "👥"),
-    Section("punish", "العقوبات", "⛔", 3,
-            ("حظر", "طرد", "كتم", "تقييد", "تحذير", "إلغاء الحظر", "فك الكتم", "فك التقييد")),
+    Section("punish", "العقوبات", "⛔"),
     Section("protect", "الحماية", "🛡", 4,
             ("إعدادات الحماية", "حماية الروابط", "مكافحة التكرار", "سجل الحماية")),
     Section("locks", "القفل والفتح", "🔒", 5,
@@ -86,7 +85,7 @@ def _command_line(cmd: Command, show_rank: bool) -> str:
 
 
 def section_text(section: Section, registry: CommandRegistry, rank: Rank, *, private: bool) -> str:
-    header = f"✦ <b>{section.emoji} {section.title}</b>\n{T.LINE}\n"
+    header = T.title(section.title, section.emoji) + f"\n{T.LINE}\n"
     if section.phase:
         planned = "\n".join(f"   ▫️ {esc(p)}" for p in section.planned)
         return header + T.HELP_SOON.format(phase=section.phase, planned=planned)
@@ -99,13 +98,15 @@ def section_text(section: Section, registry: CommandRegistry, rank: Rank, *, pri
         locked = [c for c in cmds if rank < c.min_rank]
 
     if not visible:
-        body = f"{T.BULLET} ماكو أوامر متاحة لرتبتك بهذا القسم"
+        body = f"{T.BULLET} لا توجد أوامر متاحة لرتبتك في هذا القسم 🌸"
     else:
         body = "\n".join(_command_line(c, show_rank=private) for c in visible)
     text = header + body
     if locked:
         text += T.HELP_LOCKED_HINT.format(count=len(locked))
     text += T.HELP_USAGE_HINT
+    if section.key == "punish":
+        text += T.HELP_DURATION_HINT
     return text
 
 

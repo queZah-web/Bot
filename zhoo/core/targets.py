@@ -17,6 +17,7 @@ class Target:
     name: str
     username: str | None
     is_bot: bool
+    rest: str = ""  # باقي نص الأمر بعد الهدف (للمدة والسبب)
 
 
 class TargetError(Exception):
@@ -38,30 +39,33 @@ async def resolve_target(cx: CommandContext) -> Target:
             raise TargetError("channel")
         user = reply.from_user
         if user is not None:
-            return Target(user.id, user.full_name, user.username, user.is_bot)
+            return Target(user.id, user.full_name, user.username, user.is_bot, cx.raw_args)
 
     # 2) منشن لشخص بدون يوزر (text_mention)
     for ent in msg.entities or ():
         if ent.type == MessageEntity.TEXT_MENTION and ent.user is not None:
             u = ent.user
-            return Target(u.id, u.full_name, u.username, u.is_bot)
+            mention_text = msg.parse_entity(ent)
+            rest = cx.raw_args.replace(mention_text, "", 1).strip()
+            return Target(u.id, u.full_name, u.username, u.is_bot, rest)
 
     if not cx.args:
         raise TargetError("none")
     arg = cx.args[0]
+    rest = cx.raw_args.split(maxsplit=1)[1].strip() if len(cx.raw_args.split(maxsplit=1)) > 1 else ""
 
     # 3) ايدي رقمي
     if arg.isdigit() and 5 <= len(arg) <= 15:
         user_id = int(arg)
         known = await cx.services.users.get(user_id)
         if known is not None:
-            return Target(known.user_id, known.full_name, known.username, known.is_bot)
+            return Target(known.user_id, known.full_name, known.username, known.is_bot, rest)
         if not cx.is_private:
             try:
                 member = await cx.bot.get_chat_member(cx.chat.id, user_id)
                 if member.status != ChatMemberStatus.LEFT or member.user.first_name:
                     u = member.user
-                    return Target(u.id, u.full_name, u.username, u.is_bot)
+                    return Target(u.id, u.full_name, u.username, u.is_bot, rest)
             except TelegramError:
                 pass
         raise TargetError("not_found")
@@ -71,7 +75,7 @@ async def resolve_target(cx: CommandContext) -> Target:
     if m:
         known = await cx.services.users.find_by_username(m.group(1))
         if known is not None:
-            return Target(known.user_id, known.full_name, known.username, known.is_bot)
+            return Target(known.user_id, known.full_name, known.username, known.is_bot, rest)
         raise TargetError("not_found")
 
     raise TargetError("none")

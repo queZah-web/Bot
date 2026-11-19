@@ -8,7 +8,9 @@ from zhoo.repositories.users import UsersRepo
 
 async def test_migrations_idempotent(db):
     await db._migrate()
-    assert await db.fetchval("SELECT COUNT(*) FROM schema_version") == 1
+    from zhoo.database.db import MIGRATIONS_DIR
+    files = len(list(MIGRATIONS_DIR.glob("*.sql")))
+    assert await db.fetchval("SELECT COUNT(*) FROM schema_version") == files
 
 
 async def test_username_moves_to_new_owner(db):

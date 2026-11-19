@@ -12,13 +12,14 @@ from zhoo.core.commands import registry
 from zhoo.core.context import Services, get_services
 from zhoo.core.fmt import mention
 from zhoo.handlers.views import about_text, audit_text, groups_text, help_main_text, owner_panel_text
+from zhoo.systems import punish
 from zhoo.keyboards.menus import (SECTION_MAP, back_to_start_keyboard, help_main_keyboard,
                                   owner_keyboard, owner_sub_keyboard, section_keyboard, section_text,
                                   start_keyboard)
 
 log = logging.getLogger(__name__)
 
-STALE = "هذي القائمة قديمة، اطلب وحدة جديدة 🙏"
+STALE = "هذه القائمة قديمة، اطلب قائمة جديدة 🌸"
 
 
 async def _edit(msg: Message, text: str, markup: InlineKeyboardMarkup | None) -> None:
@@ -75,6 +76,8 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             await _start(q, msg, svc, context, parts[1])
         elif kind == "o" and len(parts) == 2:
             await _owner(q, msg, svc, parts[1])
+        elif kind == "p" and len(parts) == 3:
+            await punish.on_undo_button(q, msg, svc, context.bot, parts[1], parts[2])
         else:
             await q.answer(STALE)
     finally:

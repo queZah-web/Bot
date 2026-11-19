@@ -135,7 +135,7 @@ def _row_mention(row) -> str:
 
 
 @registry.command("staff", ("قائمة الإدارة", "الإدارة", "الطاقم"), section=S,
-                  description="يعرض طاقم الإدارة كامل مرتب حسب الرتبة", order=1)
+                  description="يعرض طاقم الإدارة مرتباً حسب الرتبة", order=1)
 async def cmd_staff(cx: CommandContext) -> None:
     svc = cx.services
     text = T.STAFF_HEADER.format(title=esc(cx.chat.title or "المجموعة")) + "\n"

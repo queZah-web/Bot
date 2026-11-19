@@ -92,7 +92,7 @@ async def cmd_my_rank(cx: CommandContext) -> None:
 
 
 @registry.command("their_rank", ("رتبته", "رتبتها", "رتبه"), section=S, usage="بالرد/اليوزر/الايدي",
-                  description="يعرض رتبة شخص ثاني", order=3, args="target")
+                  description="يعرض رتبة عضو آخر", order=3, args="target")
 async def cmd_their_rank(cx: CommandContext) -> None:
     try:
         target = await resolve_target(cx)
@@ -118,7 +118,7 @@ async def cmd_top_active(cx: CommandContext) -> None:
     await cx.services.tracker.flush()
     rows = await cx.services.members.top_active(cx.chat.id, 10)
     if not rows:
-        await cx.reply(f"{T.BULLET} ماكو تفاعل مسجل لحد هسه")
+        await cx.reply(T.NO_ACTIVITY)
         return
     medals = ["🥇", "🥈", "🥉"] + ["🏅"] * 7
     lines = [
@@ -136,6 +136,6 @@ async def cmd_about(cx: CommandContext) -> None:
 
 
 @registry.command("zhoo", ("زهو", "زهوو", "بوت"), section=S,
-                  description="نادي زهو 💜", where="any", order=7)
+                  description="نادِ زهو 🤍", where="any", order=7)
 async def cmd_zhoo(cx: CommandContext) -> None:
     await cx.reply(random.choice(T.ZHOO_REPLIES))

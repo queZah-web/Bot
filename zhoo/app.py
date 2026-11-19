@@ -16,7 +16,7 @@ from zhoo.database.db import Database
 from zhoo.handlers import callbacks, errors, membership, router, start
 
 # استيراد الأنظمة يسجل أوامرها بالسجل المركزي
-from zhoo.systems import general, owner, ranks  # noqa: F401
+from zhoo.systems import general, owner, punish, ranks  # noqa: F401
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +24,9 @@ FLUSH_INTERVAL = 60
 
 
 async def _flush_job(context: ContextTypes.DEFAULT_TYPE) -> None:
-    await context.application.bot_data["services"].tracker.flush()
+    svc = context.application.bot_data["services"]
+    await svc.tracker.flush()
+    await svc.punishments.expire()  # العقوبات المؤقتة المنتهية (تيليجرام يرفعها بنفسه)
 
 
 async def _post_init(app: Application) -> None:

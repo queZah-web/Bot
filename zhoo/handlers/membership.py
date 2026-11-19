@@ -52,7 +52,7 @@ async def on_my_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     elif cmu.new_chat_member.status == S.ADMINISTRATOR and cmu.old_chat_member.status != S.ADMINISTRATOR:
         try:
-            await context.bot.send_message(chat.id, f"{T.BULLET} شكراً على الإشراف 💜 هسه أشتغل بكامل قوتي 💪")
+            await context.bot.send_message(chat.id, T.PROMOTED_BOT)
         except TelegramError:
             pass
 
@@ -62,9 +62,20 @@ async def on_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     cmu = update.chat_member
     if cmu is None:
         return
+    svc = get_services(context)
+    old, new = cmu.old_chat_member.status, cmu.new_chat_member.status
     admin_states = {S.ADMINISTRATOR, S.OWNER}
-    if cmu.old_chat_member.status in admin_states or cmu.new_chat_member.status in admin_states:
-        get_services(context).perms.invalidate(cmu.chat.id)
+    if old in admin_states or new in admin_states:
+        svc.perms.invalidate(cmu.chat.id)
+
+    # مزامنة: إذا مشرف رفع العقوبة يدوياً من تيليجرام، نحدّث سجلنا
+    user_id, chat_id = cmu.new_chat_member.user.id, cmu.chat.id
+    actor = cmu.from_user.id if cmu.from_user else None
+    if old == S.BANNED and new != S.BANNED:
+        await svc.punishments.lift(chat_id, user_id, "ban", actor)
+    elif old == S.RESTRICTED and new in (S.MEMBER, S.ADMINISTRATOR):
+        await svc.punishments.lift(chat_id, user_id, "mute", actor)
+        await svc.punishments.lift(chat_id, user_id, "restrict", actor)
 
 
 async def _notify_owner(context: ContextTypes.DEFAULT_TYPE, text: str) -> None:

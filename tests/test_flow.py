@@ -2,7 +2,7 @@
 from types import SimpleNamespace
 
 import pytest
-from telegram import Chat, Message, MessageEntity, Update, User
+from telegram import Chat, ChatMemberAdministrator, ChatPermissions, Message, MessageEntity, Update, User
 from telegram.constants import ChatMemberStatus
 
 from zhoo.config import Settings
@@ -20,14 +20,16 @@ GROUP = -1001234567890
 class FakeBot:
     def __init__(self):
         self.sent: list[str] = []
+        self.calls: list[tuple] = []
         self.id = BOT_ID
         self.username = "ZhooTestBot"
         self.defaults = None
         self.admins = {
             CREATOR: SimpleNamespace(user=User(CREATOR, "Creator", False), status=ChatMemberStatus.OWNER,
                                      is_anonymous=False),
-            BOT_ID: SimpleNamespace(user=User(BOT_ID, "Zhoo", True), status=ChatMemberStatus.ADMINISTRATOR,
-                                    is_anonymous=False),
+            BOT_ID: ChatMemberAdministrator(
+                User(BOT_ID, "Zhoo", True), False, False, True, True, True, True, False, True, True,
+                False, False, False),
         }
 
     async def send_message(self, chat_id, text, **kw):
@@ -45,6 +47,22 @@ class FakeBot:
 
     async def get_chat_member(self, chat_id, user_id, **kw):
         raise __import__("telegram").error.BadRequest("not found")
+
+    # تسجيل استدعاءات العقوبات
+    async def ban_chat_member(self, chat_id, user_id, until_date=None, **kw):
+        self.calls.append(("ban", user_id, until_date))
+        return True
+
+    async def unban_chat_member(self, chat_id, user_id, only_if_banned=None, **kw):
+        self.calls.append(("unban", user_id))
+        return True
+
+    async def restrict_chat_member(self, chat_id, user_id, permissions, until_date=None, **kw):
+        self.calls.append(("restrict", user_id, permissions.can_send_messages, until_date))
+        return True
+
+    async def get_chat(self, chat_id, **kw):
+        return SimpleNamespace(permissions=ChatPermissions.all_permissions())
 
 
 @pytest.fixture
@@ -94,12 +112,12 @@ async def test_creator_promotes_and_hierarchy(env):
     svc = env[0]
     await say(env, SARA, "هلا")  # حتى ينحفظ يوزرها
     out = await say(env, CREATOR, "رفع مالك", reply_to=ALI)
-    assert "تَمَّ الرَّفْعُ" in out
+    assert "تَـمَّ الـرَّفْـع" in out
     assert await svc.members.get_rank(GROUP, ALI) == Rank.OWNER
 
     # المالك يرفع مدير باليوزر
     out = await say(env, ALI, f"رفع مدير @user{SARA}")
-    assert "تَمَّ الرَّفْعُ" in out
+    assert "تَـمَّ الـرَّفْـع" in out
     # المدير ما يكدر ينزل المالك
     out = await say(env, SARA, "تنزيل", reply_to=ALI)
     assert "أعلى منك" in out
@@ -111,7 +129,7 @@ async def test_creator_promotes_and_hierarchy(env):
     assert "أعلى منك" in out or "محمية" in out
     # تنزيل مدير
     out = await say(env, ALI, "تنزيل مدير", reply_to=SARA)
-    assert "تَمَّ التَّنْزِيلُ" in out
+    assert "تَـمَّ الـتَّـنْـزِيـل" in out
     assert await svc.members.get_rank(GROUP, SARA) == Rank.MEMBER
     # كل شي انسجل
     assert len(await svc.audit.recent(50)) >= 4
@@ -124,7 +142,7 @@ async def test_self_promote_blocked(env):
 
 async def test_developer_is_top_everywhere(env):
     out = await say(env, DEV, "رفع مالك", reply_to=ALI)
-    assert "تَمَّ الرَّفْعُ" in out
+    assert "تَـمَّ الـرَّفْـع" in out
 
 
 async def test_maintenance_blocks_others(env):
@@ -151,7 +169,7 @@ async def test_help_menu_and_staff(env):
 
 async def test_rate_limit(env):
     outs = [await say(env, ALI, "رتبتي") for _ in range(7)]
-    assert any(o and "على كيفك" in o for o in outs)
+    assert any(o and "على مهلك" in o for o in outs)
 
 
 def test_keyboards_fit_limits():

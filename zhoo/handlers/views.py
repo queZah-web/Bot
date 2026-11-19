@@ -57,7 +57,7 @@ async def audit_text(svc: Services, limit: int = 12) -> str:
 async def groups_text(svc: Services, limit: int = 15) -> str:
     rows = await svc.groups.recent(limit)
     if not rows:
-        return f"{T.GROUPS_HEADER}\n{T.BULLET} ماكو مجموعات لحد هسه"
+        return f"{T.GROUPS_HEADER}\n{T.GROUPS_EMPTY}"
     lines = []
     for r in rows:
         mark = "🟢" if r["is_active"] else "⚫"

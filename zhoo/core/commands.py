@@ -30,7 +30,7 @@ class Command:
     where: str = "group"        # group | private | any
     show_in_help: bool = True
     order: int = 0
-    args: str = "none"          # none: بدون إضافات | target: هدف اختياري | text: أي نص
+    args: str = "none"          # none | target | punish (هدف + مدة/سبب) | text
 
     @property
     def display_name(self) -> str:
@@ -76,7 +76,8 @@ class CommandRegistry:
             return func
         return deco
 
-    def parse(self, text: str, *, has_text_mention: bool = False) -> ParsedCommand | None:
+    def parse(self, text: str, *, has_text_mention: bool = False,
+              has_reply: bool = False) -> ParsedCommand | None:
         """يطابق بداية الرسالة مع أطول اسم أمر. الكلمات داخل الجملة لا تُعتبر أمراً.
 
         الأمر اللي ما ياخذ إضافات لازم يكون الرسالة كلها، حتى «زهو شلونك» ما تنحسب أمر.
@@ -92,7 +93,7 @@ class CommandRegistry:
             if cmd is None:
                 continue
             rest = text[tokens[n - 1][2]:].strip() if n < len(tokens) else ""
-            if rest and not _accepts(cmd.args, rest, has_text_mention):
+            if rest and not _accepts(cmd.args, rest, has_text_mention, has_reply):
                 return None
             return ParsedCommand(cmd, rest.split(), rest)
         return None
@@ -108,9 +109,11 @@ class CommandRegistry:
 _TARGET_ARG = re.compile(r"^(@[A-Za-z][A-Za-z0-9_]{3,31}|\d{5,15})(\s|$)")
 
 
-def _accepts(mode: str, rest: str, has_text_mention: bool) -> bool:
+def _accepts(mode: str, rest: str, has_text_mention: bool, has_reply: bool = False) -> bool:
     if mode == "text":
         return True
+    if mode == "punish":  # بالرد: أي إضافة = مدة/سبب. بدون رد: لازم يبدأ بهدف
+        return has_reply or has_text_mention or bool(_TARGET_ARG.match(rest))
     if mode == "target":
         return has_text_mention or bool(_TARGET_ARG.match(rest))
     return False

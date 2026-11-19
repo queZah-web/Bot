@@ -36,7 +36,8 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     if not text:
         return
     has_tm = any(e.type == MessageEntity.TEXT_MENTION for e in msg.entities or ())
-    parsed = registry.parse(text, has_text_mention=has_tm)
+    has_reply = msg.reply_to_message is not None and not msg.reply_to_message.forum_topic_created
+    parsed = registry.parse(text, has_text_mention=has_tm, has_reply=has_reply)
     if parsed is None:
         return
     cmd = parsed.command

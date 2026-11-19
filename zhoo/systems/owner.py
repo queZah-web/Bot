@@ -19,7 +19,7 @@ async def cmd_owner_panel(cx: CommandContext) -> None:
 
 
 @registry.command("maint_on", ("تفعيل الصيانه", "تفعيل الصيانة"), section=S, min_rank=Rank.DEVELOPER,
-                  where="any", description="يوقف البوت للجميع عدا المطور", order=1)
+                  where="any", description="يوقف زهو للجميع عدا المطور", order=1)
 async def cmd_maint_on(cx: CommandContext) -> None:
     await cx.services.bot_settings.set("maintenance", "1")
     await cx.services.audit.log("maintenance_on", chat_id=cx.chat.id, actor_id=cx.user.id)
@@ -27,7 +27,7 @@ async def cmd_maint_on(cx: CommandContext) -> None:
 
 
 @registry.command("maint_off", ("تعطيل الصيانه", "تعطيل الصيانة", "ايقاف الصيانه"), section=S,
-                  min_rank=Rank.DEVELOPER, where="any", description="يرجع البوت للعمل", order=2)
+                  min_rank=Rank.DEVELOPER, where="any", description="يعيد زهو للعمل", order=2)
 async def cmd_maint_off(cx: CommandContext) -> None:
     await cx.services.bot_settings.set("maintenance", "0")
     await cx.services.audit.log("maintenance_off", chat_id=cx.chat.id, actor_id=cx.user.id)
@@ -41,6 +41,6 @@ async def cmd_audit(cx: CommandContext) -> None:
 
 
 @registry.command("my_groups", ("مجموعاتي", "المجموعات"), section=S, min_rank=Rank.DEVELOPER,
-                  where="any", description="آخر المجموعات اللي ضافتني", order=4)
+                  where="any", description="آخر المجموعات التي أضافتني", order=4)
 async def cmd_groups(cx: CommandContext) -> None:
     await cx.reply(await groups_text(cx.services))
