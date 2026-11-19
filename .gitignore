@@ -1,7 +1,7 @@
 # أسرار — لا ترفعها أبداً
 .env
 env.txt
-config.py
+/config.py
 
 # بيانات وسجلات
 data/
