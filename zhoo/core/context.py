@@ -62,6 +62,8 @@ class Services:
     xp_seen: dict = field(default_factory=dict)        # (chat, user) ← (آخر وقت، بصمة آخر رسالة)
     broadcast_running: bool = False
     mention_tasks: dict = field(default_factory=dict)  # chat_id ← مهمة النداء الشغّالة
+    yt_results: dict = field(default_factory=dict)     # (chat, رسالة النتائج) ← (صاحب الطلب، النتائج، الوقت)
+    yt_busy: set = field(default_factory=set)          # مجموعات بيها تحميل شغّال
     restoring: bool = False                            # أثناء الاستعادة نوقف استقبال التحديثات
 
     def reset_caches(self) -> None:

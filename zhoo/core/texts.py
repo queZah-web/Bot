@@ -831,6 +831,28 @@ DATE_TEXT = f"{BULLET} اليوم: <b>{{weekday}}</b> ⋅ <b>{{day}} {{month}} {
 CALC_RESULT = f"{BULLET} <code>{{expr}}</code> = <b>{{result}}</b> 🧮"
 CALC_BAD = f"{BULLET} ما فهمت العملية 🌸 مثال: <code>احسب (5 + 3) × 2</code>"
 
+# ── يوتيوب ─────────────────────────────────────────
+YT_NEED_QUERY = f"{BULLET} اكتب اللي تدور عليه بعد الأمر 🌸 مثال: <code>يوت زيارة عاشوراء</code>"
+YT_SEARCHING = f"{BULLET} دا أدور على «<b>{{query}}</b>» 🔎"
+YT_RESULTS = (
+    title("نَـتَـائِـج الـبَـحْـث", "🎧") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} «<b>{{query}}</b>»\n"
+    f"{BULLET} اختار اللي تريده وأدزه إلك صوت 🎵"
+)
+YT_NONE = f"{BULLET} ما لگيت شي بهذا الاسم 🌸 جرب كلمات ثانية"
+YT_DOWNLOADING = f"{BULLET} دا أحمّل «<b>{{title}}</b>» ⏳ ثواني وتوصلك..."
+YT_TOO_LONG = f"{BULLET} هذا المقطع طويل (<b>{{dur}}</b>)، الحد الأقصى ساعة وحدة 🌸"
+YT_TOO_BIG = f"{BULLET} الملف أكبر من حد تيليجرام (50 ميگا) 🌸 اختار مقطع أقصر"
+YT_LIVE = f"{BULLET} هذا بث مباشر، ما أگدر أحمّله 🌸"
+YT_FAILED = f"{BULLET} ما گدرت أحمّله 🤍 يمكن يوتيوب حاجبه أو النت ضعيف، جرب بعد شوية"
+YT_NO_LIB = f"{BULLET} ميزة يوتيوب تحتاج مكتبة <code>yt-dlp</code> — لازم تنزلها من Pip"
+YT_BUSY = f"{BULLET} اكو تحميل شغّال هسه بالمجموعة، انتظره يخلص 🌸"
+YT_WAIT = f"{BULLET} على كيفك 🌸 تگدر تطلب مرة ثانية بعد <b>{{left}}</b>"
+YT_NOT_YOURS = "هاي النتائج لصاحب الطلب بس 🌸 اكتب «يوت» واللي تريده"
+YT_EXPIRED = "هاي النتائج قديمة 🌸 ابحث من جديد"
+YT_CAPTION = f"🎧 <b>{{title}}</b>\n{BULLET} {{channel}} ⋅ ⏱ {{dur}}\n{BULLET} طلبها: {{mention}}"
+
 # ── الأذكار ────────────────────────────────────────
 AZKAR_TITLE = title("ذِكْـر", "📿")
 

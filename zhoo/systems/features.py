@@ -62,6 +62,7 @@ FEATURES: tuple[Feature, ...] = (
     Feature("avatar", "افتاري", ("الافتار", "الأفتار"), "1", ("avatar", "their_avatar")),
     Feature("whoadded", "ضافني", (), "1", ("whoadded", "their_adder")),
     Feature("service", "الخدمية", ("الخدميه", "الاوامر الخدميه"), "1", ("time", "date", "calc")),
+    Feature("youtube", "اليوتيوب", ("يوتيوب", "يوت"), "1", ("youtube",)),
     Feature("quote", "الاقتباس", ("وضع الاقتباسات", "الاقتباسات", "وضع الاقتباس"), "1"),
     Feature("captcha", "التحقق", (), "0", (), "guard_captcha"),
     Feature("pairs", "الثنائي", ("الثنائيات",), "0", (), "pairs_on"),

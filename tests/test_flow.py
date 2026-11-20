@@ -88,6 +88,12 @@ class FakeBot:
         self.calls.append(("document", chat_id, filename, len(data)))
         self.sent.append(caption or "")
 
+    async def send_audio(self, chat_id, audio, caption=None, **kw):
+        data = audio.read() if hasattr(audio, "read") else audio
+        self.calls.append(("audio", chat_id, kw.get("filename"), data if isinstance(data, str) else len(data)))
+        self.sent.append(caption or "")
+        return SimpleNamespace(audio=SimpleNamespace(file_id="AUDIO-FILE-ID"))
+
     async def get_me(self, **kw):
         return SimpleNamespace(id=self.id, username=self.username)
 
