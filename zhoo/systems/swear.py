@@ -27,7 +27,7 @@ from zhoo.core.durations import format_duration
 from zhoo.core.fmt import esc, mention
 from zhoo.core.normalize import normalize
 from zhoo.core.ranks import RANK_NAMES, Rank
-from zhoo.core.swear import LEVELS, MEDIUM, Hit, Lexicon, detector, glue, normalize_phrase, views
+from zhoo.core.swear import LEVELS, LIGHT, MEDIUM, SEVERE, Hit, Lexicon, detector, glue, normalize_phrase, views
 from zhoo.core.targets import TargetError, resolve_target
 from zhoo.repositories.swear_words import GLOBAL
 from zhoo.systems.general import reply_target_error
@@ -50,17 +50,41 @@ DICT_COMMANDS = {"swear_add", "swear_remove", "swear_allow", "swear_unallow", "s
 _versions = itertools.count(1)
 
 
-# ── الإعدادات ───────────────────────────────────────
-async def get_mode(svc: Services, chat_id: int) -> str:
-    mode = await svc.group_settings.get(chat_id, "swear_mode")
-    return mode if mode in MODES else "off"
+# ── الإعدادات: نوعين قفل مستقلين ───────────────────
+# vulgar = الفشار +18 والمسبات (الفئتين المتوسطة والشديدة) ⋅ insult = الإهانات (الفئة الخفيفة)
+SCOPES = ("vulgar", "insult")
+SCOPE_KEY = {"vulgar": "swear_mode", "insult": "insult_mode"}
+SCOPE_LEVELS = {"vulgar": frozenset({MEDIUM, SEVERE}), "insult": frozenset({LIGHT})}
 
 
-async def set_mode(svc: Services, chat_id: int, mode: str, by: int) -> str:
-    old = await svc.group_settings.set(chat_id, "swear_mode", mode, by)
-    await svc.audit.log("setting", chat_id=chat_id, actor_id=by,
-                        details={"key": "swear_mode", "from": old, "to": mode})
-    return old
+def scope_of(level: int) -> str:
+    return "insult" if level == LIGHT else "vulgar"
+
+
+async def get_mode(svc: Services, chat_id: int, scope: str = "vulgar") -> str:
+    raw = await svc.group_settings.get(chat_id, SCOPE_KEY[scope])
+    if scope == "insult" and raw == "":
+        raw = await svc.group_settings.get(chat_id, "swear_mode")  # مجموعات قديمة: الإهانات تتبع قفل السب
+    return raw if raw in MODES else "off"
+
+
+async def get_modes(svc: Services, chat_id: int) -> dict[str, str]:
+    return {sc: await get_mode(svc, chat_id, sc) for sc in SCOPES}
+
+
+async def set_mode(svc: Services, chat_id: int, mode: str, by: int, scope: str = "all") -> None:
+    """scope: vulgar | insult | all (الاثنين)."""
+    if await svc.group_settings.get(chat_id, "insult_mode") == "":
+        # نثبت قيمة الإهانات الموروثة قبل لا يتغير قفل الفشار لوحده
+        await svc.group_settings.set(chat_id, "insult_mode", await get_mode(svc, chat_id, "insult"), by)
+    for sc in (SCOPES if scope == "all" else (scope,)):
+        old = await svc.group_settings.set(chat_id, SCOPE_KEY[sc], mode, by)
+        await svc.audit.log("setting", chat_id=chat_id, actor_id=by,
+                            details={"key": SCOPE_KEY[sc], "from": old, "to": mode})
+
+
+async def active_scopes(svc: Services, chat_id: int) -> int:
+    return sum(1 for m in (await get_modes(svc, chat_id)).values() if m != "off")
 
 
 async def get_plan_key(svc: Services, chat_id: int, level: int) -> str:
@@ -143,11 +167,13 @@ def invalidate(svc: Services, chat_id: int) -> None:
         svc.swear_cache.pop(chat_id, None)
 
 
-async def scan(svc: Services, chat_id: int, text: str, *, use_allowed: bool = True) -> Hit | None:
+async def scan(svc: Services, chat_id: int, text: str, *, use_allowed: bool = True,
+               levels: frozenset[int] | None = None) -> Hit | None:
     group, allowed = await _group_layer(svc, chat_id)
     glob = await _global_layer(svc)
     allowed = allowed if use_allowed else frozenset()
-    return detector.scan(text, (group, glob), allowed, cache_key=(chat_id, group.version, glob.version))
+    return detector.scan(text, (group, glob), allowed, cache_key=(chat_id, group.version, glob.version),
+                         levels=levels)
 
 
 # ── الفحص ───────────────────────────────────────────
@@ -156,18 +182,19 @@ async def check(context, svc: Services, msg: Message, chat, user) -> bool:
     from zhoo.systems import botstate
     if not await botstate.is_active(svc, chat.id):
         return False
-    mode = await get_mode(svc, chat.id)
-    if mode == "off":
+    modes = await get_modes(svc, chat.id)
+    levels = frozenset().union(*(SCOPE_LEVELS[sc] for sc, m in modes.items() if m != "off"))
+    if not levels:
         return False
     text = msg.text or msg.caption
     if not text:
         return False
-    hit = await scan(svc, chat.id, text)
+    hit = await scan(svc, chat.id, text, levels=levels)   # نفحص بس الأنواع المقفولة
     if hit is None:
         return False
 
     level = hit.entry.level
-    plan = await plan_for(svc, chat.id, level, mode)
+    plan = await plan_for(svc, chat.id, level, modes[scope_of(level)])
     if not plan:
         return False  # هاي الفئة على «تجاهل»
 
@@ -234,69 +261,116 @@ async def on_edited(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 # ── أوامر القفل ─────────────────────────────────────
-async def _cmd_set(cx: CommandContext, mode: str) -> None:
+def _parse_lock_rest(rest: str, scope: str) -> tuple[str, str] | None:
+    """باقي الأمر: [18] [بالمسح|بالكتم|بالحظر|التدريجي] ← (النوع، الوضع)."""
+    mode = "smart"
+    seen_mode = False
+    for word in rest.split():
+        w = normalize(word)
+        if w in T.SWEAR_SCOPE_WORDS and scope == "all":
+            scope = T.SWEAR_SCOPE_WORDS[w]
+        elif w in {normalize(k): v for k, v in T.SWEAR_MODE_WORDS.items()} and not seen_mode:
+            mode = {normalize(k): v for k, v in T.SWEAR_MODE_WORDS.items()}[w]
+            seen_mode = True
+        else:
+            return None
+    return scope, mode
+
+
+def _parse_unlock_rest(rest: str, scope: str) -> str | None:
+    words = [normalize(w) for w in rest.split()]
+    if not words:
+        return scope
+    if scope == "all" and len(words) == 1 and words[0] in T.SWEAR_SCOPE_WORDS:
+        return T.SWEAR_SCOPE_WORDS[words[0]]
+    return None
+
+
+async def _cmd_set(cx: CommandContext, scope: str, mode: str) -> None:
     svc = cx.services
     if cx.rank < SET_RANK[mode]:
         await cx.reply(T.NO_PERMISSION.format(rank=RANK_NAMES[SET_RANK[mode]]))
         return
-    if await get_mode(svc, cx.chat.id) == mode:
-        await cx.reply(T.SWEAR_MODE_SAME.format(mode=T.SWEAR_MODES[mode]))
+    modes = await get_modes(svc, cx.chat.id)
+    targets = SCOPES if scope == "all" else (scope,)
+    if all(modes[sc] == mode for sc in targets):
+        await cx.reply(T.SWEAR_MODE_SAME.format(scope=T.SWEAR_SCOPES[scope], mode=T.SWEAR_MODES[mode]))
         return
-    await set_mode(svc, cx.chat.id, mode, cx.user.id)
+    await set_mode(svc, cx.chat.id, mode, cx.user.id, scope)
     actor = mention(cx.user.id, cx.user.full_name)
+    lines = []
     if mode == "off":
-        await cx.reply(T.SWEAR_MODE_OFF.format(actor=actor))
-        return
-    text = T.SWEAR_MODE_SET.format(mode=T.SWEAR_MODES[mode], actor=actor)
-    if mode == "smart":
-        text += "\n" + T.SWEAR_MODE_SMART_HINT
-    rights = await svc.perms.bot_rights(cx.bot, cx.chat.id)
-    if rights is None or not rights.can_delete_messages:
-        text += "\n" + T.SWEAR_NEED_DELETE
-    await cx.reply(text)
+        lines.append(T.SWEAR_MODE_OFF.format(head=T.SWEAR_UNLOCK_TITLES[scope], actor=actor))
+    else:
+        lines.append(T.SWEAR_MODE_SET.format(head=T.SWEAR_LOCK_TITLES[scope], covers=T.SWEAR_SCOPE_COVERS[scope],
+                                             mode=T.SWEAR_MODES[mode], actor=actor))
+        if mode == "smart":
+            lines.append(T.SWEAR_MODE_SMART_HINT)
+    if scope != "all":  # نوضح حالة النوع الثاني
+        other = "insult" if scope == "vulgar" else "vulgar"
+        lines.append(T.SWEAR_OTHER_STATE.format(scope=T.SWEAR_SCOPES[other], mode=T.SWEAR_MODES[modes[other]]))
+    if mode != "off":
+        rights = await svc.perms.bot_rights(cx.bot, cx.chat.id)
+        if rights is None or not rights.can_delete_messages:
+            lines.append(T.SWEAR_NEED_DELETE)
+    await cx.reply("\n".join(lines))
 
 
-async def _lock_smart(cx): await _cmd_set(cx, "smart")     # noqa: E704
-async def _lock_delete(cx): await _cmd_set(cx, "delete")   # noqa: E704
-async def _lock_mute(cx): await _cmd_set(cx, "mute")       # noqa: E704
-async def _lock_ban(cx): await _cmd_set(cx, "ban")         # noqa: E704
-async def _unlock(cx): await _cmd_set(cx, "off")           # noqa: E704
+def _lock_command(key: str, names: tuple[str, ...], scope: str, description: str, order: int) -> None:
+    async def handler(cx: CommandContext) -> None:
+        sc, mode = _parse_lock_rest(cx.raw_args, scope)
+        await _cmd_set(cx, sc, mode)
+
+    registry.command(key, names, section=S, min_rank=SET_RANK["smart"], order=order,
+                     usage="اختياري: بالمسح / بالكتم / بالحظر", description=description,
+                     accept=lambda rest: _parse_lock_rest(rest, scope) is not None)(handler)
 
 
-registry.command("swear_smart", ("قفل السب", "قفل الشتائم", "قفل السب التدريجي"), section=S,
-                 min_rank=SET_RANK["smart"], order=9,
-                 description="قفل ذكي: العقوبة حسب شدة الكلام وتكرار المخالفة")(_lock_smart)
-registry.command("swear_delete", ("قفل السب بالمسح", "قفل الشتائم بالمسح"), section=S,
-                 min_rank=SET_RANK["delete"], description="يمسح كل رسالة بيها سب بدون عقوبة",
-                 order=10)(_lock_delete)
-registry.command("swear_mute", ("قفل السب بالكتم", "قفل الشتائم بالكتم"), section=S, min_rank=SET_RANK["mute"],
-                 description="يمسح السب ويكتم صاحبه من أول مرة", order=11)(_lock_mute)
-registry.command("swear_ban", ("قفل السب بالحظر", "قفل الشتائم بالحظر"), section=S, min_rank=SET_RANK["ban"],
-                 description="يمسح السب ويحظر صاحبه من أول مرة", order=12)(_lock_ban)
-registry.command("swear_off", ("فتح السب", "فتح الشتائم"), section=S, min_rank=SET_RANK["off"],
-                 description="يوقف قفل السب", order=13)(_unlock)
+def _unlock_command(key: str, names: tuple[str, ...], scope: str, description: str, order: int) -> None:
+    async def handler(cx: CommandContext) -> None:
+        await _cmd_set(cx, _parse_unlock_rest(cx.raw_args, scope), "off")
+
+    registry.command(key, names, section=S, min_rank=SET_RANK["off"], order=order, description=description,
+                     accept=lambda rest: _parse_unlock_rest(rest, scope) is not None)(handler)
+
+
+_lock_command("swear_lock", ("قفل السب", "قفل الشتائم"), "all",
+              "يقفل النوعين (الفشار + الإهانات) — تدريجي ذكي، أو: بالمسح/بالكتم/بالحظر", 9)
+_lock_command("vulgar_lock", ("قفل الفشار", "قفل الفشائر", "قفل الكلام البذيء"), "vulgar",
+              "يقفل الفشار +18 والمسبات بس", 10)
+_lock_command("insult_lock", ("قفل الاهانات", "قفل الإهانات", "قفل الاهانه", "قفل الإهانة"), "insult",
+              "يقفل الإهانات بس (يا حمار، يا حقير...)", 11)
+_unlock_command("swear_unlock", ("فتح السب", "فتح الشتائم"), "all", "يفتح النوعين", 12)
+_unlock_command("vulgar_unlock", ("فتح الفشار", "فتح الفشائر", "فتح الكلام البذيء"), "vulgar",
+                "يفتح الفشار بس", 13)
+_unlock_command("insult_unlock", ("فتح الاهانات", "فتح الإهانات", "فتح الاهانه", "فتح الإهانة"), "insult",
+                "يفتح الإهانات بس", 13)
 
 
 # ── لوحة العقوبات ──────────────────────────────────
 async def policy_view(svc: Services, chat_id: int) -> tuple[str, InlineKeyboardMarkup]:
-    mode = await get_mode(svc, chat_id)
+    modes = await get_modes(svc, chat_id)
     lines, rows = [], []
-    for level in LEVELS:
-        key = await get_plan_key(svc, chat_id, level)
-        lines.append(T.SWEAR_POLICY_LEVEL.format(level=T.SWEAR_LEVELS[level], plan=T.SWEAR_PLANS[key],
-                                                 hint=T.SWEAR_PLAN_HINTS[key]))
-        rows.append([InlineKeyboardButton(f"{T.SWEAR_LEVELS[level]}: {T.SWEAR_PLANS[key]}",
-                                          callback_data=f"sw:l:{level}")])
-    rows.insert(0, [InlineKeyboardButton(T.SWEAR_BTN_MODE.format(mode=T.SWEAR_MODES[mode]),
-                                         callback_data="sw:m:0")])
+    for scope, levels in (("vulgar", (SEVERE, MEDIUM)), ("insult", (LIGHT,))):
+        mode = modes[scope]
+        lines.append(T.SWEAR_POLICY_SCOPE.format(scope=T.SWEAR_SCOPES[scope], mode=T.SWEAR_MODES[mode]))
+        rows.append([InlineKeyboardButton(T.SWEAR_BTN_SCOPE[scope].format(mode=T.SWEAR_MODES[mode]),
+                                          callback_data=f"sw:m:{scope[0]}")])
+        for level in levels:
+            key = await get_plan_key(svc, chat_id, level)
+            if mode == "smart":
+                lines.append(T.SWEAR_POLICY_LEVEL.format(level=T.SWEAR_LEVELS[level], plan=T.SWEAR_PLANS[key],
+                                                         hint=T.SWEAR_PLAN_HINTS[key]))
+            rows.append([InlineKeyboardButton(f"   {T.SWEAR_LEVELS[level]}: {T.SWEAR_PLANS[key]}",
+                                              callback_data=f"sw:l:{level}")])
+        lines.append("")
     rows.append([InlineKeyboardButton(T.BTN_CLOSE, callback_data="sw:x:0")])
-    note = T.SWEAR_POLICY_NOTE if mode == "smart" else T.SWEAR_POLICY_NOTE_FIXED
-    text = T.SWEAR_POLICY.format(mode=T.SWEAR_MODES[mode], levels="\n".join(lines), note=note)
+    text = T.SWEAR_POLICY.format(levels="\n".join(lines).strip(), note=T.SWEAR_POLICY_FOOT)
     return text, InlineKeyboardMarkup(rows)
 
 
 @registry.command("swear_policy", ("عقوبات السب", "عقوبات الشتائم"), section=S, min_rank=VIEW_RANK,
-                  description="لوحة: عقوبة كل فئة سب (خفيف/متوسط/شديد)", order=14)
+                  description="لوحة: تشغيل كل نوع وعقوبة كل فئة بالأزرار", order=14)
 async def cmd_swear_policy(cx: CommandContext) -> None:
     text, kb = await policy_view(cx.services, cx.chat.id)
     await cx.reply(text, reply_markup=kb)
@@ -312,10 +386,20 @@ async def on_policy_button(q, msg: Message, svc: Services, bot, action: str, arg
             except TelegramError:
                 pass
         return
-    if rank < DICT_RANK:
+    if action == "m":
+        scope = "insult" if arg == "i" else "vulgar"
+        if rank < SET_RANK["smart"]:
+            await q.answer(T.SWEAR_POLICY_NEED_RANK, show_alert=True)
+            return
+        new = next_mode(await get_mode(svc, chat_id, scope))
+        if rank < SET_RANK[new]:
+            new = "off"
+        await set_mode(svc, chat_id, new, uid, scope)
+        await q.answer(T.SWEAR_BTN_SCOPE[scope].format(mode=T.SWEAR_MODES[new]))
+    elif rank < DICT_RANK:
         await q.answer(T.SWEAR_POLICY_NEED_RANK, show_alert=True)
         return
-    if action == "l" and arg.isdigit() and int(arg) in LEVELS:
+    elif action == "l" and arg.isdigit() and int(arg) in LEVELS:
         level = int(arg)
         cur = await get_plan_key(svc, chat_id, level)
         order = mod.SWEAR_PLAN_ORDER
@@ -324,12 +408,6 @@ async def on_policy_button(q, msg: Message, svc: Services, bot, action: str, arg
         await svc.audit.log("setting", chat_id=chat_id, actor_id=uid,
                             details={"key": f"swear_l{level}", "from": cur, "to": new})
         await q.answer(f"{T.SWEAR_LEVELS[level]}: {T.SWEAR_PLANS[new]}")
-    elif action == "m":
-        new = next_mode(await get_mode(svc, chat_id))
-        if rank < SET_RANK[new]:
-            new = "off"
-        await set_mode(svc, chat_id, new, uid)
-        await q.answer(f"{T.SWEAR_LABEL}: {T.SWEAR_MODES[new]}")
     else:
         await q.answer()
         return
@@ -547,10 +625,12 @@ async def cmd_swear_test(cx: CommandContext) -> None:
         out.append(T.SWEAR_TEST_ALLOWED if raw is not None else T.SWEAR_TEST_CLEAN)
         await cx.reply("\n".join(out))
         return
-    mode = await get_mode(svc, cx.chat.id)
+    scope = scope_of(hit.entry.level)
+    mode = await get_mode(svc, cx.chat.id, scope)
     plan = await plan_for(svc, cx.chat.id, hit.entry.level, mode)
     action = T.SWEAR_MODES["off"] if mode == "off" else step_label(mod.swear_step(plan, 1))
     out.append(T.SWEAR_TEST_BLOCKED.format(
+        scope=T.SWEAR_SCOPES[scope], scope_mode=T.SWEAR_MODES[mode],
         found=esc(hit.found), key=esc(hit.entry.key), level=T.SWEAR_LEVELS[hit.entry.level],
         kind=T.SWEAR_KINDS[hit.entry.kind], source=T.SWEAR_SOURCES[hit.entry.source], action=action))
     await cx.reply("\n".join(out))

@@ -259,8 +259,10 @@ async def test_global_dictionary_applies_everywhere(env):
 async def test_policy_panel_buttons(env):
     svc, bot, _ = env
     await _setup(env)
+    await say(env, CREATOR, "قفل السب")
     out = await say(env, CREATOR, "عقوبات السب")
     assert "عُـقُـوبَـات الـسَّـب" in out and "تدريجي" in out and "كتم متصاعد" in out
+    assert "الفشار" in out and "الإهانات" in out
 
 
 async def test_log_per_user_and_clear(env):
@@ -305,9 +307,83 @@ async def test_policy_buttons_cycle_plans_and_need_manager(env):
     q = SimpleNamespace(from_user=SimpleNamespace(id=CREATOR), answer=answer)
     await swear.on_policy_button(q, msg, svc, bot, "l", "3")
     assert await svc.group_settings.get(GROUP, "swear_l3") == "ban"      # mute ← ban
-    await swear.on_policy_button(q, msg, svc, bot, "m", "0")
-    assert await swear.get_mode(svc, GROUP) == "smart"
+    await swear.on_policy_button(q, msg, svc, bot, "m", "v")
+    assert await swear.get_mode(svc, GROUP, "vulgar") == "smart"
+    assert await swear.get_mode(svc, GROUP, "insult") == "off"
+    await swear.on_policy_button(q, msg, svc, bot, "m", "i")
+    assert await swear.get_mode(svc, GROUP, "insult") == "smart"
     assert edits and "حظر متصاعد" in edits[-1]
     q.from_user.id = ALI
     await swear.on_policy_button(q, msg, svc, bot, "l", "1")
     assert answers[-1][1] is True and await svc.group_settings.get(GROUP, "swear_l1") == "gradual"
+
+
+
+# ── ٧) نوعين قفل مستقلين: الفشار +18 والإهانات ──
+async def test_insult_lock_only(env):
+    svc, bot, _ = env
+    await _setup(env)
+    out = await say(env, CREATOR, "قفل الاهانات")
+    assert "الإِهَـانَـات" in out and "الفشار +18: <b>🔓 مفتوح" in out
+    bot.calls.clear()
+    await say(env, ALI, "كسمك")                         # فشار: مفتوح
+    assert not [c for c in bot.calls if c[0] == "delete"]
+    out = await say(env, ALI, "يا حمار")               # إهانة: مقفولة
+    assert "تحذير" in out
+    out = await say(env, ALI, "يا حمار و كسمك")         # الاثنين: ينحسب كإهانة
+    rows = await svc.swear_logs.recent(GROUP, ALI)
+    assert rows[0]["level"] == 1 and rows[0]["word"] == "يا حمار"
+
+
+async def test_vulgar_lock_only(env):
+    svc, bot, _ = env
+    await _setup(env)
+    out = await say(env, CREATOR, "قفل الفشار")
+    assert "الـفُـشَـار" in out and "الإهانات: <b>🔓 مفتوح" in out
+    bot.calls.clear()
+    await say(env, ALI, "يا حمار")
+    assert not [c for c in bot.calls if c[0] == "delete"]
+    out = await say(env, ALI, "انعل ابوك")              # مسبة ← ضمن الفشار
+    assert "تحذير" in out
+    out = await say(env, ALI, "كسمك")
+    assert "تَـمَّ الـكَـتْـم" in out
+
+
+async def test_both_and_variants(env):
+    svc = env[0]
+    await _setup(env)
+    await say(env, CREATOR, "قفل السب")
+    assert await swear.get_modes(svc, GROUP) == {"vulgar": "smart", "insult": "smart"}
+    svc.command_limiter._hits.clear()
+    await say(env, CREATOR, "فتح الاهانات")
+    assert await swear.get_modes(svc, GROUP) == {"vulgar": "smart", "insult": "off"}
+    out = await say(env, CREATOR, "قفل السب 18+ بالكتم")
+    assert "الـفُـشَـار" in out
+    assert await swear.get_modes(svc, GROUP) == {"vulgar": "mute", "insult": "off"}
+    svc.command_limiter._hits.clear()
+    await say(env, CREATOR, "قفل الإهانات بالمسح")
+    assert await swear.get_modes(svc, GROUP) == {"vulgar": "mute", "insult": "delete"}
+    assert "أصلاً" in await say(env, CREATOR, "قفل الاهانات بالمسح")
+    await say(env, CREATOR, "فتح السب")
+    assert await swear.get_modes(svc, GROUP) == {"vulgar": "off", "insult": "off"}
+    svc.command_limiter._hits.clear()
+    assert await say(env, CREATOR, "قفل السب شي غلط") is None or True   # مو أمر
+    assert await swear.get_modes(svc, GROUP) == {"vulgar": "off", "insult": "off"}
+
+
+async def test_old_groups_insults_follow_swear_lock(env):
+    svc = env[0]
+    await _setup(env)
+    await svc.group_settings.set(GROUP, "swear_mode", "delete", CREATOR)   # مجموعة قديمة
+    assert await swear.get_modes(svc, GROUP) == {"vulgar": "delete", "insult": "delete"}
+    await say(env, CREATOR, "فتح الفشار")
+    assert await swear.get_modes(svc, GROUP) == {"vulgar": "off", "insult": "delete"}
+
+
+async def test_test_command_shows_lock_type(env):
+    await _setup(env)
+    await say(env, CREATOR, "قفل الفشار")
+    out = await say(env, CREATOR, "فحص سب يا حمار")
+    assert "الإهانات" in out and "مفتوح" in out
+    out = await say(env, CREATOR, "فحص سب كسمك")
+    assert "الفشار" in out and "تدريجي ذكي" in out

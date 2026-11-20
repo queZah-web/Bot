@@ -269,16 +269,20 @@ def match_word(norm: str, layers: tuple[Lexicon, ...]) -> Entry | None:
     return None
 
 
-def _scan_view(tokens: list[Token], layers: tuple[Lexicon, ...], allowed: frozenset[str]) -> Hit | None:
+def _scan_view(tokens: list[Token], layers: tuple[Lexicon, ...], allowed: frozenset[str],
+               levels: frozenset[int] | None = None) -> Hit | None:
     best: Hit | None = None
+    top = max(levels) if levels else SEVERE
 
     def consider(found: str, entry: Entry, norm: str) -> bool:
         nonlocal best
+        if levels is not None and entry.level not in levels:
+            return False
         if entry.key in allowed or glue(entry.key) in allowed or norm in allowed:
             return False
         if best is None or entry.level > best.entry.level:
             best = Hit(found, entry)
-        return best.entry.level == SEVERE
+        return best.entry.level == top
 
     norms = [t.norm for t in tokens]
     # ١) العبارات (الكلمة الأولى ممكن تجي بواو/فاء: وانعل ، فيلعن)
@@ -324,21 +328,25 @@ class SwearDetector:
         self._extra_cache: dict[frozenset, Lexicon] = {}
 
     def scan(self, text: str, layers: tuple[Lexicon, ...] = (),
-             allowed: frozenset[str] = frozenset(), cache_key=None) -> Hit | None:
-        """يرجع أشد مخالفة بالرسالة (أو None). الطبقات الأولى لها الأولوية."""
-        if not text:
+             allowed: frozenset[str] = frozenset(), cache_key=None,
+             levels: frozenset[int] | None = None) -> Hit | None:
+        """يرجع أشد مخالفة بالرسالة (أو None). الطبقات الأولى لها الأولوية.
+
+        levels: الفئات المقفولة بس (مثلاً الإهانات مقفولة والفشار مفتوح).
+        """
+        if not text or levels is not None and not levels:
             return None
-        key = (cache_key, text, allowed) if cache_key is not None else None
+        key = (cache_key, text, allowed, levels) if cache_key is not None else None
         if key is not None and key in self._cache:
             self._cache.move_to_end(key)
             return self._cache[key]
         all_layers = (*layers, self.base)
         best: Hit | None = None
         for view in views(text):
-            hit = _scan_view(view, all_layers, allowed)
+            hit = _scan_view(view, all_layers, allowed, levels)
             if hit is not None and (best is None or hit.entry.level > best.entry.level):
                 best = hit
-                if best.entry.level == SEVERE:
+                if best.entry.level == (max(levels) if levels else SEVERE):
                     break
         if key is not None:
             self._cache[key] = best

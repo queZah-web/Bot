@@ -296,8 +296,20 @@ SWEAR_MODES = {
     "mute": "🤐 مسح + كتم",
     "ban": "🚫 مسح + حظر",
 }
-SWEAR_LEVELS = {1: "🟢 خفيف", 2: "🟠 متوسط", 3: "🔴 شديد"}
-SWEAR_LEVEL_WORDS = {"خفيف": 1, "متوسط": 2, "شديد": 3}   # خيارات أمر الإضافة
+SWEAR_LEVELS = {1: "🟢 إهانة (خفيف)", 2: "🟠 مسبة (متوسط)", 3: "🔴 فشار +18 (شديد)"}
+# خيارات أمر الإضافة
+SWEAR_LEVEL_WORDS = {"خفيف": 1, "اهانه": 1, "متوسط": 2, "مسبه": 2, "شديد": 3, "فشار": 3}
+# نوعين قفل مستقلين: الفشار (+18 والمسبات) والإهانات
+SWEAR_SCOPES = {"all": "🤬 السب بنوعيه", "vulgar": "🔞 الفشار +18", "insult": "🙊 الإهانات"}
+SWEAR_SCOPE_COVERS = {
+    "all": "الفشار +18 والمسبات + الإهانات",
+    "vulgar": "الكلام البذيء والجنسي، والمسبات واللعن، والتجاوز على الدين والعرض",
+    "insult": "الإهانات والتحقير مثل: يا حمار، يا حقير، انت كلب",
+}
+# كلمات اختيارية بعد «قفل السب»: 18 ← الفشار بس
+SWEAR_SCOPE_WORDS = {"18": "vulgar", "+18": "vulgar", "18+": "vulgar"}
+SWEAR_MODE_WORDS = {"تدريجي": "smart", "التدريجي": "smart", "بالتدريج": "smart",
+                    "بالمسح": "delete", "بالكتم": "mute", "بالحظر": "ban"}
 SWEAR_GLOBAL_WORD = "عام"
 SWEAR_PLANS = {
     "gradual": "📈 تدريجي",
@@ -319,6 +331,8 @@ SWEAR_PERMANENT = "دائم"
 SWEAR_STEP_DELETE = "مسح"
 SWEAR_STEP_WARN = "تحذير"
 SWEAR_LABEL = "🤬 السب"
+SWEAR_BTN_SCOPE = {"vulgar": "🔞 الفشار: {mode}", "insult": "🙊 الإهانات: {mode}"}
+SWEAR_SUMMARY = "🔞 {vulgar} ⋅ 🙊 {insult}"
 SWEAR_REASON = "السب والكلام المسيء"
 SWEAR_NOTICE = f"{BULLET} {{mention}} عيب عيني، هالكلام ما ينگال هنا 🤍 رسالتك انمسحت"
 SWEAR_WARNED = (
@@ -335,10 +349,26 @@ SWEAR_PUNISHED = (
     f"{BULLET} المخالفة رقم: <b>{{n}}</b>\n"
     f"{BULLET} المدة: <b>{{duration}}</b>"
 )
-SWEAR_MODE_SET = title("تَـمَّ قَـفْـل الـسَّـب", "🤬") + f"\n{BULLET} الوضع: <b>{{mode}}</b>\n{BULLET} بواسطة: {{actor}}"
+SWEAR_LOCK_TITLES = {
+    "all": title("تَـمَّ قَـفْـل الـسَّـب", "🤬"),
+    "vulgar": title("تَـمَّ قَـفْـل الـفُـشَـار +18", "🔞"),
+    "insult": title("تَـمَّ قَـفْـل الإِهَـانَـات", "🙊"),
+}
+SWEAR_UNLOCK_TITLES = {
+    "all": title("تَـمَّ فَـتْـح الـسَّـب", "🔓"),
+    "vulgar": title("تَـمَّ فَـتْـح الـفُـشَـار", "🔓"),
+    "insult": title("تَـمَّ فَـتْـح الإِهَـانَـات", "🔓"),
+}
+SWEAR_MODE_SET = (
+    "{head}\n"
+    f"{BULLET} يشمل: {{covers}}\n"
+    f"{BULLET} الوضع: <b>{{mode}}</b>\n"
+    f"{BULLET} بواسطة: {{actor}}"
+)
+SWEAR_OTHER_STATE = f"{BULLET} {{scope}}: <b>{{mode}}</b>"
 SWEAR_MODE_SMART_HINT = f"{BULLET} العقوبة حسب شدة الكلام وعدد المخالفات ⋅ تتغير من: <code>عقوبات السب</code>"
-SWEAR_MODE_OFF = title("تَـمَّ فَـتْـح الـسَّـب", "🔓") + f"\n{BULLET} بواسطة: {{actor}}"
-SWEAR_MODE_SAME = f"{BULLET} السب أصلاً على وضع <b>{{mode}}</b> ✨"
+SWEAR_MODE_OFF = "{head}\n" + f"{BULLET} بواسطة: {{actor}}"
+SWEAR_MODE_SAME = f"{BULLET} {{scope}} أصلاً على وضع <b>{{mode}}</b> ✨"
 SWEAR_LOG_HEADER = title("مُـخَـالَـفَـات الـسَّـب", "🗑") + f"\n{LINE}"
 SWEAR_LOG_EMPTY = f"{BULLET} ماكو مخالفات، المجموعة محترمة 🤍"
 SWEAR_LOG_STRIKES = f"{BULLET} مخالفات {{mention}} آخر 7 أيام: <b>{{n}}</b>"
@@ -397,18 +427,22 @@ SWEAR_TEST_BLOCKED = (
     f"{BULLET} اللي انكشف: <tg-spoiler>{{found}}</tg-spoiler>\n"
     f"{BULLET} يطابق: <tg-spoiler>{{key}}</tg-spoiler>\n"
     f"{BULLET} الفئة: <b>{{level}}</b> ⋅ {{kind}}\n"
+    f"{BULLET} القفل: {{scope}} ⋅ <b>{{scope_mode}}</b>\n"
     f"{BULLET} المصدر: {{source}}\n"
     f"{BULLET} الإجراء هنا: <b>{{action}}</b>"
 )
 SWEAR_POLICY = (
     title("عُـقُـوبَـات الـسَّـب", "⚖️") + f"\n{LINE}\n"
-    f"{BULLET} الوضع: <b>{{mode}}</b>\n{{levels}}\n{LINE}\n"
+    "{levels}\n" + f"{LINE}\n"
     "<i>{note}</i>"
 )
+SWEAR_POLICY_SCOPE = "<b>{scope}</b> ⋅ {mode}"
 SWEAR_POLICY_LEVEL = "{level}: <b>{plan}</b>\n    ↫ {hint}"
 SWEAR_POLICY_NOTE = ("المخالفات تنحسب آخر 7 أيام ⋅ مشرفين المجموعة: مسح بس بدون عقوبة ⋅ "
                      "اضغط على الفئة حتى تغير عقوبتها")
 SWEAR_POLICY_NOTE_FIXED = "عقوبات الفئات تشتغل بوضع «🧠 تدريجي ذكي» بس ⋅ اضغط على الوضع حتى تغيره"
+SWEAR_POLICY_FOOT = ("كل نوع يتقفل لوحده: «قفل الفشار» أو «قفل الاهانات» أو «قفل السب» للاثنين ⋅ "
+                     "عقوبة الفئة تشتغل بالوضع التدريجي الذكي")
 SWEAR_POLICY_NEED_RANK = "تغيير عقوبات السب يحتاج رتبة مدير 🌸"
 SWEAR_BTN_MODE = "الوضع: {mode}"
 

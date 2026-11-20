@@ -311,11 +311,12 @@ async def settings_view(svc: Services, chat: Chat, uid: int) -> tuple[str, Inlin
     lvl = protect.current_level(await protect.guards_state(svc, chat.id))
     from zhoo.systems import swear
     lock_count = await locks.active_count(svc, chat.id)
-    swear_mode = await swear.get_mode(svc, chat.id)
+    swear_modes = await swear.get_modes(svc, chat.id)
     text = T.SETTINGS_PANEL.format(
         title=esc(chat.title or ""), limit=limit, action=WARN_ACTIONS.get(action, "كتم"),
         level=T.GUARD_LEVELS[lvl] if lvl else T.GUARD_CUSTOM, locks=lock_count,
-        swear=T.SWEAR_MODES[swear_mode])
+        swear=T.SWEAR_SUMMARY.format(vulgar=T.SWEAR_MODES[swear_modes["vulgar"]],
+                                     insult=T.SWEAR_MODES[swear_modes["insult"]]))
 
     def b(label, action_, arg="-"):
         return InlineKeyboardButton(label, callback_data=f"st:{uid}:{action_}:{arg}")
@@ -325,7 +326,8 @@ async def settings_view(svc: Services, chat: Chat, uid: int) -> tuple[str, Inlin
          b(f"{'✅' if goodbye_on else '▫️'} {T.BTN_GOODBYE}", "tg")],
         [b(T.BTN_WARN_LIMIT.format(n=limit), "wl"),
          b(T.BTN_WARN_ACTION.format(a=WARN_ACTIONS.get(action, "كتم")), "wa")],
-        [b(f"{T.SWEAR_LABEL}: {T.SWEAR_MODES[swear_mode]}", "sw")],
+        [b(T.SWEAR_BTN_SCOPE["vulgar"].format(mode=T.SWEAR_MODES[swear_modes["vulgar"]]), "sw"),
+         b(T.SWEAR_BTN_SCOPE["insult"].format(mode=T.SWEAR_MODES[swear_modes["insult"]]), "si")],
         [b(T.BTN_LOCKS, "locks"), b(T.BTN_PROTECT, "guard")],
         [b(T.BTN_CLOSE, "x")],
     ])
@@ -377,10 +379,11 @@ async def on_settings_button(q, msg: Message, svc: Services, bot, uid_raw: str, 
             new = _next(WARN_LIMIT_CYCLE, await g.get(chat.id, "warn_limit"))
             await g.set(chat.id, "warn_limit", new, uid)
             await svc.audit.log("setting", chat_id=chat.id, actor_id=uid, details={"key": "warn_limit", "to": new})
-        elif action == "sw":
+        elif action in ("sw", "si"):
             from zhoo.systems import swear
-            new = swear.next_mode(await swear.get_mode(svc, chat.id))
-            await swear.set_mode(svc, chat.id, new, uid)
+            scope = "vulgar" if action == "sw" else "insult"
+            new = swear.next_mode(await swear.get_mode(svc, chat.id, scope))
+            await swear.set_mode(svc, chat.id, new, uid, scope)
         elif action == "wa":
             new = _next(WARN_ACTION_CYCLE, await g.get(chat.id, "warn_action"))
             await g.set(chat.id, "warn_action", new, uid)

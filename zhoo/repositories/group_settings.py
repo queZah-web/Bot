@@ -28,6 +28,7 @@ DEFAULTS: dict[str, str] = {
     "invite_link": "",
     # السب: off | smart | delete | mute | ban
     "swear_mode": "off",
+    "insult_mode": "",    # قفل الإهانات (فارغ = يتبع قفل السب، للمجموعات القديمة)
     "swear_custom": "",   # (قديم) ينتقل تلقائياً لجدول swear_words
     "swear_allow": "",    # كلمات مسموحة بهاي المجموعة
     # عقوبة كل فئة بالوضع الذكي: gradual | mute | ban | delete | off
