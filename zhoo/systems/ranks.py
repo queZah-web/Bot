@@ -67,6 +67,13 @@ async def change_rank(cx: CommandContext, new_rank: Rank, *, only_from: Rank | N
             info = await svc.perms.rank_info(cx.bot, cx.chat.id, target.user_id)
             tg_note = "\n" + T.RANK_TG_DEMOTED
 
+    from zhoo.systems import watchdog
+    if new_rank > Rank.MEMBER and await watchdog.is_locked(svc, cx.chat.id, target.user_id):
+        if cx.rank < Rank.CREATOR:   # رتبته موقوفة للتحقيق: بس صاحب المجموعة يرجعها
+            await cx.reply(T.WATCH_LOCKED.format(mention=who))
+            return
+        await watchdog.unlock(svc, cx.chat.id, target.user_id, cx.user.id)
+
     if only_from is not None and info.stored != only_from:
         await cx.reply(T.RANK_NOT_THAT.format(mention=who, rank=RANK_NAMES[only_from]))
         return

@@ -176,6 +176,18 @@ async def scan(svc: Services, chat_id: int, text: str, *, use_allowed: bool = Tr
                          levels=levels)
 
 
+async def masked(svc: Services, chat_id: int, text: str) -> str:
+    """النص بعد تغطية الكلمات المسيئة (قاموس المجموعة + العام + الأساسي) — حتى ما يطلع سب من زهو."""
+    group, _ = await _group_layer(svc, chat_id)
+    return detector.mask(text, (group, await _global_layer(svc)))
+
+
+def _cover(word: str) -> str:
+    """كلمة/عبارة نعرف إنها مسيئة (من القاموس): نغطيها كلها بدون فحص."""
+    from zhoo.core.swear import _mask_word
+    return " ".join(_mask_word(w) if len(w) > 1 else w for w in word.split())
+
+
 # ── الفحص ───────────────────────────────────────────
 async def check(context, svc: Services, msg: Message, chat, user) -> bool:
     """يرجع True إذا انمسحت الرسالة بسبب السب."""
@@ -190,6 +202,14 @@ async def check(context, svc: Services, msg: Message, chat, user) -> bool:
     if not text:
         return False
     hit = await scan(svc, chat.id, text, levels=levels)   # نفحص بس الأنواع المقفولة
+    reply = msg.reply_to_message
+    at_zhoo = reply is not None and reply.from_user is not None and reply.from_user.id == context.bot.id
+    if hit is None and LIGHT in levels and reply is not None and chat.id not in svc.games:
+        hit = detector.reply_insult(text)                  # رد على شخص بإهانة مفردة («قذر»)
+        if hit is not None:
+            _, allowed = await _group_layer(svc, chat.id)
+            if hit.entry.key in allowed or glue(hit.entry.key) in allowed:
+                hit = None
     if hit is None:
         return False
 
@@ -232,6 +252,9 @@ async def check(context, svc: Services, msg: Message, chat, user) -> bool:
                         details={"level": level, "strike": strike})
 
     from zhoo.systems.protect import send_notice  # تجنب الاستيراد الدائري
+    if at_zhoo:   # أحد غلط على زهو نفسها
+        import random
+        await send_notice(context, chat.id, random.choice(T.ZHOO_INSULTED).format(mention=who), ttl=60)
     if kind == "delete":
         if svc.notice_limiter.hit((chat.id, user.id)):
             await send_notice(context, chat.id, T.SWEAR_NOTICE.format(mention=who), ttl=15)
@@ -454,7 +477,7 @@ async def cmd_swear_log(cx: CommandContext) -> None:
             action += f" ({format_duration(r['duration']) if r['duration'] else T.SWEAR_PERMANENT})"
         items.append(T.SWEAR_LOG_ITEM.format(
             mention=mention(r["user_id"], name), action=action, level=T.SWEAR_LEVELS.get(r["level"], ""),
-            word=esc(r["word"]), text=esc(text),
+            word=esc(_cover(r["word"])), text=esc(await masked(cx.services, cx.chat.id, text)),
             when=time.strftime("%m-%d %H:%M", time.gmtime(r["created_at"]))))
     await cx.reply(f"{head}\n" + "\n\n".join(items) + f"\n{T.LINE}\n{T.SWEAR_LOG_FOOTER}")
 
@@ -536,7 +559,7 @@ async def cmd_swear_add(cx: CommandContext) -> None:
     await svc.audit.log("swear_word_add", chat_id=cx.chat.id, actor_id=cx.user.id,
                         details={"level": level, "global": is_global})
     await cx.reply(T.SWEAR_WORD_ADDED.format(
-        word=esc(word), level=T.SWEAR_LEVELS[level], kind=T.SWEAR_KINDS[Lexicon.auto_kind(norm)],
+        word=esc(_cover(word)), level=T.SWEAR_LEVELS[level], kind=T.SWEAR_KINDS[Lexicon.auto_kind(norm)],
         where=T.SWEAR_WHERE_GLOBAL if is_global else T.SWEAR_WHERE_GROUP))
 
 
@@ -557,7 +580,7 @@ async def cmd_swear_remove(cx: CommandContext) -> None:
         invalidate(svc, chat_id)
         await svc.audit.log("swear_word_remove", chat_id=cx.chat.id, actor_id=cx.user.id,
                             details={"global": is_global})
-        await cx.reply(T.SWEAR_WORD_REMOVED.format(word=esc(word)))
+        await cx.reply(T.SWEAR_WORD_REMOVED.format(word=esc(_cover(word))))
     elif norm in detector.base.entries or detector.find(word):
         await cx.reply(T.SWEAR_WORD_BASE_REMOVE)
     else:
@@ -581,7 +604,7 @@ async def cmd_swear_allow(cx: CommandContext) -> None:
         await svc.swear_words.remove(cx.chat.id, hit.entry.key)
     invalidate(svc, cx.chat.id)
     await svc.audit.log("swear_word_allow", chat_id=cx.chat.id, actor_id=cx.user.id)
-    await cx.reply(T.SWEAR_WORD_ALLOWED.format(word=esc(word)))
+    await cx.reply(T.SWEAR_WORD_ALLOWED.format(word=esc(_cover(word))))
 
 
 @registry.command("swear_unallow", ("الغاء سماح", "إلغاء سماح", "الغاء السماح"), section=S, min_rank=DICT_RANK,
@@ -605,7 +628,7 @@ async def cmd_swear_unallow(cx: CommandContext) -> None:
         return
     invalidate(svc, cx.chat.id)
     await svc.audit.log("swear_word_unallow", chat_id=cx.chat.id, actor_id=cx.user.id)
-    await cx.reply(T.SWEAR_UNALLOWED.format(word=esc(word)))
+    await cx.reply(T.SWEAR_UNALLOWED.format(word=esc(_cover(word))))
 
 
 @registry.command("swear_test", ("فحص سب", "اختبار سب", "فحص كلمه", "فحص كلمة"), section=S, min_rank=VIEW_RANK,
@@ -618,7 +641,7 @@ async def cmd_swear_test(cx: CommandContext) -> None:
         return
     v = views(text)
     norm = " ".join(t.norm for t in v[0]) if v else ""
-    out = [T.SWEAR_TEST_HEADER, T.SWEAR_TEST_NORM.format(norm=esc(norm or "—"))]
+    out = [T.SWEAR_TEST_HEADER, T.SWEAR_TEST_NORM.format(norm=esc(await masked(svc, cx.chat.id, norm) or "—"))]
     hit = await scan(svc, cx.chat.id, text)
     if hit is None:
         raw = await scan(svc, cx.chat.id, text, use_allowed=False)
@@ -631,7 +654,7 @@ async def cmd_swear_test(cx: CommandContext) -> None:
     action = T.SWEAR_MODES["off"] if mode == "off" else step_label(mod.swear_step(plan, 1))
     out.append(T.SWEAR_TEST_BLOCKED.format(
         scope=T.SWEAR_SCOPES[scope], scope_mode=T.SWEAR_MODES[mode],
-        found=esc(hit.found), key=esc(hit.entry.key), level=T.SWEAR_LEVELS[hit.entry.level],
+        found=esc(_cover(hit.found)), key=esc(_cover(hit.entry.key)), level=T.SWEAR_LEVELS[hit.entry.level],
         kind=T.SWEAR_KINDS[hit.entry.kind], source=T.SWEAR_SOURCES[hit.entry.source], action=action))
     await cx.reply("\n".join(out))
 
@@ -655,10 +678,10 @@ async def cmd_swear_words(cx: CommandContext) -> None:
     if not rows and not allowed:
         out.append(T.SWEAR_WORDS_EMPTY)
     for r in rows[:40]:
-        out.append(f"▫️ <tg-spoiler>{esc(r['word'])}</tg-spoiler> ⋅ {T.SWEAR_LEVELS.get(r['level'], '')}")
+        out.append(f"▫️ <tg-spoiler>{esc(_cover(r['word']))}</tg-spoiler> ⋅ {T.SWEAR_LEVELS.get(r['level'], '')}")
     if len(rows) > 40:
         out.append(T.SWEAR_WORDS_MORE.format(n=len(rows) - 40))
     if allowed:
         out.append(T.SWEAR_ALLOWED_LABEL)
-        out += [f"▫️ <tg-spoiler>{esc(r['word'])}</tg-spoiler>" for r in allowed[:40]]
+        out += [f"▫️ <tg-spoiler>{esc(_cover(r['word']))}</tg-spoiler>" for r in allowed[:40]]
     await cx.reply("\n".join(out))

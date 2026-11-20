@@ -70,6 +70,7 @@ class Services:
     yt_results: dict = field(default_factory=dict)     # (chat, رسالة النتائج) ← (صاحب الطلب، النتائج، الوقت)
     yt_busy: set = field(default_factory=set)          # مجموعات بيها تحميل شغّال
     ai_client: object = None                           # عميل Claude (ينخلق أول مرة ينحتاج)
+    watch_hits: dict = field(default_factory=dict)    # (مجموعة، مشرف) ← أوقات الطرد/الحظر (مراقبة «ش»)
     fsub_cache: dict = field(default_factory=dict)    # (قناة، عضو) ← (مشترك؟، وقت الفحص)
     swear_cache: dict = field(default_factory=dict)   # chat_id ← قاموس المجموعة المجهز (0 = العام)
     chat_buffer: dict = field(default_factory=dict)    # chat_id ← آخر 150 رسالة (بالذاكرة بس، للتلخيص)

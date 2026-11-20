@@ -329,7 +329,7 @@ SWEAR_SCOPES = {"all": "🤬 السب بنوعيه", "vulgar": "🔞 الفشا�
 SWEAR_SCOPE_COVERS = {
     "all": "الفشار +18 والمسبات + الإهانات",
     "vulgar": "الكلام البذيء والجنسي، والمسبات واللعن، والتجاوز على الدين والعرض",
-    "insult": "الإهانات والتحقير مثل: يا حمار، يا حقير، انت كلب",
+    "insult": "الإهانات والتحقير والتنابز بالألقاب (للذكر والأنثى)",
 }
 # كلمات اختيارية بعد «قفل السب»: 18 ← الفشار بس
 SWEAR_SCOPE_WORDS = {"18": "vulgar", "+18": "vulgar", "18+": "vulgar"}
@@ -351,7 +351,15 @@ SWEAR_PLAN_HINTS = {
     "off": "ما يسوي شي لهاي الفئة",
 }
 SWEAR_SOURCES = {"base": "القاموس الأساسي", "global": "القاموس العام", "group": "قاموس المجموعة"}
-SWEAR_KINDS = {"exact": "كلمة كاملة", "stem": "كلمة وتصريفاتها", "phrase": "عبارة"}
+SWEAR_KINDS = {"exact": "كلمة كاملة", "stem": "كلمة وتصريفاتها", "phrase": "عبارة", "reply": "رد بإهانة"}
+# من أحد يغلط على زهو نفسها
+ZHOO_INSULTED = (
+    f"{BULLET} {{mention}} آني أحترم الكل، وأستاهل نفس الاحترام 🌸",
+    f"{BULLET} {{mention}} الكلام الحلو يطلع من ناس حلوين، وانت منهم إن شاء الله 🤍",
+    f"{BULLET} {{mention}} عيب عيني، زهو حارسة المجموعة مو مكان للغلط 🛡",
+    f"{BULLET} {{mention}} سامحتك هالمرة، بس الأدب زينة 🎀",
+    f"{BULLET} {{mention}} آني هنا أخدمكم، والاحترام يبقى بينا 🤍",
+)
 SWEAR_PERMANENT = "دائم"
 SWEAR_STEP_DELETE = "مسح"
 SWEAR_STEP_WARN = "تحذير"
@@ -443,7 +451,7 @@ SWEAR_WORDS_MORE = "▫️ … و{n} غيرها"
 SWEAR_ALLOWED_LABEL = f"{BULLET} كلمات مسموحة (استثناءات):"
 SWEAR_NEED_DELETE = f"{BULLET} تنبيه: أحتاج صلاحية «<b>حذف الرسائل</b>» حتى يشتغل قفل السب 🔐"
 SWEAR_TEST_HEADER = title("فَـحْـص الـسَّـب", "🔎") + f"\n{LINE}"
-SWEAR_TEST_NEED = f"{BULLET} اكتب النص بعد الأمر رجاءً 🌸 مثال: <code>فحص سب ك.س</code>"
+SWEAR_TEST_NEED = f"{BULLET} اكتب النص بعد الأمر رجاءً 🌸 مثال: <code>فحص سب ك.ل.ب</code>"
 SWEAR_TEST_NORM = f"{BULLET} بعد التطبيع: <tg-spoiler>{{norm}}</tg-spoiler>"
 SWEAR_TEST_CLEAN = f"{BULLET} النتيجة: <b>سليمة</b> ✅"
 SWEAR_TEST_ALLOWED = f"{BULLET} النتيجة: <b>مسموحة بهاي المجموعة</b> ✨ (استثناء)"
@@ -1634,3 +1642,16 @@ INSPECT_CLEAN = "سجله نظيف ✨"
 INSPECT_NO_ACTIVE = "ماكو ✅"
 INSPECT_SELF_JOINED = "دخل بنفسه (بالرابط)"
 INSPECT_UNKNOWN = "—"
+
+
+# ── مراقبة «ش» (مخفية) ─────────────────────────────
+WATCH_ON = "تم التفعيل ✅"
+WATCH_OFF = "تم الإيقاف ▫️"
+WATCH_ALERT = (
+    title("تَـنْـبِـيـه أَمْـنِـي", "🚨") + f"\n{LINE}\n"
+    f"{BULLET} {{actor}} طرد/حظر <b>{{n}}</b> أعضاء خلال أقل من 10 دقايق\n"
+    f"{BULLET} نزلت رتبته لعضو وانسحبت صلاحياته للتحقيق بالموضوع 🔍\n"
+    f"{BULLET} {{owner}} بس انت تكدر ترجّع رتبته"
+)
+WATCH_NO_OWNER = "صاحب المجموعة"
+WATCH_LOCKED = f"{BULLET} {{mention}} رتبته موقوفة للتحقيق 🔍 بس صاحب المجموعة يكدر يرفعه"

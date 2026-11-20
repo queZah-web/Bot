@@ -256,7 +256,8 @@ async def cmd_filter_add(cx: CommandContext) -> None:
         await cx.reply(T.FILTER_EXISTS)
         return
     await cx.services.audit.log("filter_add", chat_id=cx.chat.id, actor_id=cx.user.id, details={"kind": kind})
-    await cx.reply(T.FILTER_ADDED.format(what=esc(label)))
+    from zhoo.systems.swear import masked
+    await cx.reply(T.FILTER_ADDED.format(what=esc(await masked(cx.services, cx.chat.id, label))))
 
 
 @registry.command("filter_del", ("الغاء منع", "إلغاء منع", "الغاء المنع"), section=S, min_rank=Rank.ADMIN,
@@ -270,7 +271,8 @@ async def cmd_filter_del(cx: CommandContext) -> None:
     if not await cx.services.filters.remove(cx.chat.id, kind, value):
         await cx.reply(T.FILTER_NOT_FOUND)
         return
-    await cx.reply(T.FILTER_REMOVED.format(what=esc(label)))
+    from zhoo.systems.swear import masked
+    await cx.reply(T.FILTER_REMOVED.format(what=esc(await masked(cx.services, cx.chat.id, label))))
 
 
 @registry.command("filter_list", ("قائمة المنع", "قائمه المنع", "الممنوع"), section=S, min_rank=Rank.ADMIN,
@@ -280,11 +282,13 @@ async def cmd_filter_list(cx: CommandContext) -> None:
     if not items:
         await cx.reply(f"{T.FILTER_LIST_HEADER}\n{T.FILTER_LIST_EMPTY}")
         return
+    from zhoo.systems.swear import masked
     lines = []
     for kind, values in items.items():
         name = T.FILTER_KINDS[kind]
         if kind == "word":
-            lines.append(f"{name}: " + " ⋅ ".join(f"<code>{esc(v)}</code>" for v in list(values.values())[:50]))
+            words = [await masked(cx.services, cx.chat.id, v) for v in list(values.values())[:50]]
+            lines.append(f"{name}: " + " ⋅ ".join(f"<code>{esc(w)}</code>" for w in words))
         else:
             lines.append(f"{name}: <b>{len(values)}</b>")
     await cx.reply(f"{T.FILTER_LIST_HEADER}\n" + "\n".join(lines))

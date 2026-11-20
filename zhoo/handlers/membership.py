@@ -71,6 +71,12 @@ async def on_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # مزامنة: إذا مشرف رفع العقوبة يدوياً من تيليجرام، نحدّث سجلنا
     user_id, chat_id = cmu.new_chat_member.user.id, cmu.chat.id
     actor = cmu.from_user.id if cmu.from_user else None
+    # مراقبة «ش»: طرد/حظر من تيليجرام نفسه (مو من زهو)
+    if actor is not None and actor != context.bot.id and actor != user_id and (
+            new == S.BANNED or (new == S.LEFT and old in (S.MEMBER, S.RESTRICTED))):
+        from zhoo.systems import watchdog
+        await watchdog.record(context.bot, svc, chat_id, actor)
+
     if old == S.BANNED and new != S.BANNED:
         await svc.punishments.lift(chat_id, user_id, "ban", actor)
     elif old == S.RESTRICTED and new in (S.MEMBER, S.ADMINISTRATOR):

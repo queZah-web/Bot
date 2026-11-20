@@ -152,6 +152,9 @@ async def punish(cx: CommandContext, kind: str) -> None:
     text = _punish_text(kind, mention(target.user_id, target.name), mention(cx.user.id, cx.user.full_name),
                         seconds=seconds, reason=reason, show_duration=kind != "kick")
     await cx.reply(text, reply_markup=_undo_keyboard(kind, target.user_id))
+    if kind in ("ban", "kick"):
+        from zhoo.systems import watchdog
+        await watchdog.record(cx.bot, svc, cx.chat.id, cx.user.id)   # مراقبة «ش»
 
 
 async def warn(cx: CommandContext) -> None:

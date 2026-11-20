@@ -316,6 +316,24 @@ def _scan_view(tokens: list[Token], layers: tuple[Lexicon, ...], allowed: frozen
     return best
 
 
+MASK_CHAR = "•"
+_ADDRESS = frozenset({"يا", "انت", "انتي", "ولك", "ولج", "اسكت", "اسكتي", "روح", "روحي"})
+# كلمات عادية داخل العبارات ما نغطيها (يا حمار ← يا ح•••)
+_PLAIN = frozenset(_clean(w) for w in (
+    "يا انت انتي ابن بنت ولد الله على عليك عليج بيك بيج ابوك ابوج امك امج اختك اختج اهلك اهلج "
+    "ربك دينك شرفك عرضك جدك والديك والدينك").split())
+
+
+def _mask_word(word: str) -> str:
+    """كلمة مسيئة ← أول حرف + نقاط (كسمك ← ك•••). الرموز والإيموجي تنشال."""
+    letters = [c for c in word if c.isalpha()]
+    if len(letters) <= 1:
+        return MASK_CHAR
+    if "".join(letters[:2]) == "ال" and len(letters) > 3:   # الكلب ← الك•••
+        return "ال" + letters[2] + MASK_CHAR * max(2, min(len(letters) - 3, 6))
+    return letters[0] + MASK_CHAR * max(2, min(len(letters) - 1, 6))
+
+
 class SwearDetector:
     """الكاشف: القاموس الأساسي + أي طبقات إضافية (عام/مجموعة) + ذاكرة مؤقتة للنتائج."""
 
@@ -326,6 +344,8 @@ class SwearDetector:
         self.base = Lexicon("base").load(bank.EXACT, bank.STEMS, bank.PHRASES)
         self._cache: OrderedDict = OrderedDict()
         self._extra_cache: dict[frozenset, Lexicon] = {}
+        # أسماء الإهانة المفردة (تنحسب بس إذا انكتبت كرد على شخص)
+        self.insult_nouns = frozenset(_clean(prepare(w)) for w in bank.INSULTS_ANIMALS + bank.INSULTS_PEOPLE)
 
     def scan(self, text: str, layers: tuple[Lexicon, ...] = (),
              allowed: frozenset[str] = frozenset(), cache_key=None,
@@ -353,6 +373,67 @@ class SwearDetector:
             if len(self._cache) > self.CACHE_SIZE:
                 self._cache.popitem(last=False)
         return best
+
+    def reply_insult(self, text: str) -> Hit | None:
+        """رد على شخص بإهانة مفردة: «قذر» ، «يا حمار وسخ» ، «انتي هايشه» ← إهانة (خفيفة).
+
+        الكلمة لوحدها بالكلام العادي سليمة («الكلب نايم»)، بس كرد على شخص مقصودة بيه.
+        """
+        v = views(text)
+        if not v:
+            return None
+        norms = [t.norm for t in v[0]]
+        while norms and norms[0] in _ADDRESS:
+            norms = norms[1:]
+        if not 1 <= len(norms) <= 3:
+            return None
+        words = [n[2:] if n.startswith("ال") and n[2:] in self.insult_nouns else n for n in norms if n != "و"]
+        if words and all(w in self.insult_nouns for w in words):
+            key = " ".join(words)
+            return Hit(text.strip(), Entry(key, key, LIGHT, "reply", "base"))
+        return None
+
+    def mask(self, text: str, layers: tuple[Lexicon, ...] = ()) -> str:
+        """يرجع النص بعد تغطية كل كلمة مسيئة (ما نطلع أي كلمة بذيئة من البوت)."""
+        if not text:
+            return text
+        all_layers = (*layers, self.base)
+        parts = re.split(r"(\s+)", text)
+        idx = [i for i, p in enumerate(parts) if p and not p.isspace()]
+        norms = [_clean(prepare(parts[i])) for i in idx]
+        bad: set[int] = set()
+        # كلمات مفردة
+        for k, n in enumerate(norms):
+            if n and match_word(n, all_layers) is not None:
+                bad.add(k)
+        # عبارات (يا حمار، انعل ابوك...)
+        for k, first in enumerate(norms):
+            for f in (first, first[1:] if first[:1] in ("و", "ف") and len(first) > 3 else None):
+                if not f:
+                    continue
+                for lx in all_layers:
+                    for words, _ in lx.phrases.get(f, ()):
+                        if tuple(norms[k + 1:k + len(words)]) == words[1:]:
+                            span = [x for x in range(k, k + len(words)) if norms[x] not in _PLAIN]
+                            bad.update(span or range(k, k + len(words)))
+        # حروف مفرّقة (ك س م ك)
+        k = 0
+        while k < len(norms):
+            if len(norms[k]) == 1:
+                j = k
+                while j < len(norms) and len(norms[j]) <= 1:
+                    j += 1
+                joined = _REPEAT.sub(r"\1", "".join(norms[k:j]))
+                if j - k >= 2 and (match_word(joined, all_layers) or self.scan(joined, layers)):
+                    bad.update(range(k, j))
+                k = j
+            else:
+                k += 1
+        if not bad:
+            return text
+        for k in bad:
+            parts[idx[k]] = _mask_word(parts[idx[k]])
+        return "".join(parts)
 
     def find(self, text: str, extra=frozenset(), allowed=frozenset()) -> str | None:
         """واجهة مبسطة: يرجع الكلمة/العبارة المسيئة مثل ما انكتبت، أو None."""

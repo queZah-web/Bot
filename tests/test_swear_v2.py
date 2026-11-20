@@ -272,7 +272,7 @@ async def test_log_per_user_and_clear(env):
     await say(env, CREATOR, "قفل السب")
     await say(env, ALI, "انعل ابوك")
     out = await say(env, CREATOR, "مخالفات السب", reply_to=ALI)
-    assert "آخر 7 أيام: <b>1</b>" in out and "انعل ابوك" in out
+    assert "آخر 7 أيام: <b>1</b>" in out and "ا••• ابوك" in out
     assert "صفحته بيضة" in await say(env, CREATOR, "مسح مخالفات السب", reply_to=ALI)
     svc.command_limiter._hits.clear()
     await svc.swear_logs.clear(GROUP, ALI)
