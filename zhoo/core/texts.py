@@ -208,6 +208,76 @@ UNDO_DONE = "تم التراجع بنجاح ✨"
 UNDO_NOT_ALLOWED = "عذراً، رتبتك لا تسمح بالتراجع عن هذه العقوبة 🔐"
 UNDO_FOOTER = f"\n{LINE}\n{BULLET} تراجع بواسطة: {{actor}} ✨"
 
+# ── الحماية ────────────────────────────────────────
+GUARD_LABELS = {
+    "flood": ("مكافحة الإغراق", "🌊", "إرسال رسائل كثيرة بسرعة"),
+    "repeat": ("الرسائل المكررة", "🔁", "تكرار نفس الرسالة"),
+    "links": ("الروابط", "🔗", "إرسال روابط غير مسموحة"),
+    "forward": ("التوجيه", "↪️", "توجيه رسائل من قنوات أو أشخاص"),
+    "mentions": ("المنشن الجماعي", "📣", "منشن لعدد كبير من الأعضاء"),
+    "bots": ("البوتات الدخيلة", "🤖", "إضافة بوت بدون صلاحية"),
+    "captcha": ("تحقق الأعضاء الجدد", "🧩", "التحقق من العضو الجديد"),
+}
+GUARD_LEVELS = {"light": "🌿 خفيف", "medium": "⚖️ متوسط", "strict": "🔥 صارم"}
+
+GUARD_PANEL = (
+    title("إعدادات الحماية", "🛡") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} المستوى الحالي: <b>{{level}}</b>\n"
+    f"{BULLET} اضغط على أي خيار لتفعيله أو إيقافه ✨\n"
+    f"{LINE}\n"
+    "{rows}\n"
+    f"{LINE}\n"
+    f"{BULLET} المميزون فما فوق مُستثنَون من الحماية 🤍"
+)
+GUARD_CUSTOM = "✏️ مخصص"
+GUARD_NEED_MANAGER = "تعديل الحماية يحتاج رتبة مدير أو أعلى 🔐"
+GUARD_LEVEL_SET = f"{BULLET} تم ضبط مستوى الحماية على <b>{{level}}</b> ✨"
+GUARD_LEVEL_BAD = f"{BULLET} اختر مستوى من: <code>خفيف</code> ، <code>متوسط</code> ، <code>صارم</code> 🌸"
+GUARD_NO_DELETE_RIGHT = f"{BULLET} تنبيه: أحتاج صلاحية «<b>حذف الرسائل</b>» حتى تعمل الحماية 🔐"
+
+GUARD_NOTICE = f"{BULLET} {{mention}} عذراً، {{what}} غير مسموح هنا 🌸 <i>({{strike}}/{{max}})</i>"
+GUARD_MUTED = (
+    title("تَـمَّ الـكَـتْـم تِـلْـقَـائِـيًّـا", "🛡") + "\n"
+    f"{BULLET} العضو: {{mention}}\n"
+    f"{BULLET} السبب: {{why}}\n"
+    f"{BULLET} المدة: <b>{{duration}}</b>"
+)
+GUARD_WHY = {
+    "flood": "الإغراق بالرسائل",
+    "repeat": "تكرار نفس الرسالة",
+    "links": "إرسال الروابط",
+    "forward": "التوجيه",
+    "mentions": "المنشن الجماعي",
+}
+GUARD_WHAT = {
+    "repeat": "تكرار نفس الرسالة",
+    "links": "إرسال الروابط",
+    "forward": "التوجيه",
+    "mentions": "المنشن الجماعي",
+}
+GUARD_BOT_KICKED = f"{BULLET} تم طرد البوت {{bot}} 🤖 لأن إضافة البوتات تحتاج رتبة أدمن أو أعلى"
+
+WHITELIST_ADDED = f"{BULLET} تم السماح بروابط <code>{{domain}}</code> ✨"
+WHITELIST_REMOVED = f"{BULLET} تم منع روابط <code>{{domain}}</code> 🌸"
+WHITELIST_BAD = f"{BULLET} اكتب النطاق بشكل صحيح من فضلك 🌸 مثال: <code>سماح رابط youtube.com</code>"
+WHITELIST_NOT_FOUND = f"{BULLET} النطاق <code>{{domain}}</code> غير موجود بالقائمة"
+WHITELIST_HEADER = title("الروابط المسموحة", "🔗") + f"\n{LINE}"
+WHITELIST_EMPTY = f"{BULLET} لا توجد روابط مسموحة حالياً (رابط المجموعة نفسها مسموح دائماً) 🌸"
+GUARD_LOG_HEADER = title("سجل الحماية", "📜") + f"\n{LINE}"
+GUARD_LOG_EMPTY = f"{BULLET} لا توجد مخالفات مسجلة، المجموعة هادئة 🤍"
+
+CAPTCHA_TEXT = (
+    title("أهلاً بك {mention}", "🌸") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} للتأكد أنك لست روبوتاً، اضغط الزر بالأسفل\n"
+    f"{BULLET} لديك <b>{{minutes}} دقائق</b> 🤍"
+)
+CAPTCHA_BUTTON = "🤍 أنا لست روبوتاً"
+CAPTCHA_NOT_YOURS = "هذا الزر مخصص للعضو الجديد فقط 🌸"
+CAPTCHA_DONE = "تم التحقق بنجاح، أهلاً بك 🤍"
+CAPTCHA_EXPIRED = "انتهت صلاحية هذا التحقق 🌸"
+
 # ── المالك ─────────────────────────────────────────
 OWNER_PANEL = (
     title("مركز المالك", "👑") + "\n"

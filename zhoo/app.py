@@ -16,7 +16,7 @@ from zhoo.database.db import Database
 from zhoo.handlers import callbacks, errors, membership, router, start
 
 # استيراد الأنظمة يسجل أوامرها بالسجل المركزي
-from zhoo.systems import general, owner, punish, ranks  # noqa: F401
+from zhoo.systems import general, owner, protect, punish, ranks  # noqa: F401
 
 log = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ async def _flush_job(context: ContextTypes.DEFAULT_TYPE) -> None:
     svc = context.application.bot_data["services"]
     await svc.tracker.flush()
     await svc.punishments.expire()  # العقوبات المؤقتة المنتهية (تيليجرام يرفعها بنفسه)
+    await protect.sweep_captcha(context)  # طرد اللي ما تحققوا بالوقت
 
 
 async def _post_init(app: Application) -> None:
@@ -78,6 +79,8 @@ def build_application(settings: Settings) -> Application:
     app.add_handler(CommandHandler("start", start.cmd_start, filters=chats))
     app.add_handler(CommandHandler("help", start.cmd_help, filters=chats))
     app.add_handler(MessageHandler(filters.StatusUpdate.MIGRATE, router.on_migrate))
+    app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS & filters.ChatType.GROUPS,
+                                   protect.on_new_members))
     app.add_handler(MessageHandler(filters.UpdateType.MESSAGE & chats & ~filters.COMMAND, router.on_message))
     app.add_handler(CallbackQueryHandler(callbacks.on_callback))
     app.add_handler(ChatMemberHandler(membership.on_my_chat_member, ChatMemberHandler.MY_CHAT_MEMBER))

@@ -27,6 +27,12 @@ class AuditRepo:
         except Exception:  # السجل لا يجب أن يكسر العملية الأصلية
             log.exception("تعذر كتابة سجل التدقيق")
 
+    async def recent_actions(self, chat_id: int, prefix: str, limit: int = 15):
+        return await self.db.fetchall(
+            "SELECT * FROM audit_logs WHERE chat_id = ? AND action LIKE ? ORDER BY id DESC LIMIT ?",
+            (chat_id, prefix + "%", limit),
+        )
+
     async def recent(self, limit: int = 10, chat_id: int | None = None):
         if chat_id is None:
             return await self.db.fetchall(

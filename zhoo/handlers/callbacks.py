@@ -12,7 +12,7 @@ from zhoo.core.commands import registry
 from zhoo.core.context import Services, get_services
 from zhoo.core.fmt import mention
 from zhoo.handlers.views import about_text, audit_text, groups_text, help_main_text, owner_panel_text
-from zhoo.systems import punish
+from zhoo.systems import protect, punish
 from zhoo.keyboards.menus import (SECTION_MAP, back_to_start_keyboard, help_main_keyboard,
                                   owner_keyboard, owner_sub_keyboard, section_keyboard, section_text,
                                   start_keyboard)
@@ -63,7 +63,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if not is_dev and not svc.button_limiter.hit(user.id):
         await q.answer(T.SLOW_DOWN)
         return
-    if svc.maintenance and not is_dev:
+    if svc.maintenance and not is_dev and not (q.raw.data or "").startswith("c:"):  # التحقق يشتغل دائماً
         await q.answer(T.MAINTENANCE.replace("⌯ ", ""), show_alert=True)
         return
 
@@ -76,6 +76,10 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             await _start(q, msg, svc, context, parts[1])
         elif kind == "o" and len(parts) == 2:
             await _owner(q, msg, svc, parts[1])
+        elif kind == "g" and len(parts) == 4:
+            await protect.on_panel_button(q, msg, svc, context.bot, parts[1], parts[2], parts[3])
+        elif kind == "c" and len(parts) == 2:
+            await protect.on_captcha_button(q, msg, svc, context.bot, parts[1])
         elif kind == "p" and len(parts) == 3:
             await punish.on_undo_button(q, msg, svc, context.bot, parts[1], parts[2])
         else:

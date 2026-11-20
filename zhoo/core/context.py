@@ -10,11 +10,13 @@ from telegram.ext import ContextTypes
 from zhoo.config import Settings
 from zhoo.core.permissions import PermissionService
 from zhoo.core.ranks import Rank
+from zhoo.core.guards import FloodTracker, RepeatTracker, StrikeTracker
 from zhoo.core.ratelimit import RateLimiter
 from zhoo.core.tracker import Tracker
 from zhoo.database.db import Database
 from zhoo.repositories.audit import AuditRepo
 from zhoo.repositories.bot_settings import BotSettingsRepo
+from zhoo.repositories.captcha import CaptchaRepo
 from zhoo.repositories.group_settings import GroupSettingsRepo
 from zhoo.repositories.groups import GroupsRepo
 from zhoo.repositories.members import MembersRepo
@@ -35,6 +37,11 @@ class Services:
     tracker: Tracker
     punishments: PunishmentsRepo
     group_settings: GroupSettingsRepo
+    captcha: CaptchaRepo
+    flood: FloodTracker = field(default_factory=FloodTracker)
+    repeats: RepeatTracker = field(default_factory=RepeatTracker)
+    strikes: StrikeTracker = field(default_factory=StrikeTracker)
+    notice_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(1, 20))
     command_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(5, 10))
     button_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(4, 3))
     started_at: float = field(default_factory=time.time)
@@ -49,6 +56,7 @@ class Services:
             perms=PermissionService(members, settings.owner_id),
             tracker=Tracker(users, groups, members),
             punishments=PunishmentsRepo(db), group_settings=GroupSettingsRepo(db),
+            captcha=CaptchaRepo(db),
         )
 
     @property

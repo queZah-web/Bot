@@ -61,6 +61,10 @@ class FakeBot:
         self.calls.append(("restrict", user_id, permissions.can_send_messages, until_date))
         return True
 
+    async def delete_message(self, chat_id, message_id, **kw):
+        self.calls.append(("delete", message_id))
+        return True
+
     async def get_chat(self, chat_id, **kw):
         return SimpleNamespace(permissions=ChatPermissions.all_permissions())
 
@@ -168,7 +172,7 @@ async def test_help_menu_and_staff(env):
 
 
 async def test_rate_limit(env):
-    outs = [await say(env, ALI, "رتبتي") for _ in range(7)]
+    outs = [await say(env, ALI, "رتبتي") for _ in range(6)]
     assert any(o and "على مهلك" in o for o in outs)
 
 

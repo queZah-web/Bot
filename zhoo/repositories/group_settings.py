@@ -6,6 +6,15 @@ from zhoo.database.db import Database, now
 DEFAULTS: dict[str, str] = {
     "warn_limit": "3",
     "warn_action": "mute",   # mute | kick | ban
+    # الحماية (المستوى الخفيف افتراضياً حتى ما تنزعج المجموعات الجديدة)
+    "guard_flood": "1",
+    "guard_repeat": "0",
+    "guard_links": "0",
+    "guard_forward": "0",
+    "guard_mentions": "1",
+    "guard_bots": "1",
+    "guard_captcha": "0",
+    "link_whitelist": "",
 }
 
 
