@@ -10,9 +10,10 @@ class Rank(IntEnum):
     ADMIN = 20           # الأدمن
     SUPERVISOR = 30      # المشرف
     MANAGER = 40         # المدير
-    GENERAL_MANAGER = 50 # المدير العام
+    GENERAL_MANAGER = 50 # المنشئ (كان اسمه «مدير عام»، نفس القيمة بالقاعدة)
     OWNER = 60           # المالك
-    CREATOR = 70         # المنشئ (منشئ المجموعة في تيليجرام — تلقائي)
+    PRIMARY_OWNER = 65   # المالك الأساسي (يرفعه صاحب المجموعة بس)
+    CREATOR = 70         # صاحب المجموعة (منشئها في تيليجرام — تلقائي)
     DEVELOPER = 100      # مطور البوت (OWNER_ID — تلقائي)
 
 
@@ -22,9 +23,10 @@ RANK_NAMES: dict[Rank, str] = {
     Rank.ADMIN: "أدمن",
     Rank.SUPERVISOR: "مشرف",
     Rank.MANAGER: "مدير",
-    Rank.GENERAL_MANAGER: "مدير عام",
+    Rank.GENERAL_MANAGER: "منشئ",
     Rank.OWNER: "مالك",
-    Rank.CREATOR: "المنشئ",
+    Rank.PRIMARY_OWNER: "مالك أساسي",
+    Rank.CREATOR: "صاحب المجموعة",
     Rank.DEVELOPER: "مطور زهو",
 }
 
@@ -35,13 +37,15 @@ RANK_EMOJI: dict[Rank, str] = {
     Rank.SUPERVISOR: "🛡",
     Rank.MANAGER: "💼",
     Rank.GENERAL_MANAGER: "🎖",
-    Rank.OWNER: "👑",
+    Rank.OWNER: "🔱",
+    Rank.PRIMARY_OWNER: "👑",
     Rank.CREATOR: "🏛",
     Rank.DEVELOPER: "💎",
 }
 
 # الرتب التي تُمنح بالأوامر (المنشئ والمطور تلقائيان ولا يُمنحان)
 ASSIGNABLE: tuple[Rank, ...] = (
+    Rank.PRIMARY_OWNER,
     Rank.OWNER,
     Rank.GENERAL_MANAGER,
     Rank.MANAGER,
@@ -54,8 +58,9 @@ PROTECTED: frozenset[Rank] = frozenset({Rank.CREATOR, Rank.DEVELOPER})
 
 # صيغة الجمع لعرض القوائم
 RANK_PLURALS: dict[Rank, str] = {
+    Rank.PRIMARY_OWNER: "المالكين الأساسيين",
     Rank.OWNER: "المالكين",
-    Rank.GENERAL_MANAGER: "المدراء العامين",
+    Rank.GENERAL_MANAGER: "المنشئين",
     Rank.MANAGER: "المدراء",
     Rank.SUPERVISOR: "المشرفين",
     Rank.ADMIN: "الأدمنية",

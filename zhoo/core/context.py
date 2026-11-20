@@ -27,6 +27,7 @@ from zhoo.repositories.members import MembersRepo
 from zhoo.repositories.punishments import PunishmentsRepo
 from zhoo.repositories.replies import RepliesRepo
 from zhoo.repositories.social import RatingsRepo, SocialRepo
+from zhoo.repositories.perms import FiltersRepo, MemberPermsRepo
 from zhoo.repositories.swear_logs import SwearLogsRepo
 from zhoo.repositories.swear_words import SwearWordsRepo
 from zhoo.repositories.users import UsersRepo
@@ -48,6 +49,8 @@ class Services:
     captcha: CaptchaRepo
     swear_logs: SwearLogsRepo
     swear_words: SwearWordsRepo
+    member_perms: MemberPermsRepo
+    filters: FiltersRepo
     aliases: AliasesRepo
     replies: RepliesRepo
     social: SocialRepo
@@ -84,6 +87,8 @@ class Services:
         self.games.clear()
         self.swear_cache.clear()
         self.fsub_cache.clear()
+        self.member_perms._cache.clear()
+        self.filters._cache.clear()
     command_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(5, 10))
     button_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(4, 3))
     started_at: float = field(default_factory=time.time)
@@ -98,7 +103,7 @@ class Services:
             perms=PermissionService(members, settings.owner_id),
             tracker=Tracker(users, groups, members),
             punishments=PunishmentsRepo(db), group_settings=GroupSettingsRepo(db),
-            captcha=CaptchaRepo(db), swear_logs=SwearLogsRepo(db), swear_words=SwearWordsRepo(db),
+            captcha=CaptchaRepo(db), swear_logs=SwearLogsRepo(db), swear_words=SwearWordsRepo(db), member_perms=MemberPermsRepo(db), filters=FiltersRepo(db),
             aliases=AliasesRepo(db), replies=RepliesRepo(db), social=SocialRepo(db),
             ratings=RatingsRepo(db), levels=LevelsRepo(db), economy=EconomyRepo(db),
         )

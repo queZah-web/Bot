@@ -233,15 +233,25 @@ async def check(context, svc: Services, msg: Message, chat, user, *, edited: boo
             continue
         if rank is None:
             rank = await svc.perms.rank_of(context.bot, chat.id, user.id)
-        if rank >= exempt_rank(key):
+        if await _exempt(svc, chat.id, user.id, key, rank):
             continue   # مستثنى من هذا القفل، نشوف باقي المخالفات
         return await enforce(context, svc, msg, chat, user, LOCK_MAP[key], mode)
     return False
 
 
 def exempt_rank(key: str) -> Rank:
-    """أقل رتبة تتجاوز القفل."""
+    """أقل رتبة تتجاوز القفل (افتراضياً)."""
     return Rank.VIP if key in VIP_EXEMPT else EXEMPT_RANK
+
+
+async def _exempt(svc: Services, chat_id: int, user_id: int, key: str, rank: Rank) -> bool:
+    """الرتبة + الصلاحيات المخصصة (مثلاً مميز انطوه صلاحية الملفات)."""
+    from zhoo.core import capabilities as caps
+    cap = caps.LOCK_CAP.get(key)
+    default = rank >= exempt_rank(key)
+    if cap is None:
+        return default
+    return await caps.has_cap(svc, chat_id, user_id, cap, default)
 
 
 async def enforce(context, svc: Services, msg: Message, chat, user, lock: Lock, mode: str) -> bool:
@@ -593,7 +603,8 @@ async def on_reaction(update, context) -> None:
         return
     try:
         if r.user is not None:
-            if r.user.is_bot or await svc.perms.rank_of(context.bot, chat.id, r.user.id) >= exempt_rank("reactions"):
+            if r.user.is_bot or await _exempt(svc, chat.id, r.user.id, "reactions",
+                                              await svc.perms.rank_of(context.bot, chat.id, r.user.id)):
                 return
             await context.bot.delete_message_reaction(chat.id, r.message_id, user_id=r.user.id)
         elif r.actor_chat is not None and r.actor_chat.id != chat.id:

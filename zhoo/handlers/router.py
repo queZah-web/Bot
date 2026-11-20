@@ -6,13 +6,14 @@ import logging
 from telegram import Chat, MessageEntity, Update
 from telegram.ext import ContextTypes
 
+from zhoo.core import capabilities as caps
 from zhoo.core import texts as T
 from zhoo.core.commands import registry
 from zhoo.core.context import CommandContext, get_services
 from zhoo.core.ranks import RANK_NAMES, Rank
 from zhoo.core import conversation
 from zhoo.core.normalize import normalize
-from zhoo.systems import (ai, aliases, channels, botstate, extras, features, games, levels, locks, protect, replies,
+from zhoo.systems import (ai, aliases, channels, cleanup, botstate, extras, features, games, levels, locks, protect, replies,
                           swear)
 
 log = logging.getLogger(__name__)
@@ -63,6 +64,8 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             if await locks.check(context, svc, msg, chat, user):
                 return
             if await channels.check(context, svc, msg, chat, user):   # الاشتراك الإجباري
+                return
+            if await cleanup.check(context, svc, msg, chat, user):    # قائمة المنع
                 return
 
     # ٢) التحليل
@@ -135,10 +138,18 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         return
 
     rank = await svc.perms.rank_of(context.bot, chat.id, user.id, private=private)
-    if rank < cmd.min_rank and not (cmd.helpers and svc.perms.is_helper(user.id)):
+    cap = caps.COMMAND_CAP.get(cmd.key) if in_group else None
+    if cap is not None:   # صلاحية قابلة للتخصيص لكل شخص
+        allowed = await caps.has_cap(svc, chat.id, user.id, cap, rank >= cmd.min_rank)
+    else:
+        allowed = rank >= cmd.min_rank or (cmd.helpers and svc.perms.is_helper(user.id))
+    if not allowed:
         if cmd.min_rank >= Rank.DEVELOPER:
             return  # أوامر المطور مخفية تماماً عن غيره
-        await msg.reply_text(T.NO_PERMISSION.format(rank=RANK_NAMES[cmd.min_rank]))
+        if cap is not None and rank >= cmd.min_rank:
+            await msg.reply_text(T.CAP_REVOKED.format(cap=caps.CAPS[cap][0]))
+        else:
+            await msg.reply_text(T.NO_PERMISSION.format(rank=RANK_NAMES[cmd.min_rank]))
         return
 
     # الميزات المعطّلة (المالك وفوگ يتجاوزونها)

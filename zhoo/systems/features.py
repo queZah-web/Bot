@@ -37,8 +37,8 @@ class Feature:
         return self.setting or f"feat_{self.key}"
 
 
-_PROMOTE = tuple(f"promote_{r}" for r in ("owner", "general_manager", "manager", "supervisor", "admin", "vip"))
-_DEMOTE = ("demote",) + tuple(f"demote_{r}" for r in ("owner", "general_manager", "manager", "supervisor",
+_PROMOTE = tuple(f"promote_{r}" for r in ("primary_owner", "owner", "general_manager", "manager", "supervisor", "admin", "vip"))
+_DEMOTE = ("demote",) + tuple(f"demote_{r}" for r in ("primary_owner", "owner", "general_manager", "manager", "supervisor",
                                                        "admin", "vip"))
 
 FEATURES: tuple[Feature, ...] = (

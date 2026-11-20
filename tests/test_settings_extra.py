@@ -38,7 +38,7 @@ async def test_group_info_and_creator(env):
     assert "مَـعْـلُـومَـات الـمَـجْـمُـوعَـة" in out and str(GROUP) in out and "42" in out
     assert "Creator" in out and "مطفي" in out
     assert "يحتاج رتبة" in await say(env, ALI, "المجموعه")
-    assert "Creator" in await say(env, ALI, "المنشئين")
+    assert "Creator" in await say(env, ALI, "صاحب المجموعه")
 
 
 async def test_link_create(env):

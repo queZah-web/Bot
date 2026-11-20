@@ -1480,3 +1480,100 @@ DEV_JOINED = (
     f"{BULLET} {{mention}} مطوّر زهو ومالكها دخل المجموعة 🤍\n"
     f"{BULLET} إله كل الصلاحيات هنا: الأوامر والعقوبات والإعدادات 🛡"
 )
+
+
+# ── الصلاحيات المخصصة ──────────────────────────────
+CAP_REVOKED = f"{BULLET} صلاحية «<b>{{cap}}</b>» مسحوبة منك بهاي المجموعة 🌸"
+PERM_HINT = f"{BULLET} تكدر تعدل صلاحياته من الأزرار جوه 👇"
+PERM_PANEL = (
+    title("الـصَّـلَاحِـيَّـات", "🎛") + f"\n{LINE}\n"
+    f"{BULLET} الرتبة: {{rank}}\n"
+    f"{BULLET} ✅ مسموح ⋅ ▫️ ممنوع ⋅ ✏️ مخصص (مو حسب الرتبة)\n"
+    f"{BULLET} اضغط على أي صلاحية حتى تشغلها أو تطفيها"
+)
+PERM_OF = f"{BULLET} صلاحيات {{mention}}"
+PERM_BTN_RESET = "↺ حسب الرتبة"
+PERM_MINE = (
+    title("صَـلَاحِـيَّـاتِـي", "🎛") + f"\n{LINE}\n"
+    f"{BULLET} الرتبة: {{rank}}\n"
+    f"{BULLET} ✅ تكدر: {{on}}\n"
+    f"{BULLET} ▫️ ما تكدر: {{off}}"
+)
+PERM_NOT_ALLOWED = "تكدر تعدل صلاحيات اللي رتبتهم أقل منك بس 🌸"
+PERM_PROTECTED = "هذا الشخص محمي، صلاحياته ما تتغير 🛡"
+PERM_YOU_LACK = "ما تكدر تنطي أو تسحب صلاحية انت ما عندك 🌸"
+PERM_RESET_DONE = "رجعت صلاحياته حسب رتبته ✨"
+RANK_TG_PROMOTED = f"{BULLET} وصار مشرف بتيليجرام كمان (حذف، حظر، تثبيت، دعوة) 🛡"
+RANK_TG_FAILED = (f"{BULLET} صار مشرف بزهو، بس ما كدرت أرفعه مشرف بتيليجرام 🌸 "
+                  "أحتاج صلاحية «<b>إضافة مشرفين</b>»")
+RANK_TG_DEMOTED = f"{BULLET} وانشال إشرافه بتيليجرام كمان 🔻"
+RANK_ALL_REVOKED = f"{BULLET} انسحبت كل صلاحياته، صار عضو عادي ✨"
+
+
+# ── المسح والمنع والتنظيف ──────────────────────────
+CLEAR_RANK_DONE = f"{BULLET} نزلت <b>{{n}}</b> من {{what}} لأعضاء، وانسحبت صلاحياتهم ✨"
+CLEAR_RANK_EMPTY = f"{BULLET} ماكو {{what}} بالمجموعة 🌸"
+CLEAR_ALL_CONFIRM = (
+    title("مَـسْـح الـرُّتَـب", "⚠️") + f"\n{LINE}\n"
+    f"{BULLET} راح أنزل <b>كل الرتب</b> اللي تحت رتبتك ({{rank}}) لأعضاء، وأسحب كل صلاحياتهم\n"
+    f"{BULLET} متأكد؟"
+)
+BTN_CONFIRM_CLEAR = "✅ اي، امسح"
+BTN_CANCEL_CLEAR = "✖️ لا، الغي"
+CLEAR_ALL_CANCELLED = f"{BULLET} تم الإلغاء، محد تغيرت رتبته 🌸"
+CLEAR_ALL_NEED_RANK = "مسح الكل يحتاج رتبة مالك أو أعلى 🌸"
+CLEAR_ALL_DONE = title("تَـمَّ مَـسْـح الـرُّتَـب", "🧹") + f"\n{BULLET} نزل <b>{{n}}</b> شخص لعضو عادي ✨"
+CLEAR_LIST_DONE = f"{BULLET} انفكت القيود عن <b>{{n}}</b> من {{what}} ✨"
+CLEAR_LIST_EMPTY = f"{BULLET} ماكو {{what}} حالياً 🌸"
+PURGE_HINT = f"{BULLET} اكتب العدد (مثل <code>مسح 50</code>) أو رد على رسالة بكلمة <code>مسح</code> 🌸"
+PURGE_DONE = f"🧹 انمسحت <b>{{n}}</b> رسالة"
+FILTER_HINT = (f"{BULLET} رد على ملصق أو متحركة أو صورة أو فيديو بكلمة <code>منع</code>، "
+               "أو اكتب: <code>منع الكلمة</code> 🌸")
+FILTER_ADDED = title("تَـمَّ الـمَـنْـع", "⛔") + f"\n{BULLET} {{what}}\n{BULLET} أي أحد يرسله تنمسح رسالته (المشرفين مستثنين)"
+FILTER_EXISTS = f"{BULLET} هذا ممنوع من قبل ⛔"
+FILTER_REMOVED = f"{BULLET} رجع <b>{{what}}</b> مسموح ✨"
+FILTER_NOT_FOUND = f"{BULLET} هذا مو موجود بقائمة المنع 🌸"
+FILTER_NOTICE = f"{BULLET} {{mention}} عيني، هذا ممنوع بالمجموعة ⛔ رسالتك انمسحت"
+FILTER_LIST_HEADER = title("قَـائِـمَـة الـمَـنْـع", "⛔") + f"\n{LINE}"
+FILTER_LIST_EMPTY = f"{BULLET} ماكو شي ممنوع 🌸"
+FILTER_KINDS = {"sticker": "🧸 ملصقات", "animation": "🎞 متحركات", "photo": "🖼 صور", "video": "🎬 فيديوهات",
+                "word": "✍️ كلمات"}
+FILTER_CLEARED = f"{BULLET} انمسحت قائمة المنع (<b>{{n}}</b>) ✨"
+BOTS_HEADER = title("الـبُـوتَـات", "🤖") + f"\n{LINE}"
+BOTS_EMPTY = f"{BULLET} ما لگيت بوتات غيري 🌸"
+BOTS_FOOTER = "<i>🛡 = مشرف ⋅ تيليجرام ما يخلي البوتات تشوف كل الأعضاء، فأعرض اللي أعرفهم بس</i>"
+BOTS_KICKED = f"{BULLET} انطرد <b>{{n}}</b> بوت 🤖 ⋅ ما كدرت على <b>{{failed}}</b> (مشرفين ما رفعتهم آني)"
+DELETED_SCANNING = f"{BULLET} دا أفحص الأعضاء عن الحسابات المحذوفة ⏳"
+DELETED_BUSY = f"{BULLET} الفحص شغّال هسه، انتظره يخلص 🌸"
+DELETED_DONE = (
+    title("طَـرْد الـمَـحْـذُوفِـيـن", "👻") + f"\n{LINE}\n"
+    f"{BULLET} فحصت: <b>{{checked}}</b> عضو\n"
+    f"{BULLET} انطرد: <b>{{n}}</b> حساب محذوف\n"
+    "<i>أفحص الأعضاء اللي أعرفهم بس (تيليجرام ما يعطي البوتات قائمة كاملة)</i>"
+)
+LIFT_ALL_DONE = (
+    title("تَـمَّ رَفْـع الـقُـيُـود", "🕊") + f"\n{LINE}\n"
+    f"{BULLET} العضو: {{mention}}\n"
+    f"{BULLET} انفك عنه الحظر والكتم والتقييد\n"
+    f"{BULLET} بواسطة: {{actor}}"
+)
+RIGHT_DELETE = "حذف الرسائل"
+
+
+# ── صورة واسم وبايو المجموعة ───────────────────────
+CHAT_INFO_NEED_RIGHT = f"{BULLET} أحتاج صلاحية «<b>تغيير معلومات المجموعة</b>» حتى أكدر أغيرها 🔐"
+CHAT_INFO_FAILED = f"{BULLET} ما كدرت أغيرها 🌸 تأكد من صلاحياتي وجرب مرة ثانية"
+CHAT_PHOTO_ASK = f"{BULLET} ارسل الصورة الجديدة للمجموعة هسه 🖼\n{BULLET} للإلغاء اكتب: <code>الغاء</code>"
+CHAT_PHOTO_NEED = f"{BULLET} أنتظر صورة 🖼 ارسلها، أو اكتب <code>الغاء</code>"
+CHAT_PHOTO_TOO_BIG = f"{BULLET} الصورة كبيرة هوايه 🌸 اختار وحدة أصغر من 10 ميگا"
+CHAT_PHOTO_DONE = title("تَـغَـيَّـرَت صُـورَة الـمَـجْـمُـوعَـة", "🖼") + f"\n{BULLET} بواسطة: {{actor}}"
+CHAT_TITLE_ASK = f"{BULLET} اكتب الاسم الجديد للمجموعة ✍️\n{BULLET} للإلغاء اكتب: <code>الغاء</code>"
+CHAT_TITLE_BAD = f"{BULLET} الاسم لازم يكون من 1 لـ {{n}} حرف 🌸"
+CHAT_TITLE_DONE = (title("تَـغَـيَّـر اسْـم الـمَـجْـمُـوعَـة", "✏️") + f"\n{BULLET} الاسم الجديد: <b>{{title}}</b>"
+                   f"\n{BULLET} بواسطة: {{actor}}")
+CHAT_BIO_ASK = f"{BULLET} اكتب البايو الجديد للمجموعة 📝\n{BULLET} للإلغاء اكتب: <code>الغاء</code>"
+CHAT_BIO_BAD = f"{BULLET} البايو أطول من {{n}} حرف 🌸 اختصره شوية"
+CHAT_BIO_SAME = f"{BULLET} هذا نفس البايو الحالي ✨"
+CHAT_BIO_DONE = (title("تَـغَـيَّـر بَـايُـو الـمَـجْـمُـوعَـة", "📝") + f"\n{BULLET} البايو: <i>{{bio}}</i>"
+                 f"\n{BULLET} بواسطة: {{actor}}")
+CHAT_TEXT_NEED = f"{BULLET} أنتظر نص 🌸 اكتبه، أو اكتب <code>الغاء</code>"

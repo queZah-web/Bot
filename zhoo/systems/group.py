@@ -174,7 +174,7 @@ def _register_welcome() -> None:
                          description=f"يشغّل {word}", order=base + 2)(on)
         registry.command(f"{kind}_off", (f"تعطيل {word}",), section=section, min_rank=EDIT_RANK,
                          description=f"يوقف {word}", order=base + 3)(off)
-        registry.command(f"{kind}_reset", (f"حذف {word}",), section=section, min_rank=EDIT_RANK,
+        registry.command(f"{kind}_reset", (f"حذف {word}", f"مسح {word}"), section=section, min_rank=EDIT_RANK,
                          description=f"يرجع {word} للقالب الافتراضي", order=base + 4)(reset)
 
 
@@ -465,7 +465,7 @@ async def cmd_group_info(cx: CommandContext) -> None:
         rights=rights_text))
 
 
-@registry.command("creator", ("المنشئ", "المنشئين", "المالك الاساسي", "المالكين الاساسيين", "المالكين الاساسين"),
+@registry.command("creator", ("صاحب المجموعه", "صاحب الجروب", "منشئ المجموعه"),
                   section="group", description="منشئ المجموعة بتيليجرام", order=4)
 async def cmd_creator(cx: CommandContext) -> None:
     creator, _ = await _creator(cx.bot, cx.services, cx.chat.id)

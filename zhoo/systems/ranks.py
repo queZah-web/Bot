@@ -4,21 +4,35 @@
 """
 from __future__ import annotations
 
+import logging
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from telegram.error import BadRequest, TelegramError
+
+from zhoo.core import capabilities as caps
 from zhoo.core import texts as T
 from zhoo.core.commands import registry
-from zhoo.core.context import CommandContext
+from zhoo.core.context import CommandContext, Services
 from zhoo.core.fmt import esc, mention
-from zhoo.core.ranks import (ASSIGNABLE, RANK_NAMES, RANK_PLURALS, Rank, RankDecision,
-                             check_rank_change, rank_label)
+from zhoo.core.ranks import (ASSIGNABLE, PROTECTED as PROTECTED_RANKS, RANK_NAMES, RANK_PLURALS, Rank,
+                             RankDecision, check_rank_change, rank_label)
 from zhoo.core.targets import TargetError, resolve_target
 from zhoo.systems.general import reply_target_error
 
+log = logging.getLogger(__name__)
 S = "ranks"
+# صلاحيات تيليجرام للمشرف اللي ترفعه زهو
+TG_ADMIN_RIGHTS = dict(can_manage_chat=True, can_delete_messages=True, can_restrict_members=True,
+                       can_invite_users=True, can_pin_messages=True, can_manage_video_chats=True)
+TG_NO_RIGHTS = dict(can_manage_chat=False, can_delete_messages=False, can_restrict_members=False,
+                    can_invite_users=False, can_pin_messages=False, can_manage_video_chats=False,
+                    can_promote_members=False, can_change_info=False, is_anonymous=False)
 
 # اسم الرتبة كما يُكتب بالأمر
 RANK_WORDS: dict[Rank, tuple[str, ...]] = {
+    Rank.PRIMARY_OWNER: ("مالك اساسي", "مالك أساسي"),
     Rank.OWNER: ("مالك",),
-    Rank.GENERAL_MANAGER: ("مدير عام",),
+    Rank.GENERAL_MANAGER: ("منشئ", "مدير عام"),
     Rank.MANAGER: ("مدير",),
     Rank.SUPERVISOR: ("مشرف",),
     Rank.ADMIN: ("ادمن", "أدمن"),
@@ -45,6 +59,13 @@ async def change_rank(cx: CommandContext, new_rank: Rank, *, only_from: Rank | N
         return
 
     info = await svc.perms.rank_info(cx.bot, cx.chat.id, target.user_id)
+    tg_note = ""
+    # تنزيل لعضو: إذا مشرف بتيليجرام نشيل إشرافه (إذا زهو هي اللي رفعته) حتى ينسحب كلشي
+    if new_rank == Rank.MEMBER and info.floor == Rank.ADMIN and info.effective < cx.rank \
+            and target.user_id != cx.user.id:
+        if await tg_demote(cx.bot, svc, cx.chat.id, target.user_id):
+            info = await svc.perms.rank_info(cx.bot, cx.chat.id, target.user_id)
+            tg_note = "\n" + T.RANK_TG_DEMOTED
 
     if only_from is not None and info.stored != only_from:
         await cx.reply(T.RANK_NOT_THAT.format(mention=who, rank=RANK_NAMES[only_from]))
@@ -77,10 +98,19 @@ async def change_rank(cx: CommandContext, new_rank: Rank, *, only_from: Rank | N
 
     actor = mention(cx.user.id, cx.user.full_name)
     if new_effective > info.effective:
-        await cx.reply(T.RANK_PROMOTED.format(mention=who, rank=rank_label(new_effective), actor=actor))
+        text = T.RANK_PROMOTED.format(mention=who, rank=rank_label(new_effective), actor=actor)
+        if new_effective == Rank.SUPERVISOR:   # المشرف = مشرف حقيقي بتيليجرام
+            text += "\n" + (T.RANK_TG_PROMOTED if await tg_promote(cx.bot, svc, cx.chat.id, target.user_id)
+                            else T.RANK_TG_FAILED)
+        text += "\n" + T.PERM_HINT
+        _, kb = await perm_panel(svc, cx.chat.id, target.user_id, new_effective)
+        await cx.reply(text, reply_markup=kb)
     else:
+        if new_effective == Rank.MEMBER:   # تنزيل كامل: تنسحب كل الصلاحيات المخصصة
+            await svc.member_perms.clear(cx.chat.id, target.user_id)
+            tg_note += "\n" + T.RANK_ALL_REVOKED
         await cx.reply(T.RANK_DEMOTED.format(mention=who, old=rank_label(info.effective),
-                                             rank=rank_label(new_effective), actor=actor))
+                                             rank=rank_label(new_effective), actor=actor) + tg_note)
 
 
 def _register_rank_commands() -> None:
@@ -112,9 +142,9 @@ def _register_rank_commands() -> None:
 _register_rank_commands()
 
 
-@registry.command("demote", ("تنزيل", "تنزيل الكل"), section=S, min_rank=Rank.ADMIN,
+@registry.command("demote", ("تنزيل", "تنزيل الكل", "تنزيل لعضو"), section=S, min_rank=Rank.ADMIN,
                   usage="بالرد/اليوزر/الايدي", args="target",
-                  description="ينزل العضو من أي رتبة لعضو عادي", order=29)
+                  description="ينزله عضو عادي ويسحب كل صلاحياته (حتى إشراف تيليجرام إذا زهو رفعته)", order=29)
 async def cmd_demote(cx: CommandContext) -> None:
     await change_rank(cx, Rank.MEMBER)
 
@@ -166,3 +196,123 @@ async def cmd_staff(cx: CommandContext) -> None:
     if not any_rank and not tg_admins and creator is None:
         text += T.STAFF_EMPTY
     await cx.reply(text)
+
+
+# ── إشراف تيليجرام (رتبة المشرف) ───────────────────
+async def tg_promote(bot, svc: Services, chat_id: int, user_id: int) -> bool:
+    rights = await svc.perms.bot_rights(bot, chat_id)
+    if rights is None or not rights.can_promote_members:
+        return False
+    try:
+        await bot.promote_chat_member(chat_id, user_id, **TG_ADMIN_RIGHTS)
+    except TelegramError as e:
+        log.info("ما كدرت أرفع %s مشرف بتيليجرام: %s", user_id, e)
+        return False
+    svc.perms.invalidate(chat_id)
+    return True
+
+
+async def tg_demote(bot, svc: Services, chat_id: int, user_id: int) -> bool:
+    """يشيل إشراف تيليجرام (يشتغل بس للمشرفين اللي رفعتهم زهو)."""
+    rights = await svc.perms.bot_rights(bot, chat_id)
+    if rights is None or not rights.can_promote_members:
+        return False
+    try:
+        await bot.promote_chat_member(chat_id, user_id, **TG_NO_RIGHTS)
+    except TelegramError as e:
+        log.info("ما كدرت أنزل %s من إشراف تيليجرام: %s", user_id, e)
+        return False
+    svc.perms.invalidate(chat_id)
+    return True
+
+
+# ── لوحة الصلاحيات ─────────────────────────────────
+async def perm_panel(svc: Services, chat_id: int, user_id: int, rank: Rank) -> tuple[str, InlineKeyboardMarkup]:
+    allow, deny = await svc.member_perms.get(chat_id, user_id)
+    buttons = []
+    for cap, (name, emoji, _) in caps.CAPS.items():
+        on = caps.decide(caps.default_on(cap, rank), cap, allow, deny)
+        custom = cap in allow or cap in deny
+        buttons.append(InlineKeyboardButton(f"{'✅' if on else '▫️'} {emoji} {name}{' ✏️' if custom else ''}",
+                                            callback_data=f"pm:{user_id}:{cap}"))
+    rows = [buttons[i:i + 2] for i in range(0, len(buttons), 2)]
+    rows.append([InlineKeyboardButton(T.PERM_BTN_RESET, callback_data=f"pm:{user_id}:r"),
+                 InlineKeyboardButton(T.BTN_CLOSE, callback_data=f"pm:{user_id}:x")])
+    text = T.PERM_PANEL.format(rank=rank_label(rank))
+    return text, InlineKeyboardMarkup(rows)
+
+
+@registry.command("perms_panel", ("صلاحيات", "صلاحياته", "صلاحياتها", "تعديل الصلاحيات"), section=S,
+                  min_rank=Rank.ADMIN, args="target", usage="بالرد/اليوزر",
+                  description="لوحة أزرار: شنو يكدر يسوي (حظر، كتم، ملفات...)", order=5)
+async def cmd_perms(cx: CommandContext) -> None:
+    try:
+        target = await resolve_target(cx)
+    except TargetError as e:
+        await reply_target_error(cx, e, "صلاحياته @username")
+        return
+    rank = await cx.services.perms.rank_of(cx.bot, cx.chat.id, target.user_id)
+    text, kb = await perm_panel(cx.services, cx.chat.id, target.user_id, rank)
+    await cx.reply(f"{T.PERM_OF.format(mention=mention(target.user_id, target.name))}\n{text}", reply_markup=kb)
+
+
+@registry.command("my_perms", ("صلاحياتي",), section=S, description="شنو تكدر تسوي بالمجموعة", order=6)
+async def cmd_my_perms(cx: CommandContext) -> None:
+    svc = cx.services
+    on, off = [], []
+    for cap, (name, emoji, _) in caps.CAPS.items():
+        ok = await caps.has_cap(svc, cx.chat.id, cx.user.id, cap, caps.default_on(cap, cx.rank))
+        (on if ok else off).append(f"{emoji} {name}")
+    await cx.reply(T.PERM_MINE.format(rank=rank_label(cx.rank), on=" ⋅ ".join(on) or "—",
+                                      off=" ⋅ ".join(off) or "—"))
+
+
+async def on_perm_button(q, msg: Message, svc: Services, bot, uid_raw: str, action: str) -> None:
+    if not uid_raw.isdigit():
+        await q.answer()
+        return
+    target_id, editor = int(uid_raw), q.from_user.id
+    chat_id = msg.chat.id
+    editor_rank = await svc.perms.rank_of(bot, chat_id, editor)
+    if action == "x":
+        if editor_rank >= Rank.ADMIN:
+            try:
+                await msg.delete()
+            except TelegramError:
+                pass
+        return
+    target_rank = await svc.perms.rank_of(bot, chat_id, target_id)
+    is_dev = svc.perms.is_developer(editor)
+    if target_id == editor or (not is_dev and (editor_rank <= target_rank or editor_rank < Rank.ADMIN)):
+        await q.answer(T.PERM_NOT_ALLOWED, show_alert=True)
+        return
+    if target_rank in PROTECTED_RANKS:
+        await q.answer(T.PERM_PROTECTED, show_alert=True)
+        return
+    allow, deny = (set(x) for x in await svc.member_perms.get(chat_id, target_id))
+    if action == "r":
+        await svc.member_perms.clear(chat_id, target_id)
+        await q.answer(T.PERM_RESET_DONE)
+    elif action in caps.CAPS:
+        if not await caps.has_cap(svc, chat_id, editor, action, caps.default_on(action, editor_rank)):
+            await q.answer(T.PERM_YOU_LACK, show_alert=True)
+            return
+        default = caps.default_on(action, target_rank)
+        new = not caps.decide(default, action, frozenset(allow), frozenset(deny))
+        allow.discard(action)
+        deny.discard(action)
+        if new != default:
+            (allow if new else deny).add(action)
+        await svc.member_perms.set(chat_id, target_id, allow, deny, editor)
+        name = caps.CAPS[action][0]
+        await q.answer(("✅ " if new else "▫️ ") + name)
+    else:
+        await q.answer()
+        return
+    await svc.audit.log("perms_change", chat_id=chat_id, actor_id=editor, target_id=target_id,
+                        details={"cap": action})
+    _, kb = await perm_panel(svc, chat_id, target_id, target_rank)
+    try:
+        await msg.edit_reply_markup(reply_markup=kb)
+    except BadRequest:
+        pass
