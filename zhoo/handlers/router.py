@@ -70,6 +70,10 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
                 and not svc.maintenance and await features.enabled(svc, chat.id, "replies"):
             await replies.maybe_reply(svc, msg, chat, user)
         return
+    # لعبة شغّالة: نفحص الجواب قبل الأوامر (حتى لو الجواب يشبه أمر مثل «الساعة»)
+    if in_group and not quiet and chat.id in svc.games and msg.sender_chat is None and not user.is_bot:
+        if await games.check_answer(context, svc, msg, chat, user):
+            return
     has_tm = any(e.type == MessageEntity.TEXT_MENTION for e in msg.entities or ())
     has_reply = msg.reply_to_message is not None and not msg.reply_to_message.forum_topic_created
     parsed = registry.parse(text, has_text_mention=has_tm, has_reply=has_reply)
@@ -80,8 +84,6 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     if parsed is None:
         if in_group and not quiet and msg.sender_chat is None and not user.is_bot and not svc.maintenance:
             await levels.on_message(context, svc, msg, chat, user)       # خبرة الرسائل
-            if await games.check_answer(context, svc, msg, chat, user):  # جواب لعبة شغّالة
-                return
             if await features.enabled(svc, chat.id, "replies") and await replies.maybe_reply(svc, msg, chat, user):
                 return
             await extras.maybe_source_reply(svc, msg, chat)              # ردود زهو المدمجة

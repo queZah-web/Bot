@@ -192,3 +192,14 @@ async def test_paused_bot_ignores_answers(env):
     game = await _start(env, "riddle")
     await say(env, CREATOR, "ايقاف زهو")
     assert await say(env, ALI, game.display) is None
+
+
+async def test_answer_that_looks_like_a_command(env):
+    """جواب لغز «الساعة» هو نفسه اسم أمر الوقت — لازم ينحسب جواب مو أمر."""
+    svc = env[0]
+    await _setup(env)
+    game = await _start(env, "riddle")
+    game.keys = games.make_keys(["الساعة"])
+    game.display = "الساعة"
+    assert "جَـوَاب صَـح" in await say(env, ALI, "الساعة")
+    assert "ببغداد" in await say(env, ALI, "الساعة")  # بعد اللعبة يرجع أمر عادي
