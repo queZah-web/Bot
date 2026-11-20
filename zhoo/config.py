@@ -45,6 +45,9 @@ class Settings:
     log_dir: Path
     log_level: str = "INFO"
     proxy_url: str | None = field(default=None, repr=False)
+    anthropic_key: str | None = field(default=None, repr=False)   # مفتاح Claude (اختياري)
+    ai_model: str = "claude-opus-5-5"
+    ai_daily_limit: int = 300                                      # حد الطلبات اليومي للبوت كله
 
 
 def load_settings(env_file: Path | None = None) -> Settings:
@@ -77,7 +80,11 @@ def load_settings(env_file: Path | None = None) -> Settings:
     if proxy and not proxy.startswith(("http://", "https://", "socks5://", "socks5h://")):
         raise ConfigError("PROXY_URL لازم يبدأ بـ http:// أو socks5://")
 
+    ai_limit_raw = os.environ.get("ZHOO_AI_DAILY_LIMIT", "").strip()
     return Settings(
+        anthropic_key=os.environ.get("ANTHROPIC_API_KEY", "").strip() or None,
+        ai_model=os.environ.get("ZHOO_AI_MODEL", "").strip() or "claude-opus-5-5",
+        ai_daily_limit=int(ai_limit_raw) if ai_limit_raw.isdigit() else 300,
         proxy_url=proxy,
         token=token,
         owner_id=int(owner_raw),

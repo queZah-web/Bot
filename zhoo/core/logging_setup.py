@@ -7,7 +7,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 # أي شيء يشبه توكن بوت يُخفى، حتى لو لم يكن التوكن الحالي
-_TOKEN_PATTERN = re.compile(r"\d{5,}:[A-Za-z0-9_-]{30,}")
+_TOKEN_PATTERN = re.compile(r"\d{5,}:[A-Za-z0-9_-]{30,}|sk-ant-[A-Za-z0-9_-]{10,}")
 
 
 class RedactingFormatter(logging.Formatter):

@@ -42,6 +42,7 @@ SECTIONS: tuple[Section, ...] = (
     Section("group", "إعدادات المجموعة", "⚙️"),
     Section("welcome", "الترحيب والتوديع", "👋"),
     Section("replies", "الردود والاختصارات", "💬"),
+    Section("ai", "الذكاء الاصطناعي", "🧠"),
     Section("social", "التفاعل", "🤝"),
     Section("games", "الألعاب", "🎮"),
     Section("levels", "المستويات", "📈"),

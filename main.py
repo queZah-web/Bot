@@ -60,7 +60,7 @@ def main() -> None:
     except ConfigError as e:
         sys.exit(f"❌ خطأ بالإعدادات: {e}")
 
-    setup_logging(settings.log_dir, settings.log_level, secrets=[settings.token])
+    setup_logging(settings.log_dir, settings.log_level, secrets=[settings.token, settings.anthropic_key or ""])
     print("⏳ جاري الاتصال بتيليجرام...", flush=True)
     check_connection(settings)
 

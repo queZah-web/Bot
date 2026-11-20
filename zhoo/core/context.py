@@ -64,6 +64,8 @@ class Services:
     mention_tasks: dict = field(default_factory=dict)  # chat_id ← مهمة النداء الشغّالة
     yt_results: dict = field(default_factory=dict)     # (chat, رسالة النتائج) ← (صاحب الطلب، النتائج، الوقت)
     yt_busy: set = field(default_factory=set)          # مجموعات بيها تحميل شغّال
+    ai_client: object = None                           # عميل Claude (ينخلق أول مرة ينحتاج)
+    chat_buffer: dict = field(default_factory=dict)    # chat_id ← آخر 150 رسالة (بالذاكرة بس، للتلخيص)
     restoring: bool = False                            # أثناء الاستعادة نوقف استقبال التحديثات
 
     def reset_caches(self) -> None:

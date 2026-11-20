@@ -12,7 +12,7 @@ from zhoo.core.context import CommandContext, get_services
 from zhoo.core.ranks import RANK_NAMES, Rank
 from zhoo.core import conversation
 from zhoo.core.normalize import normalize
-from zhoo.systems import (aliases, botstate, extras, features, games, levels, locks, protect, replies,
+from zhoo.systems import (ai, aliases, botstate, extras, features, games, levels, locks, protect, replies,
                           swear)
 
 log = logging.getLogger(__name__)
@@ -84,6 +84,7 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     if parsed is None:
         if in_group and not quiet and msg.sender_chat is None and not user.is_bot and not svc.maintenance:
             await levels.on_message(context, svc, msg, chat, user)       # خبرة الرسائل
+            await ai.on_message(svc, msg, chat, user)                    # ذاكرة التلخيص (إذا الذكاء شغّال)
             if await features.enabled(svc, chat.id, "replies") and await replies.maybe_reply(svc, msg, chat, user):
                 return
             await extras.maybe_source_reply(svc, msg, chat)              # ردود زهو المدمجة

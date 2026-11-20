@@ -41,6 +41,10 @@ DEFAULTS: dict[str, str] = {
     "daily_riddle": "",   # YYYY-MM-DD:user_id لأول واحد حل لغز اليوم
     # الاقتصاد
     "economy_on": "1",
+    # الذكاء الاصطناعي (مطفي افتراضياً)
+    "ai_on": "0",
+    "ai_kb": "",
+    "ai_daily": "50",
 }
 
 
