@@ -116,7 +116,8 @@ async def test_insulting_zhoo_gets_a_reply(env):
     await say(env, CREATOR, "قفل الاهانات بالمسح")
     bot.sent.clear()
     await say(env, ALI, "هايشه", reply_to=BOT_ID)
-    assert any("احترام" in (t or "") or "الأدب" in (t or "") or "الكلام الحلو" in (t or "") for t in bot.sent)
+    starts = [r.split("{mention}")[1][:12] for r in T.ZHOO_INSULTED]   # أي وحدة من ردود زهو العشوائية
+    assert any(any(x in (t or "") for x in starts) for t in bot.sent)
 
 
 # ── ٣) مراقبة «ش» ──
