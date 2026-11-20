@@ -12,7 +12,7 @@ from zhoo.core.commands import registry
 from zhoo.core.context import Services, get_services
 from zhoo.core.fmt import mention
 from zhoo.handlers.views import about_text, help_main_text
-from zhoo.systems import youtube
+from zhoo.systems import swear, youtube
 from zhoo.systems import botstate, economy, extras, features, feedback, games, group, locks, owner, protect, punish, social
 from zhoo.keyboards.menus import (SECTION_MAP, back_to_start_keyboard, help_main_keyboard,
                                   section_keyboard, section_text,
@@ -89,6 +89,8 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             await owner.on_restore_button(q, msg, svc, parts[1])
         elif kind == "g" and len(parts) == 4:
             await protect.on_panel_button(q, msg, svc, context.bot, parts[1], parts[2], parts[3])
+        elif kind == "sw" and len(parts) == 3:
+            await swear.on_policy_button(q, msg, svc, context.bot, parts[1], parts[2])
         elif kind == "l" and len(parts) == 4:
             await locks.on_panel_button(q, msg, svc, context.bot, parts[1], parts[2], parts[3])
         elif kind == "st" and len(parts) == 4:

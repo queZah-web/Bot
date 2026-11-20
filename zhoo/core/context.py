@@ -28,6 +28,7 @@ from zhoo.repositories.punishments import PunishmentsRepo
 from zhoo.repositories.replies import RepliesRepo
 from zhoo.repositories.social import RatingsRepo, SocialRepo
 from zhoo.repositories.swear_logs import SwearLogsRepo
+from zhoo.repositories.swear_words import SwearWordsRepo
 from zhoo.repositories.users import UsersRepo
 
 
@@ -46,6 +47,7 @@ class Services:
     group_settings: GroupSettingsRepo
     captcha: CaptchaRepo
     swear_logs: SwearLogsRepo
+    swear_words: SwearWordsRepo
     aliases: AliasesRepo
     replies: RepliesRepo
     social: SocialRepo
@@ -65,6 +67,7 @@ class Services:
     yt_results: dict = field(default_factory=dict)     # (chat, رسالة النتائج) ← (صاحب الطلب، النتائج، الوقت)
     yt_busy: set = field(default_factory=set)          # مجموعات بيها تحميل شغّال
     ai_client: object = None                           # عميل Claude (ينخلق أول مرة ينحتاج)
+    swear_cache: dict = field(default_factory=dict)   # chat_id ← قاموس المجموعة المجهز (0 = العام)
     chat_buffer: dict = field(default_factory=dict)    # chat_id ← آخر 150 رسالة (بالذاكرة بس، للتلخيص)
     restoring: bool = False                            # أثناء الاستعادة نوقف استقبال التحديثات
 
@@ -78,6 +81,7 @@ class Services:
         self.perms._admins.clear()
         self.xp_seen.clear()
         self.games.clear()
+        self.swear_cache.clear()
     command_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(5, 10))
     button_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(4, 3))
     started_at: float = field(default_factory=time.time)
@@ -92,7 +96,7 @@ class Services:
             perms=PermissionService(members, settings.owner_id),
             tracker=Tracker(users, groups, members),
             punishments=PunishmentsRepo(db), group_settings=GroupSettingsRepo(db),
-            captcha=CaptchaRepo(db), swear_logs=SwearLogsRepo(db),
+            captcha=CaptchaRepo(db), swear_logs=SwearLogsRepo(db), swear_words=SwearWordsRepo(db),
             aliases=AliasesRepo(db), replies=RepliesRepo(db), social=SocialRepo(db),
             ratings=RatingsRepo(db), levels=LevelsRepo(db), economy=EconomyRepo(db),
         )

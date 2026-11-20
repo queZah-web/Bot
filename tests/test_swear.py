@@ -51,7 +51,7 @@ async def _setup(env):
 async def test_delete_mode(env):
     svc, bot, _ = env
     await _setup(env)
-    assert "قَـفْـل الـسَّـب" in await say(env, CREATOR, "قفل السب")
+    assert "قَـفْـل الـسَّـب" in await say(env, CREATOR, "قفل السب بالمسح")
     bot.calls.clear()
     out = await say(env, ALI, LONG.format(x="كسمك"))
     assert bot.calls[0][0] == "delete" and "عيب" in out
@@ -65,7 +65,7 @@ async def test_mute_mode_first_time(env):
     await _setup(env)
     await say(env, CREATOR, "قفل السب بالكتم")
     out = await say(env, ALI, "انعل ابوك")
-    assert "تَـمَّ الـكَـتْـم" in out and "دائمة" in out
+    assert "تَـمَّ الـكَـتْـم" in out and "دائم" in out
     assert await svc.punishments.is_active(GROUP, ALI, "mute")
 
 
@@ -121,13 +121,13 @@ async def test_edited_message_is_checked(env):
 async def test_swear_log_command(env):
     await _setup(env)
     await say(env, ALI, "هلا")
-    await say(env, CREATOR, "قفل السب")
+    await say(env, CREATOR, "قفل السب بالمسح")
     await say(env, ALI, "كلام عادي وبعدين انعل ابوك وخلص")
     out = await say(env, CREATOR, "السب المحذوف")
     assert "انعل ابوك" in out and "U3000003" in out and "كلام عادي" in out
     assert "يحتاج رتبة" in await say(env, ALI, "السب المحذوف")
     assert "انمسح" in await say(env, CREATOR, "مسح سجل السب")
-    assert "ماكو سب" in await say(env, CREATOR, "السب المحذوف")
+    assert "ماكو مخالفات" in await say(env, CREATOR, "السب المحذوف")
 
 
 async def test_custom_dictionary(env):
@@ -147,6 +147,6 @@ async def test_custom_dictionary(env):
 async def test_lock_all_enables_swear(env):
     await _setup(env)
     await say(env, CREATOR, "قفل الكل")
-    assert await swear.get_mode(env[0], GROUP) == "delete"
+    assert await swear.get_mode(env[0], GROUP) == "smart"
     await say(env, CREATOR, "فتح الكل")
     assert await swear.get_mode(env[0], GROUP) == "off"

@@ -291,43 +291,126 @@ CAPTCHA_EXPIRED = "هذا التحقق خلص وقته 🌸"
 # ── السب ───────────────────────────────────────────
 SWEAR_MODES = {
     "off": "🔓 مفتوح",
+    "smart": "🧠 تدريجي ذكي",
     "delete": "🗑 مسح",
     "mute": "🤐 مسح + كتم",
     "ban": "🚫 مسح + حظر",
 }
+SWEAR_LEVELS = {1: "🟢 خفيف", 2: "🟠 متوسط", 3: "🔴 شديد"}
+SWEAR_LEVEL_WORDS = {"خفيف": 1, "متوسط": 2, "شديد": 3}   # خيارات أمر الإضافة
+SWEAR_GLOBAL_WORD = "عام"
+SWEAR_PLANS = {
+    "gradual": "📈 تدريجي",
+    "mute": "🤐 كتم متصاعد",
+    "ban": "🚫 حظر متصاعد",
+    "delete": "🗑 مسح فقط",
+    "off": "💤 تجاهل",
+}
+SWEAR_PLAN_HINTS = {
+    "gradual": "تحذير ← تحذير ← كتم ساعة ← كتم يوم ← حظر يوم ← حظر دائم",
+    "mute": "كتم ساعة ← يوم ← أسبوع ← دائم",
+    "ban": "حظر يوم ← أسبوع ← دائم",
+    "delete": "مسح الرسالة بس",
+    "off": "ما يسوي شي لهاي الفئة",
+}
+SWEAR_SOURCES = {"base": "القاموس الأساسي", "global": "القاموس العام", "group": "قاموس المجموعة"}
+SWEAR_KINDS = {"exact": "كلمة كاملة", "stem": "كلمة وتصريفاتها", "phrase": "عبارة"}
+SWEAR_PERMANENT = "دائم"
+SWEAR_STEP_DELETE = "مسح"
+SWEAR_STEP_WARN = "تحذير"
 SWEAR_LABEL = "🤬 السب"
 SWEAR_REASON = "السب والكلام المسيء"
 SWEAR_NOTICE = f"{BULLET} {{mention}} عيب عيني، هالكلام ما ينگال هنا 🤍 رسالتك انمسحت"
+SWEAR_WARNED = (
+    title("تَـحْـذِيـر", "⚠️") + "\n"
+    f"{BULLET} {{mention}} رسالتك انمسحت لأن بيها كلام مسيء 🤍\n"
+    f"{BULLET} هذا التحذير رقم <b>{{n}}</b>\n"
+    f"{BULLET} المرة الجاية: <b>{{next}}</b>"
+)
 SWEAR_PUNISHED = (
     title("{head}", "{emoji}") + "\n"
     f"{LINE}\n"
     f"{BULLET} العضو: {{mention}}\n"
-    f"{BULLET} السبب: السب والكلام المسيء\n"
-    f"{BULLET} المدة: <b>دائمة</b>"
+    f"{BULLET} السبب: السب والكلام المسيء ({{level}})\n"
+    f"{BULLET} المخالفة رقم: <b>{{n}}</b>\n"
+    f"{BULLET} المدة: <b>{{duration}}</b>"
 )
 SWEAR_MODE_SET = title("تَـمَّ قَـفْـل الـسَّـب", "🤬") + f"\n{BULLET} الوضع: <b>{{mode}}</b>\n{BULLET} بواسطة: {{actor}}"
+SWEAR_MODE_SMART_HINT = f"{BULLET} العقوبة حسب شدة الكلام وعدد المخالفات ⋅ تتغير من: <code>عقوبات السب</code>"
 SWEAR_MODE_OFF = title("تَـمَّ فَـتْـح الـسَّـب", "🔓") + f"\n{BULLET} بواسطة: {{actor}}"
 SWEAR_MODE_SAME = f"{BULLET} السب أصلاً على وضع <b>{{mode}}</b> ✨"
-SWEAR_LOG_HEADER = title("الـسَّـب الـمَـحْـذُوف", "🗑") + f"\n{LINE}"
-SWEAR_LOG_EMPTY = f"{BULLET} ماكو سب محذوف، المجموعة محترمة 🤍"
+SWEAR_LOG_HEADER = title("مُـخَـالَـفَـات الـسَّـب", "🗑") + f"\n{LINE}"
+SWEAR_LOG_EMPTY = f"{BULLET} ماكو مخالفات، المجموعة محترمة 🤍"
+SWEAR_LOG_STRIKES = f"{BULLET} مخالفات {{mention}} آخر 7 أيام: <b>{{n}}</b>"
 SWEAR_LOG_ITEM = (
-    "▫️ {mention} ⋅ {action}\n"
+    "▫️ {mention} ⋅ {action} ⋅ {level}\n"
     f"    {BULLET} الكلمة: <tg-spoiler>{{word}}</tg-spoiler>\n"
     f"    {BULLET} الرسالة: <i>{{text}}</i>\n"
     "    ⏱ <code>{when}</code>"
 )
 SWEAR_LOG_FOOTER = "<i>اضغط على الكلمة المخفية حتى تشوفها ⋅ الوقت UTC</i>"
 SWEAR_LOG_CLEARED = f"{BULLET} انمسح سجل السب ✨"
-SWEAR_ACTIONS = {"delete": "🗑 مسح", "mute": "🤐 كتم", "ban": "🚫 حظر"}
-SWEAR_WORD_ADDED = f"{BULLET} انضافت <tg-spoiler>{{word}}</tg-spoiler> لقاموس السب ✨"
-SWEAR_WORD_REMOVED = f"{BULLET} انشالت <tg-spoiler>{{word}}</tg-spoiler> من القاموس الخاص 🌸"
-SWEAR_WORD_ALLOWED = f"{BULLET} صارت <code>{{word}}</code> مسموحة بهاي المجموعة ✨"
-SWEAR_WORD_BAD = f"{BULLET} اكتب الكلمة بعد الأمر رجاءً 🌸 (من 2 لـ 40 حرف)"
-SWEAR_WORD_NOT_FOUND = f"{BULLET} هاي الكلمة مو موجودة بالقاموس الخاص 🌸"
-SWEAR_WORDS_HEADER = title("قاموس السب الخاص", "📖") + f"\n{LINE}"
+SWEAR_LOG_USER_CLEARED = f"{BULLET} انمسحت مخالفات {{mention}} ورجعت صفحته بيضة 🤍"
+SWEAR_ACTIONS = {"delete": "🗑 مسح", "warn": "⚠️ تحذير", "mute": "🤐 كتم", "ban": "🚫 حظر"}
+SWEAR_WORD_ADDED = (
+    f"{BULLET} انضافت <tg-spoiler>{{word}}</tg-spoiler> لقاموس {{where}} ✨\n"
+    f"{BULLET} الفئة: <b>{{level}}</b> ⋅ النوع: {{kind}}"
+)
+SWEAR_WHERE_GROUP = "المجموعة"
+SWEAR_WHERE_GLOBAL = "العام 🌍 (كل المجموعات)"
+SWEAR_WORD_REMOVED = f"{BULLET} انشالت <tg-spoiler>{{word}}</tg-spoiler> من القاموس ✨"
+SWEAR_WORD_ALLOWED = f"{BULLET} صارت <tg-spoiler>{{word}}</tg-spoiler> مسموحة بهاي المجموعة ✨"
+SWEAR_WORD_NOT_SWEAR = f"{BULLET} هاي الكلمة أصلاً مو سب، ما تحتاج سماح 🌸"
+SWEAR_UNALLOWED = f"{BULLET} رجعت <tg-spoiler>{{word}}</tg-spoiler> محظورة مثل قبل ✨"
+SWEAR_ALLOW_NOT_FOUND = f"{BULLET} هاي الكلمة مو موجودة بالكلمات المسموحة 🌸"
+SWEAR_WORD_BAD = (
+    f"{BULLET} اكتب الكلمة أو العبارة بعد الأمر رجاءً 🌸 (من 2 لـ 60 حرف، وأكثر شي 6 كلمات)\n"
+    f"{BULLET} مثال: <code>اضافة سب شديد الكلمة</code> ⋅ الفئات: خفيف، متوسط، شديد"
+)
+SWEAR_WORD_COLLIDES = (
+    f"{BULLET} ما ضفتها 🌸 لأن راح تحظر كلام سليم مثل: {{words}}\n"
+    f"{BULLET} إذا هي إهانة، ضيفها كعبارة كاملة (مثل: <code>اضافة سب يا ...</code>)"
+)
+SWEAR_WORD_IN_BASE = f"{BULLET} هاي الكلمة أصلاً موجودة بالقاموس الأساسي ({{level}}) ✨"
+SWEAR_WORD_NOT_FOUND = f"{BULLET} هاي الكلمة مو موجودة بقاموس المجموعة 🌸"
+SWEAR_WORD_BASE_REMOVE = (
+    f"{BULLET} هاي من القاموس الأساسي وما تنحذف 🌸\n"
+    f"{BULLET} إذا تريدها مسموحة بمجموعتك: <code>سماح كلمة ...</code>"
+)
+SWEAR_GLOBAL_DEV_ONLY = f"{BULLET} القاموس العام للمطور بس 🌸"
+SWEAR_WORDS_LIMIT = f"{BULLET} قاموس المجموعة وصل الحد ({{n}} كلمة) 🌸 احذف شي قبل لا تضيف"
+SWEAR_WORDS_HEADER = title("قَـامُـوس الـسَّـب", "📖") + f"\n{LINE}"
+SWEAR_WORDS_BASE = f"{BULLET} القاموس الأساسي: <b>{{n}}</b> ({{detail}})"
+SWEAR_WORDS_GLOBAL = f"{BULLET} القاموس العام: <b>{{n}}</b>"
+SWEAR_WORDS_GROUP = f"{BULLET} كلمات المجموعة: <b>{{n}}</b>"
 SWEAR_WORDS_EMPTY = f"{BULLET} ماكو كلمات مضافة، القاموس الأساسي شغّال 🤍"
-SWEAR_ALLOWED_LABEL = f"{BULLET} كلمات مسموحة:"
+SWEAR_WORDS_MORE = "▫️ … و{n} غيرها"
+SWEAR_ALLOWED_LABEL = f"{BULLET} كلمات مسموحة (استثناءات):"
 SWEAR_NEED_DELETE = f"{BULLET} تنبيه: أحتاج صلاحية «<b>حذف الرسائل</b>» حتى يشتغل قفل السب 🔐"
+SWEAR_TEST_HEADER = title("فَـحْـص الـسَّـب", "🔎") + f"\n{LINE}"
+SWEAR_TEST_NEED = f"{BULLET} اكتب النص بعد الأمر رجاءً 🌸 مثال: <code>فحص سب ك.س</code>"
+SWEAR_TEST_NORM = f"{BULLET} بعد التطبيع: <tg-spoiler>{{norm}}</tg-spoiler>"
+SWEAR_TEST_CLEAN = f"{BULLET} النتيجة: <b>سليمة</b> ✅"
+SWEAR_TEST_ALLOWED = f"{BULLET} النتيجة: <b>مسموحة بهاي المجموعة</b> ✨ (استثناء)"
+SWEAR_TEST_BLOCKED = (
+    f"{BULLET} النتيجة: <b>محظورة</b> 🚫\n"
+    f"{BULLET} اللي انكشف: <tg-spoiler>{{found}}</tg-spoiler>\n"
+    f"{BULLET} يطابق: <tg-spoiler>{{key}}</tg-spoiler>\n"
+    f"{BULLET} الفئة: <b>{{level}}</b> ⋅ {{kind}}\n"
+    f"{BULLET} المصدر: {{source}}\n"
+    f"{BULLET} الإجراء هنا: <b>{{action}}</b>"
+)
+SWEAR_POLICY = (
+    title("عُـقُـوبَـات الـسَّـب", "⚖️") + f"\n{LINE}\n"
+    f"{BULLET} الوضع: <b>{{mode}}</b>\n{{levels}}\n{LINE}\n"
+    "<i>{note}</i>"
+)
+SWEAR_POLICY_LEVEL = "{level}: <b>{plan}</b>\n    ↫ {hint}"
+SWEAR_POLICY_NOTE = ("المخالفات تنحسب آخر 7 أيام ⋅ مشرفين المجموعة: مسح بس بدون عقوبة ⋅ "
+                     "اضغط على الفئة حتى تغير عقوبتها")
+SWEAR_POLICY_NOTE_FIXED = "عقوبات الفئات تشتغل بوضع «🧠 تدريجي ذكي» بس ⋅ اضغط على الوضع حتى تغيره"
+SWEAR_POLICY_NEED_RANK = "تغيير عقوبات السب يحتاج رتبة مدير 🌸"
+SWEAR_BTN_MODE = "الوضع: {mode}"
 
 # ── المحادثات بخطوات ────────────────────────────────
 CONV_CANCEL_HINT = f"{BULLET} للإلغاء اكتب: <code>الغاء</code>"

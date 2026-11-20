@@ -11,10 +11,19 @@ class SwearLogsRepo:
     def __init__(self, db: Database):
         self.db = db
 
-    async def add(self, chat_id: int, user_id: int, word: str, text: str, action: str) -> None:
+    async def add(self, chat_id: int, user_id: int, word: str, text: str, action: str,
+                  level: int = 2, duration: int | None = None) -> None:
         await self.db.execute(
-            "INSERT INTO swear_logs (chat_id, user_id, word, text, action, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-            (chat_id, user_id, word[:100], text[:MAX_TEXT], action, now()),
+            "INSERT INTO swear_logs (chat_id, user_id, word, text, level, action, duration, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (chat_id, user_id, word[:100], text[:MAX_TEXT], level, action, duration, now()),
+        )
+
+    async def strikes(self, chat_id: int, user_id: int, seconds: int) -> int:
+        """عدد مخالفات العضو خلال فترة (للعقوبات التدريجية)."""
+        return await self.db.fetchval(
+            "SELECT COUNT(*) FROM swear_logs WHERE chat_id = ? AND user_id = ? AND created_at > ?",
+            (chat_id, user_id, now() - seconds), default=0,
         )
 
     async def recent(self, chat_id: int, user_id: int | None = None, limit: int = 10):
@@ -34,7 +43,10 @@ class SwearLogsRepo:
             (chat_id, now() - seconds), default=0,
         )
 
-    async def clear(self, chat_id: int) -> int:
+    async def clear(self, chat_id: int, user_id: int | None = None) -> int:
+        if user_id is not None:
+            return await self.db.execute("DELETE FROM swear_logs WHERE chat_id = ? AND user_id = ?",
+                                         (chat_id, user_id))
         return await self.db.execute("DELETE FROM swear_logs WHERE chat_id = ?", (chat_id,))
 
     async def prune(self) -> int:

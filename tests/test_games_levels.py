@@ -116,7 +116,8 @@ async def test_typing_game_rejects_copy_paste(env):
     await _setup(env)
     game = await _start(env, "typing")
     copied = games.ZWNJ.join(game.display)
-    assert "النسخ" in await say(env, ALI, copied)
+    await say(env, ALI, copied)
+    assert any("النسخ" in m for m in env[1].sent)  # (لو العبارة تحية، زهو ترد عليها بعد التنبيه)
     assert "جَـوَاب صَـح" in await say(env, SARA, game.display)
 
 

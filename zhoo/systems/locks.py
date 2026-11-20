@@ -394,7 +394,7 @@ async def _set_all(svc: Services, bot, chat_id: int, on: bool, by: int) -> int:
             changed += 1
     mode = await swear.get_mode(svc, chat_id)
     if on and mode == "off":
-        await swear.set_mode(svc, chat_id, "delete", by)
+        await swear.set_mode(svc, chat_id, "smart", by)
     elif not on and mode != "off":
         await swear.set_mode(svc, chat_id, "off", by)
     return changed

@@ -26,10 +26,12 @@ DEFAULTS: dict[str, str] = {
     "goodbye_text": "",
     "rules": "",
     "invite_link": "",
-    # السب: off | delete | mute | ban
+    # السب: off | smart | delete | mute | ban
     "swear_mode": "off",
-    "swear_custom": "",   # كلمات مضافة (موحدة، مفصولة بفواصل)
+    "swear_custom": "",   # (قديم) ينتقل تلقائياً لجدول swear_words
     "swear_allow": "",    # كلمات مسموحة بهاي المجموعة
+    # عقوبة كل فئة بالوضع الذكي: gradual | mute | ban | delete | off
+    "swear_l1": "gradual", "swear_l2": "gradual", "swear_l3": "mute",
     # التفاعل الاجتماعي
     "pairs_on": "0",
     # حالة زهو: on | paused | disabled
