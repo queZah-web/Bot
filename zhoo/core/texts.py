@@ -146,6 +146,19 @@ MY_RANK = f"{BULLET} رتبتك هنا: {{rank}} 🤍"
 THEIR_RANK = f"{BULLET} رتبة {{mention}}: {{rank}}"
 ACTIVITY = f"{BULLET} رسائل {{mention}} بالمجموعة: <b>{{count}}</b> 💌\n{BULLET} التفاعل: {{level}}"
 TOP_ACTIVE_HEADER = title("الأكثر تفاعلاً", "🔥") + f"\n{LINE}"
+TOP_ACTIVE = (
+    title("الـمُـتَـفَـاعِـلِـيـن", "🔥") + f"\n{LINE}\n"
+    "🏡 <b>{title}</b>\n"
+    "💬 مجموع الرسائل: <b>{total}</b> ⋅ 👥 المتفاعلين: <b>{members}</b>\n"
+    f"{LINE}\n"
+    "{items}\n"
+    f"{LINE}\n"
+    "{me}"
+)
+TOP_MEDALS = ("🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟")
+TOP_ACTIVE_ITEM = "{medal} {mention}\n      {bar} <b>{count}</b> رسالة ⋅ {pct}%"
+TOP_ACTIVE_ME = "📍 ترتيبك: <b>#{pos}</b> ⋅ رسائلك: <b>{count}</b> ⋅ {level}"
+TOP_ACTIVE_ME_NONE = "📍 بعدك ما كتبت، سولف ويانا حتى تدخل الترتيب 🌸"
 NO_ACTIVITY = f"{BULLET} ماكو تفاعل مسجل لحد هسه 🌸"
 
 # ── القوائم ────────────────────────────────────────
@@ -1577,3 +1590,47 @@ CHAT_BIO_SAME = f"{BULLET} هذا نفس البايو الحالي ✨"
 CHAT_BIO_DONE = (title("تَـغَـيَّـر بَـايُـو الـمَـجْـمُـوعَـة", "📝") + f"\n{BULLET} البايو: <i>{{bio}}</i>"
                  f"\n{BULLET} بواسطة: {{actor}}")
 CHAT_TEXT_NEED = f"{BULLET} أنتظر نص 🌸 اكتبه، أو اكتب <code>الغاء</code>"
+
+
+# ── كشف عضو ────────────────────────────────────────
+INSPECT = (
+    title("كَـشْـف عُـضْـو", "🔎") + f"\n{LINE}\n"
+    "👤 الاسم: {name}\n"
+    "🆔 الايدي: <code>{id}</code>\n"
+    "🔗 اليوزر: {username}\n"
+    "🪪 النوع: {kind}\n"
+    f"{LINE}\n"
+    "🎖 الرتبة: {rank}\n"
+    "🛡 بتيليجرام: {tg}\n"
+    "{custom}"
+    f"{LINE}\n"
+    "💬 الرسائل: <b>{messages}</b> ⋅ الترتيب: <b>{position}</b>\n"
+    "⚡ التفاعل: {activity}\n"
+    "⭐ المستوى: <b>{level}</b> ({xp} خبرة) ⋅ 🏆 فوز بالألعاب: <b>{wins}</b>\n"
+    "🤍 الشكر: <b>{thanks}</b> ⋅ 📊 التقييم: {rating} ⋅ ✨ {good} ⋅ 👎🏻 {bad}\n"
+    "{economy}"
+    f"{LINE}\n"
+    "⚠️ التحذيرات: <b>{warns}/{limit}</b>\n"
+    "🤬 السب: <b>{swear}</b> مرة{swear_detail} ⋅ آخر 7 أيام: <b>{swear_week}</b>\n"
+    "🚫 العقوبات: {punish}\n"
+    "⛓ الحالية: {active}\n"
+    f"{LINE}\n"
+    "📅 أول ظهور: <code>{first}</code> ⋅ 🕐 آخر تفاعل: <code>{last}</code>\n"
+    "👋 ضافه: {added}"
+)
+INSPECT_KIND_USER = "حساب شخصي 🙋"
+INSPECT_KIND_BOT = "بوت 🤖"
+INSPECT_TG = {
+    "tg_owner": "صاحب المجموعة 🏛", "tg_admin": "مشرف 🛡", "tg_member": "عضو ✅",
+    "tg_restricted": "مقيّد ⛓", "tg_muted": "مكتوم 🔇", "tg_left": "طالع من المجموعة 🚪",
+    "tg_banned": "محظور 🚫", "unknown": "—",
+}
+INSPECT_CUSTOM_PERMS = "🎛 صلاحيات مخصصة: {perms}\n"
+INSPECT_ECONOMY = "💰 الرصيد: <b>{balance}</b>\n"
+INSPECT_NO_RATING = "ماكو"
+INSPECT_SWEAR_LEVELS = {1: "🟢", 2: "🟠", 3: "🔴"}
+INSPECT_PUNISH_KINDS = {"ban": "حظر", "kick": "طرد", "mute": "كتم", "restrict": "تقييد"}
+INSPECT_CLEAN = "سجله نظيف ✨"
+INSPECT_NO_ACTIVE = "ماكو ✅"
+INSPECT_SELF_JOINED = "دخل بنفسه (بالرابط)"
+INSPECT_UNKNOWN = "—"

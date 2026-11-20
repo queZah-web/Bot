@@ -281,3 +281,36 @@ async def test_change_title_bio_photo(env):
     await _send(env, CREATOR, photo=[PhotoSize("f", "u", 10, 10)])
     assert done["photo"] == b"img"
     assert "يحتاج رتبة" in await say(env, ALI, "تغيير اسم المجموعه شي")
+
+
+# ── ٨) المتفاعلين والكشف ──
+async def test_top_active_list(env):
+    svc, bot, _ = env
+    await _setup(env)
+    for _ in range(5):
+        await say(env, ALI, "رسالة")
+    for _ in range(2):
+        await say(env, SARA, "رسالة")
+    out = await say(env, SARA, "المتفاعلين")
+    assert "الـمُـتَـفَـاعِـلِـيـن" in out and "🥇" in out and "▰" in out and "رسالة ⋅" in out
+    assert out.index("U3000003") < out.index("U4000004")          # علي أول
+    assert "ترتيبك: <b>#2</b>" in out
+    assert "بعدك ما كتبت" in await say(env, CREATOR, "المتفاعلين") or "ترتيبك" in bot.sent[-1]
+
+
+async def test_inspect_report(env):
+    svc, bot, _ = env
+    await _setup(env)
+    await say(env, ALI, "هلا")
+    await say(env, CREATOR, "قفل السب بالمسح")
+    await say(env, ALI, "كسمك")
+    await say(env, ALI, "يا حمار")
+    await say(env, CREATOR, "تحذير", reply_to=ALI)
+    await say(env, CREATOR, "كتم", reply_to=ALI)
+    svc.command_limiter._hits.clear()
+    out = await say(env, CREATOR, "كشف", reply_to=ALI)
+    assert "كَـشْـف عُـضْـو" in out and f"<code>{ALI}</code>" in out
+    assert "السب: <b>2</b> مرة (🟢 1 ⋅ 🔴 1)" in out
+    assert "التحذيرات: <b>1/3</b>" in out and "كتم 1" in out and "الحالية: كتم" in out
+    assert "حساب شخصي" in out
+    assert "يحتاج رتبة" in await say(env, SARA, "كشف", reply_to=ALI)

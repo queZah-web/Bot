@@ -16,6 +16,8 @@ from zhoo.handlers.views import about_text, help_main_text
 from zhoo.keyboards.menus import help_main_keyboard
 
 S = "general"
+TOP_ACTIVE_LIMIT = 10
+BAR_WIDTH = 10
 _last_zhoo: dict[int, str] = {}   # آخر رد لـ«زهو» بكل مجموعة (حتى ما يتكرر)
 
 
@@ -179,21 +181,32 @@ async def cmd_activity(cx: CommandContext) -> None:
                                      count=count, level=activity_level(count)))
 
 
-@registry.command("top_active", ("المتفاعلين", "الاكثر تفاعل", "توب"), section=S,
-                  description="أكثر 10 أعضاء تفاعلاً بالمجموعة", order=5)
+@registry.command("top_active", ("المتفاعلين", "الاكثر تفاعل", "توب", "التوب"), section=S,
+                  description="أكثر 10 أعضاء تفاعلاً، برسائلهم ونسبتهم، وترتيبك انت", order=5)
 async def cmd_top_active(cx: CommandContext) -> None:
-    await cx.services.tracker.flush()
-    rows = await cx.services.members.top_active(cx.chat.id, 10)
+    svc = cx.services
+    await svc.tracker.flush()
+    rows = await svc.members.top_active(cx.chat.id, TOP_ACTIVE_LIMIT)
     if not rows:
         await cx.reply(T.NO_ACTIVITY)
         return
-    medals = ["🥇", "🥈", "🥉"] + ["🏅"] * 7
-    lines = [
-        f"{medals[i]} {mention(r['user_id'], ' '.join(p for p in (r['first_name'], r['last_name']) if p))}"
-        f" ⌯ <b>{r['msg_count']}</b>"
-        for i, r in enumerate(rows)
-    ]
-    await cx.reply(T.TOP_ACTIVE_HEADER + "\n" + "\n".join(lines))
+    total, members = await svc.members.activity_totals(cx.chat.id)
+    top = rows[0]["msg_count"] or 1
+    lines = []
+    for i, r in enumerate(rows):
+        name = " ".join(p for p in (r["first_name"], r["last_name"]) if p) or str(r["user_id"])
+        count = r["msg_count"]
+        filled = max(1, round(count / top * BAR_WIDTH))
+        lines.append(T.TOP_ACTIVE_ITEM.format(
+            medal=T.TOP_MEDALS[i] if i < len(T.TOP_MEDALS) else f"{i + 1}.",
+            mention=mention(r["user_id"], name), count=f"{count:,}",
+            bar="▰" * filled + "▱" * (BAR_WIDTH - filled), pct=round(count * 100 / max(total, 1))))
+    mine = await svc.members.message_count(cx.chat.id, cx.user.id)
+    pos = await svc.members.activity_position(cx.chat.id, mine) if mine else None
+    footer = T.TOP_ACTIVE_ME.format(pos=pos, count=f"{mine:,}", level=activity_level(mine)) if pos \
+        else T.TOP_ACTIVE_ME_NONE
+    await cx.reply(T.TOP_ACTIVE.format(title=esc(cx.chat.title or ""), total=f"{total:,}", members=f"{members:,}",
+                                       items="\n".join(lines), me=footer))
 
 
 @registry.command("about", ("معلومات البوت", "عن البوت", "عن زهو"), section=S,

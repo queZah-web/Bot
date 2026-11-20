@@ -97,8 +97,19 @@ class MembersRepo:
             """
             SELECT m.user_id, m.msg_count, u.first_name, u.last_name
             FROM group_members m LEFT JOIN users u ON u.user_id = m.user_id
-            WHERE m.chat_id = ? AND m.msg_count > 0
+            WHERE m.chat_id = ? AND m.msg_count > 0 AND COALESCE(u.is_bot, 0) = 0
             ORDER BY m.msg_count DESC LIMIT ?
             """,
             (chat_id, limit),
         )
+
+    async def activity_totals(self, chat_id: int) -> tuple[int, int]:
+        """(مجموع الرسائل، عدد الأعضاء اللي كتبوا)"""
+        row = await self.db.fetchone(
+            "SELECT COALESCE(SUM(msg_count), 0) AS total, COUNT(*) AS n FROM group_members "
+            "WHERE chat_id = ? AND msg_count > 0", (chat_id,))
+        return (row["total"], row["n"]) if row else (0, 0)
+
+    async def activity_position(self, chat_id: int, count: int) -> int:
+        return 1 + await self.db.fetchval(
+            "SELECT COUNT(*) FROM group_members WHERE chat_id = ? AND msg_count > ?", (chat_id, count), default=0)
