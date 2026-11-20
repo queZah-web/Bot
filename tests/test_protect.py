@@ -165,14 +165,15 @@ async def test_captcha_flow(env):
     async def delete():
         pass
 
-    cmsg = SimpleNamespace(chat=SimpleNamespace(id=GROUP), delete=delete)
+    cmsg = SimpleNamespace(chat=Chat(GROUP, Chat.SUPERGROUP, title="g"), delete=delete)
     await protect.on_captcha_button(SimpleNamespace(from_user=SimpleNamespace(id=ALI), answer=answer),
                                     cmsg, svc, bot, str(newbie.id))
     assert "مخصص" in answers[-1]
-    await protect.on_captcha_button(SimpleNamespace(from_user=SimpleNamespace(id=newbie.id), answer=answer),
+    await protect.on_captcha_button(SimpleNamespace(from_user=newbie, answer=answer),
                                     cmsg, svc, bot, str(newbie.id))
     assert "تم التحقق" in answers[-1]
     assert await svc.captcha.pop(GROUP, newbie.id) is None
+    assert "أهلاً وسهلاً" in bot.sent[-1]  # الترحيب بعد التحقق
 
 
 async def test_captcha_expiry_kicks(env):

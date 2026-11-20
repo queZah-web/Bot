@@ -38,11 +38,9 @@ SECTIONS: tuple[Section, ...] = (
     Section("ranks", "الرتب والإدارة", "👥"),
     Section("punish", "العقوبات", "⛔"),
     Section("protect", "الحماية", "🛡"),
-    Section("locks", "القفل والفتح", "🔒", 5,
-            ("قفل الروابط", "قفل الصور", "قفل الفيديو", "قفل الملصقات", "قفل الكل", "فتح الكل")),
-    Section("group", "إعدادات المجموعة", "⚙️", 5,
-            ("القوانين", "الرابط", "الإعدادات", "الإحصائيات")),
-    Section("welcome", "الترحيب", "👋", 5, ("الترحيب", "تعيين الترحيب", "التوديع")),
+    Section("locks", "القفل والفتح", "🔒"),
+    Section("group", "إعدادات المجموعة", "⚙️"),
+    Section("welcome", "الترحيب والتوديع", "👋"),
     Section("social", "التفاعل", "💬", 6, ("ملفي", "اقتراح", "تصويت")),
     Section("games", "الألعاب", "🎮", 7, ("أسئلة", "تخمين", "لغز", "الترتيب")),
     Section("levels", "المستويات", "📈", 7, ("مستواي", "بطاقتي", "ترتيب المستويات")),
@@ -106,6 +104,10 @@ def section_text(section: Section, registry: CommandRegistry, rank: Rank, *, pri
     text += T.HELP_USAGE_HINT
     if section.key == "punish":
         text += T.HELP_DURATION_HINT
+    elif section.key == "locks":
+        text += T.HELP_LOCK_TYPES
+    elif section.key == "welcome":
+        text += "\n" + T.TEMPLATE_VARS
     return text
 
 

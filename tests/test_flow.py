@@ -61,6 +61,16 @@ class FakeBot:
         self.calls.append(("restrict", user_id, permissions.can_send_messages, until_date))
         return True
 
+    async def get_chat_member_count(self, chat_id, **kw):
+        return 42
+
+    async def set_chat_permissions(self, chat_id, permissions, **kw):
+        self.calls.append(("chat_perms", permissions.can_send_messages))
+        return True
+
+    async def create_chat_invite_link(self, chat_id, **kw):
+        return SimpleNamespace(invite_link="https://t.me/+abcdef")
+
     async def delete_message(self, chat_id, message_id, **kw):
         self.calls.append(("delete", message_id))
         return True

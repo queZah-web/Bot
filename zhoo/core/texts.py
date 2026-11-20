@@ -278,6 +278,105 @@ CAPTCHA_NOT_YOURS = "هذا الزر مخصص للعضو الجديد فقط �
 CAPTCHA_DONE = "تم التحقق بنجاح، أهلاً بك 🤍"
 CAPTCHA_EXPIRED = "انتهت صلاحية هذا التحقق 🌸"
 
+# ── القفل والفتح ───────────────────────────────────
+LOCK_PANEL = (
+    title("الأقفال", "🔒") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} 🔒 مقفول ⋅ 🔓 مفتوح\n"
+    f"{BULLET} اضغط على أي نوع لقفله أو فتحه ✨\n"
+    f"{LINE}\n"
+    f"{BULLET} المميزون فما فوق مُستثنَون من الأقفال 🤍"
+)
+LOCKED = title("تَـمَّ الـقَـفْـل", "🔒") + f"\n{BULLET} {{what}}\n{BULLET} بواسطة: {{actor}}"
+UNLOCKED = title("تَـمَّ الـفَـتْـح", "🔓") + f"\n{BULLET} {{what}}\n{BULLET} بواسطة: {{actor}}"
+ALREADY_LOCKED = f"{BULLET} {{what}} مقفولة من قبل 🔒"
+ALREADY_UNLOCKED = f"{BULLET} {{what}} مفتوحة من قبل 🔓"
+LOCK_NOTICE = f"{BULLET} {{mention}} عذراً، <b>{{what}}</b> مقفولة حالياً في المجموعة 🔒"
+LOCK_NEED_RIGHTS = f"{BULLET} أحتاج صلاحية «<b>حذف الرسائل</b>» حتى تعمل الأقفال 🔐"
+LOCK_CHAT_NEED_RIGHTS = f"{BULLET} أحتاج صلاحية «<b>حظر المستخدمين</b>» حتى أقفل الدردشة 🔐"
+LOCK_NEED_RANK = "تعديل الأقفال يحتاج رتبة أدمن أو أعلى 🔐"
+HELP_LOCK_TYPES = (
+    f"\n{BULLET} الأنواع: الصور، الفيديو، المتحركات، الملصقات، البصمات، الصوتيات، الملفات، "
+    "الجهات، المواقع، الاستفتاءات، الإشعارات، الروابط، التوجيه، الدردشة\n"
+    f"{BULLET} مثال: <code>قفل الصور</code> ، <code>فتح الملصقات</code>"
+)
+
+# ── الترحيب والتوديع ───────────────────────────────
+DEFAULT_WELCOME = (
+    "✿ أهلاً وسهلاً {الاسم} 🌸\n"
+    "─── ⋆⋅🤍⋅⋆ ───\n"
+    "◈ سعداء بانضمامك إلى {المجموعة} 🤍\n"
+    "◈ أنت العضو رقم {العدد}\n"
+    "◈ نتمنى لك وقتاً ممتعاً معنا ✨"
+)
+DEFAULT_GOODBYE = "◈ وداعاً {الاسم} 🤍 نتمنى لك التوفيق دائماً ✨"
+TEMPLATE_VARS = (
+    f"{BULLET} المتغيرات المتاحة:\n"
+    "    <code>{الاسم}</code> اسم العضو بمنشن\n"
+    "    <code>{اليوزر}</code> يوزر العضو\n"
+    "    <code>{الايدي}</code> ايدي العضو\n"
+    "    <code>{المجموعة}</code> اسم المجموعة\n"
+    "    <code>{العدد}</code> عدد الأعضاء"
+)
+WELCOME_STATUS = (
+    title("{kind}", "👋") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} الحالة: {{state}}\n"
+    f"{BULLET} القالب: {{custom}}\n"
+    f"{LINE}\n"
+    f"{BULLET} معاينة:\n\n{{preview}}"
+)
+WELCOME_SET = f"{BULLET} تم حفظ قالب {{kind}} ✨ وهذه معاينته:\n\n{{preview}}"
+WELCOME_RESET = f"{BULLET} تمت إعادة {{kind}} للقالب الافتراضي 🌸"
+WELCOME_ON = f"{BULLET} تم تفعيل {{kind}} ✅"
+WELCOME_OFF = f"{BULLET} تم تعطيل {{kind}} ▫️"
+WELCOME_EMPTY = f"{BULLET} اكتب نص القالب بعد الأمر من فضلك 🌸\n" + "{vars}"
+WELCOME_TOO_LONG = f"{BULLET} القالب طويل جداً، الحد الأقصى 1000 حرف 🌸"
+BTN_RULES = "📜 القوانين"
+
+# ── القوانين والرابط والإحصائيات ─────────────────────
+RULES_TEXT = title("قوانين {title}", "📜") + f"\n{LINE}\n{{rules}}"
+RULES_EMPTY = f"{BULLET} لم تُضف قوانين لهذه المجموعة بعد 🌸\n{BULLET} يمكن للمدير إضافتها بأمر <code>تعيين القوانين</code>"
+RULES_SET = f"{BULLET} تم حفظ القوانين ✨ يمكن لأي عضو عرضها بكتابة <code>القوانين</code>"
+RULES_DELETED = f"{BULLET} تم حذف القوانين 🌸"
+RULES_ALERT_MORE = "\n… اكتب «القوانين» لعرضها كاملة"
+LINK_TEXT = title("رابط {title}", "🔗") + f"\n{LINE}\n{{link}}"
+LINK_NONE = f"{BULLET} لا يوجد رابط حالياً، وأحتاج صلاحية «<b>دعوة المستخدمين</b>» لإنشائه 🔐"
+LINK_SET = f"{BULLET} تم حفظ الرابط ✨"
+LINK_BAD = f"{BULLET} الرابط غير صحيح 🌸 لازم يبدأ بـ <code>https://t.me/</code>"
+LINK_DELETED = f"{BULLET} تم حذف الرابط المحفوظ 🌸"
+STATS_TEXT = (
+    title("إحصائيات {title}", "📊") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} الأعضاء: <b>{{members}}</b>\n"
+    f"{BULLET} طاقم الإدارة: <b>{{staff}}</b>\n"
+    f"{BULLET} الرسائل المحسوبة: <b>{{messages}}</b>\n"
+    f"{LINE}\n"
+    f"{BULLET} المحظورين: <b>{{banned}}</b> ⋅ المكتومين: <b>{{muted}}</b>\n"
+    f"{BULLET} مخالفات الحماية (24 ساعة): <b>{{guard24}}</b>\n"
+    f"{BULLET} المستوى: {{level}} ⋅ الأقفال الفعالة: <b>{{locks}}</b>\n"
+    f"{LINE}\n"
+    f"{BULLET} الأكثر تفاعلاً:\n{{top}}"
+)
+
+# ── لوحة الإعدادات ─────────────────────────────────
+SETTINGS_PANEL = (
+    title("إعدادات {title}", "⚙️") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} اضغط على أي خيار لتعديله ✨\n"
+    f"{BULLET} التحذيرات: الحد <b>{{limit}}</b> ⋅ العقوبة <b>{{action}}</b>\n"
+    f"{BULLET} الحماية: {{level}} ⋅ الأقفال الفعالة: <b>{{locks}}</b>"
+)
+SETTINGS_NEED_MANAGER = "تعديل الإعدادات يحتاج رتبة مدير أو أعلى 🔐"
+BTN_WELCOME = "👋 الترحيب"
+BTN_GOODBYE = "🌙 التوديع"
+BTN_LOCKS = "🔒 الأقفال"
+BTN_PROTECT = "🛡 الحماية"
+BTN_WARN_LIMIT = "⚠️ حد التحذيرات: {n}"
+BTN_WARN_ACTION = "⚖️ العقوبة: {a}"
+BTN_LOCK_ALL = "🔒 قفل الكل"
+BTN_UNLOCK_ALL = "🔓 فتح الكل"
+
 # ── المالك ─────────────────────────────────────────
 OWNER_PANEL = (
     title("مركز المالك", "👑") + "\n"

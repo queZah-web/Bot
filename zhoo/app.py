@@ -16,7 +16,7 @@ from zhoo.database.db import Database
 from zhoo.handlers import callbacks, errors, membership, router, start
 
 # استيراد الأنظمة يسجل أوامرها بالسجل المركزي
-from zhoo.systems import general, owner, protect, punish, ranks  # noqa: F401
+from zhoo.systems import general, group, locks, owner, protect, punish, ranks  # noqa: F401
 
 log = logging.getLogger(__name__)
 
@@ -81,6 +81,8 @@ def build_application(settings: Settings) -> Application:
     app.add_handler(MessageHandler(filters.StatusUpdate.MIGRATE, router.on_migrate))
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS & filters.ChatType.GROUPS,
                                    protect.on_new_members))
+    app.add_handler(MessageHandler(filters.StatusUpdate.LEFT_CHAT_MEMBER & filters.ChatType.GROUPS,
+                                   group.on_left_member))
     app.add_handler(MessageHandler(filters.UpdateType.MESSAGE & chats & ~filters.COMMAND, router.on_message))
     app.add_handler(CallbackQueryHandler(callbacks.on_callback))
     app.add_handler(ChatMemberHandler(membership.on_my_chat_member, ChatMemberHandler.MY_CHAT_MEMBER))

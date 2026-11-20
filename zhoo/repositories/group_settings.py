@@ -15,6 +15,17 @@ DEFAULTS: dict[str, str] = {
     "guard_bots": "1",
     "guard_captcha": "0",
     "link_whitelist": "",
+    # الأقفال
+    "lock_photos": "0", "lock_videos": "0", "lock_gifs": "0", "lock_stickers": "0",
+    "lock_voice": "0", "lock_audio": "0", "lock_files": "0", "lock_contacts": "0",
+    "lock_locations": "0", "lock_polls": "0", "lock_service": "0", "lock_chat": "0",
+    # الترحيب والقوانين
+    "welcome_on": "1",
+    "welcome_text": "",
+    "goodbye_on": "0",
+    "goodbye_text": "",
+    "rules": "",
+    "invite_link": "",
 }
 
 

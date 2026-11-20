@@ -12,7 +12,7 @@ from zhoo.core.commands import registry
 from zhoo.core.context import Services, get_services
 from zhoo.core.fmt import mention
 from zhoo.handlers.views import about_text, audit_text, groups_text, help_main_text, owner_panel_text
-from zhoo.systems import protect, punish
+from zhoo.systems import group, locks, protect, punish
 from zhoo.keyboards.menus import (SECTION_MAP, back_to_start_keyboard, help_main_keyboard,
                                   owner_keyboard, owner_sub_keyboard, section_keyboard, section_text,
                                   start_keyboard)
@@ -78,6 +78,12 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             await _owner(q, msg, svc, parts[1])
         elif kind == "g" and len(parts) == 4:
             await protect.on_panel_button(q, msg, svc, context.bot, parts[1], parts[2], parts[3])
+        elif kind == "l" and len(parts) == 4:
+            await locks.on_panel_button(q, msg, svc, context.bot, parts[1], parts[2], parts[3])
+        elif kind == "st" and len(parts) == 4:
+            await group.on_settings_button(q, msg, svc, context.bot, parts[1], parts[2], parts[3])
+        elif kind == "r" and len(parts) == 2:
+            await group.on_rules_button(q, msg, svc)
         elif kind == "c" and len(parts) == 2:
             await protect.on_captcha_button(q, msg, svc, context.bot, parts[1])
         elif kind == "p" and len(parts) == 3:

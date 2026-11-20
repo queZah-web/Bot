@@ -191,8 +191,17 @@ async def on_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 await _kick_bot(context, svc, chat.id, member, adder)
             continue
 
-        if state["captcha"] and (self_joined or adder_rank < Rank.ADMIN):
-            await start_captcha(context, svc, chat.id, member)
+        if state["captcha"] and (self_joined or adder_rank < Rank.ADMIN) and \
+                await start_captcha(context, svc, chat.id, member):
+            continue  # الترحيب بعد التحقق
+        from zhoo.systems.group import send_welcome
+        await send_welcome(context.bot, svc, chat, member)
+
+    if (await svc.group_settings.get(chat.id, "lock_service")) == "1":
+        try:
+            await msg.delete()
+        except TelegramError:
+            pass
 
 
 async def _kick_bot(context, svc: Services, chat_id: int, bot_user: User, adder: User | None) -> None:
@@ -209,21 +218,23 @@ async def _kick_bot(context, svc: Services, chat_id: int, bot_user: User, adder:
     await send_notice(context, chat_id, T.GUARD_BOT_KICKED.format(bot=mention(bot_user.id, bot_user.full_name)))
 
 
-async def start_captcha(context, svc: Services, chat_id: int, member: User) -> None:
+async def start_captcha(context, svc: Services, chat_id: int, member: User) -> bool:
+    """يرجع True إذا بدأ التحقق فعلاً."""
     rights = await svc.perms.bot_rights(context.bot, chat_id)
     if rights is None or not rights.can_restrict_members:
-        return
+        return False
     try:
         await mod.apply(context.bot, chat_id, member.id, "mute", None)
     except TelegramError as e:
         log.info("فشل تقييد العضو الجديد: %s", e)
-        return
+        return False
     await svc.captcha.add(chat_id, member.id, None, CAPTCHA_TTL)
     kb = InlineKeyboardMarkup([[InlineKeyboardButton(T.CAPTCHA_BUTTON, callback_data=f"c:{member.id}")]])
     sent = await send_notice(context, chat_id, T.CAPTCHA_TEXT.format(
         mention=mention(member.id, member.full_name), minutes=CAPTCHA_TTL // 60), ttl=0, reply_markup=kb)
     if sent is not None:
         await svc.captcha.set_message(chat_id, member.id, sent.message_id)
+    return True
 
 
 async def on_captcha_button(q, msg: Message, svc: Services, bot, uid_raw: str) -> None:
@@ -244,6 +255,8 @@ async def on_captcha_button(q, msg: Message, svc: Services, bot, uid_raw: str) -
         await msg.delete()
     except TelegramError:
         pass
+    from zhoo.systems.group import send_welcome
+    await send_welcome(bot, svc, msg.chat, q.from_user)
 
 
 async def sweep_captcha(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -266,7 +279,7 @@ async def sweep_captcha(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 # ── لوحة الإعدادات ──────────────────────────────────
-def panel_keyboard(uid: int, state: dict[str, bool]) -> InlineKeyboardMarkup:
+def panel_keyboard(uid: int, state: dict[str, bool], back: bool = False) -> InlineKeyboardMarkup:
     buttons = []
     for k in GUARD_KEYS:
         name, emoji, _ = T.GUARD_LABELS[k]
@@ -275,8 +288,19 @@ def panel_keyboard(uid: int, state: dict[str, bool]) -> InlineKeyboardMarkup:
     rows = [buttons[i:i + 2] for i in range(0, len(buttons), 2)]
     rows.append([InlineKeyboardButton(label, callback_data=f"g:{uid}:p:{lvl}")
                  for lvl, label in T.GUARD_LEVELS.items()])
-    rows.append([InlineKeyboardButton(T.BTN_CLOSE, callback_data=f"g:{uid}:x:-")])
+    last = [InlineKeyboardButton(T.BTN_CLOSE, callback_data=f"g:{uid}:x:-")]
+    if back:
+        last.insert(0, InlineKeyboardButton(T.BTN_BACK, callback_data=f"st:{uid}:home:-"))
+    rows.append(last)
     return InlineKeyboardMarkup(rows)
+
+
+def has_back(msg) -> bool:
+    """هل اللوحة مفتوحة من «الإعدادات» (فيها زر رجوع)؟"""
+    markup = getattr(msg, "reply_markup", None)
+    if not markup:
+        return False
+    return any(b.callback_data and b.callback_data.startswith("st:") for row in markup.inline_keyboard for b in row)
 
 
 def panel_text(state: dict[str, bool]) -> str:
@@ -324,7 +348,7 @@ async def on_panel_button(q, msg: Message, svc: Services, bot, uid_raw: str, act
         return
     state = await guards_state(svc, chat_id)
     try:
-        await msg.edit_text(panel_text(state), reply_markup=panel_keyboard(q.from_user.id, state))
+        await msg.edit_text(panel_text(state), reply_markup=panel_keyboard(q.from_user.id, state, has_back(msg)))
     except BadRequest:
         pass
 
