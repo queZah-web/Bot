@@ -12,7 +12,7 @@ from zhoo.core.commands import registry
 from zhoo.core.context import Services, get_services
 from zhoo.core.fmt import mention
 from zhoo.handlers.views import about_text, audit_text, groups_text, help_main_text, owner_panel_text
-from zhoo.systems import botstate, feedback, group, locks, protect, punish, social
+from zhoo.systems import botstate, feedback, games, group, locks, protect, punish, social
 from zhoo.keyboards.menus import (SECTION_MAP, back_to_start_keyboard, help_main_keyboard,
                                   owner_keyboard, owner_sub_keyboard, section_keyboard, section_text,
                                   start_keyboard)
@@ -91,6 +91,8 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             await feedback.on_suggestion_button(q, msg, svc, context.bot, parts[1], parts[2])
         elif kind == "cp" and len(parts) == 3:
             await feedback.on_complaint_button(q, msg, svc, context.bot, parts[1])
+        elif kind == "gm" and len(parts) == 2:
+            await games.on_menu_button(q, msg, svc, context, parts[1])
         elif kind == "rt" and len(parts) == 4:
             await social.on_rating_button(q, msg, svc, context.bot, parts[1], parts[2], parts[3])
         elif kind == "pr" and len(parts) == 4:

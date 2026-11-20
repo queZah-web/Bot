@@ -71,8 +71,12 @@ async def profile_view(svc: Services, bot, chat_id: int, user_id: int, name: str
     good, bad, avg, voters = await svc.ratings.summary(chat_id, user_id)
     rating = T.PROFILE_RATING.format(stars=stars(avg), score=f"{avg:.1f}" if avg is not None else T.RATE_NO_SCORE,
                                      voters=voters, good=good, bad=bad)
+    from zhoo.core import levels as L
+    xp, _ = await svc.levels.get(chat_id, user_id)
+    lvl = L.level_for(xp)
     text = T.PROFILE.format(
-        name=mention(user_id, name), rank=rank_label(rank), messages=messages,
+        name=mention(user_id, name), rank=rank_label(rank), level=lvl, level_title=L.title_for(lvl),
+        messages=messages,
         activity=activity_level(messages), thanks=await svc.social.thanks_count(chat_id, user_id),
         warns=await svc.punishments.warning_count(chat_id, user_id),
         limit=await svc.group_settings.get_int(chat_id, "warn_limit"),

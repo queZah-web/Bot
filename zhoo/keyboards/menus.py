@@ -43,8 +43,8 @@ SECTIONS: tuple[Section, ...] = (
     Section("welcome", "الترحيب والتوديع", "👋"),
     Section("replies", "الردود والاختصارات", "💬"),
     Section("social", "التفاعل", "🤝"),
-    Section("games", "الألعاب", "🎮", 7, ("أسئلة", "تخمين", "لغز", "الترتيب")),
-    Section("levels", "المستويات", "📈", 7, ("مستواي", "بطاقتي", "ترتيب المستويات")),
+    Section("games", "الألعاب", "🎮"),
+    Section("levels", "المستويات", "📈"),
     Section("economy", "الاقتصاد", "💰", 8, ("نقاطي", "المكافأة اليومية", "المتجر", "تحويل")),
     Section("dev", "المطور", "💎", None, (), Rank.DEVELOPER),
 )

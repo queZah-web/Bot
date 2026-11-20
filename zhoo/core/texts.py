@@ -405,6 +405,7 @@ PROFILE = (
     title("مَـلَـفّ {name}", "🌸") + "\n"
     f"{LINE}\n"
     f"{BULLET} الرتبة: {{rank}}\n"
+    f"{BULLET} المستوى: <b>{{level}}</b> ⋅ {{level_title}}\n"
     f"{BULLET} الرسائل: <b>{{messages}}</b> ⋅ التفاعل: {{activity}}\n"
     f"{BULLET} الشكر: <b>{{thanks}}</b> 🤍\n"
     f"{BULLET} التحذيرات: <b>{{warns}}/{{limit}}</b>\n"
@@ -532,6 +533,93 @@ PAIRS_HEADER = title("الثنائيات", "💍") + f"\n{LINE}"
 PAIRS_EMPTY = f"{BULLET} ماكو ثنائيات لحد هسه 🌸"
 BTN_PAIR_ACCEPT = "💍 قبول"
 BTN_PAIR_REJECT = "🙅 رفض"
+
+# ── المستويات ──────────────────────────────────────
+LEVEL_CARD = (
+    title("مُـسْـتَـوَى {name}", "📈") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} المستوى: <b>{{level}}</b> ⋅ اللقب: {{title}}\n"
+    f"{BULLET} الخبرة: <b>{{xp}}</b> نقطة\n"
+    f"{BULLET} التقدم: {{bar}} <b>{{pct}}%</b>\n"
+    f"{BULLET} باقي للمستوى {{next}}: <b>{{left}}</b> نقطة\n"
+    f"{BULLET} الترتيب بالمجموعة: <b>#{{pos}}</b>\n"
+    f"{BULLET} الفوز بالمسابقات: <b>{{wins}}</b> 🏆\n"
+    f"{LINE}\n"
+    f"{BULLET} الإنجازات: {{badges}}"
+)
+NO_BADGES = "<i>بعدها، كمّل وتوصل 💪</i>"
+LEVEL_UP = f"🎉 {{mention}} وصل للمستوى <b>{{level}}</b> ✨\n{BULLET} اللقب: {{title}}"
+LEVELS_OFF = f"{BULLET} المستويات معطّلة بهاي المجموعة 🌸"
+LEADERBOARD_HEADERS = {
+    "all": title("ترتيب المستويات", "🏆"),
+    "week": title("ترتيب الأسبوع", "📅"),
+    "month": title("ترتيب الشهر", "🗓"),
+    "wins": title("ترتيب المسابقات", "🎯"),
+}
+LEADERBOARD_UNITS = {"all": "نقطة", "week": "نقطة", "month": "نقطة", "wins": "فوز"}
+LEADERBOARD_EMPTY = f"{BULLET} ماكو نشاط بهاي الفترة لحد هسه 🌸"
+TITLES_HEADER = title("الألقاب", "🎖") + f"\n{LINE}"
+TITLES_LINE = "▫️ من المستوى <b>{level}</b> ← {title}"
+TOGGLE_ON = f"{BULLET} تم تفعيل {{what}} ✅"
+TOGGLE_OFF = f"{BULLET} تم تعطيل {{what}} ▫️"
+
+# ── الألعاب ────────────────────────────────────────
+GAMES_MENU = (
+    title("الألعاب", "🎮") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} اختار لعبة، وأول واحد يجاوب صح يفوز بنقاط خبرة 🏆\n"
+    f"{BULLET} لعبة وحدة بكل مرة، والأجوبة تنكتب بالمجموعة عادي ✨"
+)
+GAMES_OFF = f"{BULLET} الألعاب معطّلة بهاي المجموعة 🌸"
+GAME_RUNNING = f"{BULLET} اكو لعبة شغّالة هسه 🎮 جاوبوا عليها أول، أو اكتبوا <code>ايقاف اللعبة</code>"
+GAME_COOLDOWN = "على كيفكم 🌸 ثواني وتبدي لعبة جديدة"
+GAME_HEADER = {
+    "quiz": ("سُـؤَال {level}", "❓"),
+    "scramble": ("رَتِّـب الـحُـرُوف", "🔤"),
+    "typing": ("أَسْـرَع كِـتَـابَـة", "⚡"),
+    "math": ("رِيَـاضِـيَّـات", "➗"),
+    "riddle": ("لُـغْـز", "🧩"),
+    "daily": ("لُـغْـز الـيَـوْم", "🌟"),
+    "duel": ("تَـحَـدِّي", "⚔️"),
+}
+GAME_PROMPTS = {
+    "quiz": "{question}",
+    "scramble": "رتب هاي الحروف وكوّن كلمة:\n\n<b>{question}</b>",
+    "typing": "أول واحد يكتب هاي العبارة بالضبط يفوز:\n\n<b>{question}</b>",
+    "math": "شكد ناتج:\n\n<b>{question}</b>",
+    "riddle": "{question}",
+    "daily": "{question}\n\n<i>أول واحد يحله اليوم ياخذ مكافأة كبيرة 🌟</i>",
+    "duel": "{a} ضد {b}\nأول واحد منكم يجاوب يفوز:\n\n<b>{question}</b>",
+}
+GAME_BODY = (
+    "\n" + f"{LINE}\n"
+    f"{BULLET} الجائزة: <b>{{xp}}</b> نقطة خبرة ⋅ الوقت: <b>{{secs}}</b> ثانية ⏳"
+)
+QUIZ_LEVELS = {"easy": "سَـهْـل 🟢", "medium": "مُـتَـوَسِّـط 🟡", "hard": "صَـعْـب 🔴"}
+GAME_WIN = (
+    title("جَـوَاب صَـح", "🎉") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} الفائز: {{mention}} 🏆\n"
+    f"{BULLET} الجواب: <b>{{answer}}</b>\n"
+    f"{BULLET} الوقت: <b>{{secs}}</b> ثانية\n"
+    f"{BULLET} الجائزة: <b>+{{xp}}</b> نقطة خبرة"
+)
+GAME_TIMEOUT = title("خِـلَـص الـوَقْـت", "⏰") + f"\n{BULLET} الجواب الصحيح: <b>{{answer}}</b>\n{BULLET} الجاية تكون إلكم 💪"
+GAME_STOPPED = f"{BULLET} توقفت اللعبة 🌸 الجواب كان: <b>{{answer}}</b>"
+GAME_NONE = f"{BULLET} ماكو لعبة شغّالة هسه 🎮"
+GAME_STOP_DENIED = f"{BULLET} اللي بدأ اللعبة أو الأدمن وفوگ بس يگدرون يوقفونها 🌸"
+TYPING_COPY = "◈ النسخ واللصق ما يحسب 😄 اكتبها بإيدك"
+DAILY_SOLVED = f"{BULLET} لغز اليوم انحل من قبل {{mention}} 🌟 ارجعوا باچر للغز جديد"
+DUEL_SELF = f"{BULLET} ما يصير تتحدى نفسك 😄"
+DUEL_BOT = f"{BULLET} ما يصير تتحدى بوت 🤖"
+BTN_GAMES = {
+    "quiz": "❓ سؤال",
+    "scramble": "🔤 رتب",
+    "typing": "⚡ أسرع",
+    "math": "➗ رياضيات",
+    "riddle": "🧩 لغز",
+    "daily": "🌟 لغز اليوم",
+}
 
 # ── القفل والفتح ───────────────────────────────────
 LOCK_PANEL = (

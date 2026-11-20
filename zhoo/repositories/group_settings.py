@@ -34,6 +34,11 @@ DEFAULTS: dict[str, str] = {
     "pairs_on": "0",
     # حالة زهو: on | paused | disabled
     "bot_state": "on",
+    # الألعاب والمستويات
+    "games_on": "1",
+    "levels_on": "1",
+    "levelup_notice": "1",
+    "daily_riddle": "",   # YYYY-MM-DD:user_id لأول واحد حل لغز اليوم
 }
 
 

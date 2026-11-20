@@ -21,6 +21,7 @@ from zhoo.repositories.bot_settings import BotSettingsRepo
 from zhoo.repositories.captcha import CaptchaRepo
 from zhoo.repositories.group_settings import GroupSettingsRepo
 from zhoo.repositories.groups import GroupsRepo
+from zhoo.repositories.levels import LevelsRepo
 from zhoo.repositories.members import MembersRepo
 from zhoo.repositories.punishments import PunishmentsRepo
 from zhoo.repositories.replies import RepliesRepo
@@ -48,12 +49,15 @@ class Services:
     replies: RepliesRepo
     social: SocialRepo
     ratings: RatingsRepo
+    levels: LevelsRepo
     flood: FloodTracker = field(default_factory=FloodTracker)
     repeats: RepeatTracker = field(default_factory=RepeatTracker)
     strikes: StrikeTracker = field(default_factory=StrikeTracker)
     notice_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(1, 20))
     reply_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(4, 10))
     conversations: Conversations = field(default_factory=Conversations)
+    games: dict = field(default_factory=dict)          # chat_id ← اللعبة الشغّالة
+    xp_seen: dict = field(default_factory=dict)        # (chat, user) ← (آخر وقت، بصمة آخر رسالة)
     command_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(5, 10))
     button_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(4, 3))
     started_at: float = field(default_factory=time.time)
@@ -70,7 +74,7 @@ class Services:
             punishments=PunishmentsRepo(db), group_settings=GroupSettingsRepo(db),
             captcha=CaptchaRepo(db), swear_logs=SwearLogsRepo(db),
             aliases=AliasesRepo(db), replies=RepliesRepo(db), social=SocialRepo(db),
-            ratings=RatingsRepo(db),
+            ratings=RatingsRepo(db), levels=LevelsRepo(db),
         )
 
     @property

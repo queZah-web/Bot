@@ -12,7 +12,7 @@ from zhoo.core.context import CommandContext, get_services
 from zhoo.core.ranks import RANK_NAMES, Rank
 from zhoo.core import conversation
 from zhoo.core.normalize import normalize
-from zhoo.systems import aliases, botstate, locks, protect, replies, swear
+from zhoo.systems import aliases, botstate, games, levels, locks, protect, replies, swear
 
 log = logging.getLogger(__name__)
 
@@ -76,6 +76,9 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             parsed = registry.parse(expanded, has_text_mention=has_tm, has_reply=has_reply)
     if parsed is None:
         if in_group and not quiet and msg.sender_chat is None and not user.is_bot and not svc.maintenance:
+            await levels.on_message(context, svc, msg, chat, user)       # خبرة الرسائل
+            if await games.check_answer(context, svc, msg, chat, user):  # جواب لعبة شغّالة
+                return
             await replies.maybe_reply(svc, msg, chat, user)
         return
     cmd = parsed.command
