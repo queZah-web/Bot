@@ -54,7 +54,7 @@ FEATURES: tuple[Feature, ...] = (
     Feature("mention_all", "المنشن", ("النداء", "التاك للكل"), "1", ("mention_all",)),
     Feature("protection", "الحماية", ("الحمايه",), "1"),
     Feature("replies", "الردود", (), "1"),
-    Feature("source_replies", "ردود زهو", ("ردود السورس", "ردود البوت"), "1"),
+    Feature("source_replies", "ردود زهو", ("ردود السورس", "ردود البوت", "ردود السلام", "ردود الترحيب"), "1"),
     Feature("azkar", "الأذكار", ("الاذكار",), "0", ("azkar_now",)),
     Feature("fun", "التسلية", ("التسليه",), "1",
             ("fun_love", "fun_beauty", "fun_smart", "fun_kind", "fun_luck_pct", "fun_luck", "fun_choose")),
@@ -126,6 +126,25 @@ registry.command("feature_on", ("تفعيل",), section=S, min_rank=EDIT_RANK, a
                  description="يشغّل ميزة، مثل: تفعيل الكت", order=40)(_enable)
 registry.command("feature_off", ("تعطيل",), section=S, min_rank=EDIT_RANK, accept=_accept, usage="اسم الميزة",
                  description="يطفي ميزة، مثل: تعطيل المنشن", order=41)(_disable)
+
+
+# ── ردود السلام (اختصار واضح لـ «ردود زهو») ─────────
+async def _greet(cx: CommandContext, on: bool) -> None:
+    if not await set_enabled(cx.services, cx.chat.id, "source_replies", on, cx.user.id):
+        await cx.reply(T.GREET_ALREADY_ON if on else T.GREET_ALREADY_OFF)
+        return
+    await cx.reply(T.GREET_ON if on else T.GREET_OFF)
+
+
+async def _greet_on(cx): await _greet(cx, True)      # noqa: E704
+async def _greet_off(cx): await _greet(cx, False)    # noqa: E704
+
+
+registry.command("greet_off", ("ايقاف ردود السلام", "إيقاف ردود السلام", "ايقاف ردود زهو", "إيقاف ردود زهو"),
+                 section=S, min_rank=EDIT_RANK, order=42,
+                 description="توقف ردود زهو على السلام والترحيب وصباح ومساء الخير (الأوامر والحماية تبقى)")(_greet_off)
+registry.command("greet_on", ("تشغيل ردود السلام", "تشغيل ردود زهو"), section=S, min_rank=EDIT_RANK, order=43,
+                 description="ترجع ردود زهو على السلام والترحيب")(_greet_on)
 
 
 # ── لوحة الميزات ────────────────────────────────────

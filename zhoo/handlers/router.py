@@ -94,7 +94,7 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     cmd = parsed.command
 
     # زهو موقوفة/معطّلة: بس أوامر التشغيل، وتذكير إذا نادوها
-    if quiet:
+    if quiet and not svc.perms.is_developer(user.id):   # مالك زهو يتحكم حتى لو موقوفة
         if cmd.key not in botstate.ALLOWED_WHEN[state] or msg.sender_chat is not None or user.is_bot:
             return
         if cmd.key == "zhoo":

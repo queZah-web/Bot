@@ -193,6 +193,12 @@ async def on_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         self_joined = adder is None or adder.id == member.id
         await svc.members.set_added_by(chat.id, member.id, 0 if self_joined else adder.id)
 
+        if svc.perms.is_developer(member.id):   # مالك زهو: ما تشمله الأقفال ولا التحقق
+            if not quiet:
+                await send_notice(context, chat.id, T.DEV_JOINED.format(mention=mention(member.id, member.full_name)),
+                                  ttl=0)
+            continue
+
         from zhoo.systems import locks
         if not member.is_bot and adder_rank < Rank.ADMIN and await locks.is_locked(svc, chat.id, "join"):
             await _kick_join(context, svc, chat.id, member)

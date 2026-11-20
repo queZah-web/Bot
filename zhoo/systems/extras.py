@@ -354,8 +354,8 @@ for _gid, (_triggers, _) in bank.REPLY_GROUPS.items():
         _TRIGGERS[tuple(normalize(_t).split())] = _gid
 _MAX_TRIGGER_WORDS = max(len(k) for k in _TRIGGERS)
 PREFIX_MAX_WORDS = 7                       # «السلام عليكم يا جماعة الخير» تنحسب، الجمل الطويلة لا
-_source_limiter = RateLimiter(1, 40)        # لكل شخص ولكل نوع رد
-_chat_source_limiter = RateLimiter(6, 60)   # ولكل مجموعة، حتى ما تصير زحمة ردود
+_source_limiter = RateLimiter(1, 5)         # نفس الشخص: رد وحد كل 5 ثواني
+_chat_source_limiter = RateLimiter(20, 60)  # والمجموعة كلها: 20 رد بالدقيقة (ضد الزحمة)
 _last_reply: dict[tuple[int, str], int] = {}
 _STRIP = " !.،,؟?~…🌸🤍❤️♥️✨🌹🌷💐😍🥰😊☺️🙏"
 
@@ -395,7 +395,7 @@ async def maybe_source_reply(svc: Services, msg: Message, chat) -> bool:
         return False
     user = msg.from_user
     uid = user.id if user else 0
-    if not _source_limiter.hit((chat.id, uid, gid)) or not _chat_source_limiter.hit(chat.id):
+    if not _source_limiter.hit((chat.id, uid)) or not _chat_source_limiter.hit(chat.id):
         return False
     name = (user.first_name if user else "")[:30]
     try:

@@ -65,10 +65,15 @@ async def test_links_deleted_with_escalation(env):
     assert await svc.punishments.is_active(GROUP, ALI, "mute")
 
 
-async def test_vip_is_exempt(env):
+async def test_links_need_admin_not_vip(env):
+    """المميز يتجاوز أقفال الصور والملصقات بس، الروابط تحتاج مشرف."""
     svc, bot, _ = env
     await _set_level(env, "medium")
     await svc.members.set_rank(GROUP, SARA, Rank.VIP, CREATOR)
+    bot.calls.clear()
+    await say(env, SARA, "t.me/whatever")
+    assert any(c[0] == "delete" for c in bot.calls)
+    await svc.members.set_rank(GROUP, SARA, Rank.ADMIN, CREATOR)
     bot.calls.clear()
     await say(env, SARA, "t.me/whatever")
     assert not any(c[0] == "delete" for c in bot.calls)

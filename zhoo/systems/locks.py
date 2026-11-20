@@ -1,7 +1,9 @@
 """القفل والفتح (الإصدار الثاني): كل قفل إله وضع عقوبة.
 
 الأوضاع: 🗑 مسح (متدرج: بعد 3 مخالفات بنص ساعة كتم ساعة) ⋅ ⚠️ تحذير ⋅ 🔇 كتم ساعة ⋅ ⛓ تقييد ⋅ 👢 طرد
-الأوامر: «قفل الصور» ، «قفل الصور بالتقييد» ، «فتح الصور» — والمميز فما فوق مستثنى.
+الأوامر: «قفل الصور» ، «قفل الصور بالتقييد» ، «فتح الصور».
+الاستثناء حسب نوع القفل: المميز يكدر يرسل الصور والفيديو والملصقات وأشباهها حتى لو مقفولة،
+بس الملفات والصوتيات والروابط والتوجيه وغيرها تحتاج أدمن فما فوق (VIP_EXEMPT).
 
 يسد ثغرات مشهورة:
   • التعديل: رسالة عادية تتعدل بعدين وينحط بيها رابط/سب ← تنفحص من جديد.
@@ -16,7 +18,7 @@ import logging
 import time
 from dataclasses import dataclass
 
-from telegram import ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup, Message, Update
+from telegram import ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup, Message, MessageEntity, Update
 from telegram.error import BadRequest, Forbidden, TelegramError
 from telegram.ext import ContextTypes
 
@@ -34,7 +36,10 @@ log = logging.getLogger(__name__)
 S = "locks"
 
 EDIT_RANK = Rank.ADMIN
-EXEMPT_RANK = Rank.VIP
+EXEMPT_RANK = Rank.ADMIN   # الافتراضي: المشرفين بس يتجاوزون القفل
+# أقفال «شكلية» يتجاوزها المميز فما فوق (الملفات والصوتيات والروابط... لا)
+VIP_EXEMPT = frozenset({"photos", "videos", "gifs", "stickers", "animated_stickers", "premium_stickers",
+                        "premium_emoji", "text", "long", "edit", "edit_media", "reactions"})
 MODES_ALL = ("delete", "warn", "mute", "restrict", "kick")
 MAX_STRIKES = 3
 LOCK_MUTE = 3600
@@ -58,6 +63,11 @@ LOCKS: tuple[Lock, ...] = (
     Lock("videos", "الفيديو", "🎬", ("الفيديوهات", "فيديو"), "lock_videos", "media"),
     Lock("gifs", "المتحركات", "🎞", ("المتحركه", "الجيفات", "الصور المتحركه"), "lock_gifs", "media"),
     Lock("stickers", "الملصقات", "🧸", ("الستيكرات", "ملصقات"), "lock_stickers", "media"),
+    Lock("animated_stickers", "الملصقات المتحركة", "🌀", ("الملصقات المتحركه", "الستيكرات المتحركه",
+                                                          "الملصقات المتحركة"), "lock_animated_stickers", "media"),
+    Lock("premium_stickers", "الملصقات المميزة", "💎", ("الملصقات المميزه", "الستيكرات المميزه",
+                                                        "ملصقات البريميوم", "الملصقات البريميوم"),
+         "lock_premium_stickers", "media"),
     Lock("voice", "البصمات", "🎙", ("الفويسات", "الصوت", "البصمه"), "lock_voice", "media"),
     Lock("audio", "الصوتيات", "🎵", ("الاغاني", "الموسيقى"), "lock_audio", "media"),
     Lock("files", "الملفات", "📁", ("ملفات",), "lock_files", "media"),
@@ -71,6 +81,8 @@ LOCKS: tuple[Lock, ...] = (
     Lock("tag", "التاك", "🏷", ("التاگ", "التاق"), "lock_tag", "content"),
     Lock("forward", "التوجيه", "↪️", ("الفوروارد", "التحويلات"), "guard_forward", "content"),
     Lock("inline", "الانلاين", "🧷", ("الإنلاين", "الانلاين بوت"), "lock_inline", "content"),
+    Lock("premium_emoji", "الإيموجي المميز", "✨", ("الايموجي المميز", "الايموجيات المميزه", "الايموجي البريميوم",
+                                                   "الإيموجي المميزة"), "lock_premium_emoji", "content"),
     Lock("long", "الكلايش", "📜", ("الكليشه", "الكلايش الطويله", "الرسائل الطويله"), "lock_long", "content"),
     Lock("persian", "الإيرانية", "🇮🇷", ("الايرانيه", "الفارسيه", "الفارسي"), "lock_persian", "content"),
     Lock("porn", "الإباحي", "🔞", ("الاباحي", "الاباحيه"), "lock_porn", "content"),
@@ -88,7 +100,7 @@ LOCKS: tuple[Lock, ...] = (
 )
 LOCK_MAP = {l.key: l for l in LOCKS}
 ALL_KEYS = tuple(l.key for l in LOCKS if l.in_all)
-MEDIA_ORDER = ("photos", "gifs", "videos", "stickers", "voice", "audio", "files", "contacts", "locations", "polls")
+MEDIA_ORDER = ("photos", "gifs", "videos", "stickers", "animated_stickers", "premium_stickers", "voice", "audio", "files", "contacts", "locations", "polls")
 
 _MODE_WORDS = {normalize(w): m for w, m in (
     ("بالمسح", "delete"), ("بالحذف", "delete"), ("بالتحذير", "warn"), ("بالانذار", "warn"),
@@ -192,6 +204,14 @@ async def _violations(svc: Services, msg: Message, chat) -> list[str]:
         found.append("long")
     if msg.text:
         found.append("text")
+    entities = tuple(msg.entities or ()) + tuple(msg.caption_entities or ())
+    if any(e.type == MessageEntity.CUSTOM_EMOJI for e in entities):
+        found.append("premium_emoji")
+    if msg.sticker:   # الأنواع الخاصة قبل العامة
+        if msg.sticker.premium_animation is not None:
+            found.append("premium_stickers")
+        if msg.sticker.is_animated or msg.sticker.is_video:
+            found.append("animated_stickers")
     media = media_lock(msg)
     if media:
         found.append(media)
@@ -206,14 +226,22 @@ async def check(context, svc: Services, msg: Message, chat, user, *, edited: boo
     candidates = await _violations(svc, msg, chat)
     if edited:
         candidates = ["edit"] + (["edit_media"] if _has_media(msg) else []) + candidates
+    rank = None
     for key in candidates:
         mode = await get_mode(svc, chat.id, key)
         if mode is None:
             continue
-        if await svc.perms.rank_of(context.bot, chat.id, user.id) >= EXEMPT_RANK:
-            return False
+        if rank is None:
+            rank = await svc.perms.rank_of(context.bot, chat.id, user.id)
+        if rank >= exempt_rank(key):
+            continue   # مستثنى من هذا القفل، نشوف باقي المخالفات
         return await enforce(context, svc, msg, chat, user, LOCK_MAP[key], mode)
     return False
+
+
+def exempt_rank(key: str) -> Rank:
+    """أقل رتبة تتجاوز القفل."""
+    return Rank.VIP if key in VIP_EXEMPT else EXEMPT_RANK
 
 
 async def enforce(context, svc: Services, msg: Message, chat, user, lock: Lock, mode: str) -> bool:
@@ -447,6 +475,39 @@ async def panel_view(svc: Services, chat_id: int, uid: int, page: str = "media",
     return text, InlineKeyboardMarkup(rows)
 
 
+@registry.command("locks_status", ("حالة الاقفال", "حالة الأقفال", "الممنوعات", "المقفول", "شنو المقفول",
+                                  "حالة المجموعه"), section=S, min_rank=Rank.MEMBER, order=0,
+                  description="يعرض شنو موقوف وشنو مسموح بالمجموعة")
+async def cmd_status(cx: CommandContext) -> None:
+    from zhoo.systems import features, swear
+    svc, chat_id = cx.services, cx.chat.id
+    state = await lock_state(svc, chat_id)
+    locked, opened = [], []
+    for page in T.LOCK_PAGES:
+        for l in LOCKS:
+            if l.page != page:
+                continue
+            mode = state[l.key]
+            if mode:
+                icon, name = T.LOCK_MODES[mode]
+                locked.append(T.LOCK_STATUS_LOCKED_ITEM.format(
+                    emoji=l.emoji, name=l.name, mode=f"{icon} {name}",
+                    vip=T.LOCK_STATUS_VIP_MARK if l.key in VIP_EXEMPT else ""))
+            else:
+                opened.append(f"{l.emoji} {l.name}")
+    modes = await swear.get_modes(svc, chat_id)
+    off = [f.name for f in features.FEATURES if not await features.enabled(svc, chat_id, f.key)]
+    out = [T.LOCK_STATUS_HEADER, T.LOCK_STATUS_LOCKED_HEAD, *(locked or [T.LOCK_STATUS_NONE_LOCKED])]
+    if opened:
+        out += ["", T.LOCK_STATUS_OPEN_HEAD, "  " + " ⋅ ".join(opened)]
+    out += ["", T.LOCK_STATUS_SWEAR.format(summary=T.SWEAR_SUMMARY.format(
+        vulgar=T.SWEAR_MODES[modes["vulgar"]], insult=T.SWEAR_MODES[modes["insult"]]))]
+    if off:
+        out.append(T.LOCK_STATUS_FEATURES_OFF.format(names=" ⋅ ".join(off)))
+    out += [T.LINE, T.LOCK_STATUS_FOOTER]
+    await cx.reply("\n".join(out))
+
+
 @registry.command("locks_panel", ("الاقفال", "الأقفال"), section=S, min_rank=EDIT_RANK,
                   description="لوحة الأقفال بالأزرار (3 صفحات)", order=1)
 async def cmd_panel(cx: CommandContext) -> None:
@@ -532,7 +593,7 @@ async def on_reaction(update, context) -> None:
         return
     try:
         if r.user is not None:
-            if r.user.is_bot or await svc.perms.rank_of(context.bot, chat.id, r.user.id) >= EXEMPT_RANK:
+            if r.user.is_bot or await svc.perms.rank_of(context.bot, chat.id, r.user.id) >= exempt_rank("reactions"):
                 return
             await context.bot.delete_message_reaction(chat.id, r.message_id, user_id=r.user.id)
         elif r.actor_chat is not None and r.actor_chat.id != chat.id:

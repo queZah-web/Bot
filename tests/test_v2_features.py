@@ -304,6 +304,7 @@ async def test_service_commands(env):
 
 async def test_source_replies_and_toggle(env):
     await _setup(env)
+    extras._source_limiter._hits.clear()
     assert "وعليكم السلام" in await say(env, ALI, "السلام عليكم")
     assert "وعليكم السلام" in await say(env, SARA, "السلام عليكم")  # كل شخص ينرد عليه
     assert await say(env, ALI, "السلام عليكم") is None   # نفس الشخص مرة وحدة كل 40 ثانية (ضد السبام)
