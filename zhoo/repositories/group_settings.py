@@ -30,6 +30,8 @@ DEFAULTS: dict[str, str] = {
     "swear_mode": "off",
     "swear_custom": "",   # كلمات مضافة (موحدة، مفصولة بفواصل)
     "swear_allow": "",    # كلمات مسموحة بهاي المجموعة
+    # التفاعل الاجتماعي
+    "pairs_on": "0",
 }
 
 

@@ -21,6 +21,7 @@ class FakeBot:
     def __init__(self):
         self.sent: list[str] = []
         self.calls: list[tuple] = []
+        self.dm: list[tuple] = []
         self.id = BOT_ID
         self.username = "ZhooTestBot"
         self.defaults = None
@@ -34,6 +35,7 @@ class FakeBot:
 
     async def send_message(self, chat_id, text, **kw):
         self.sent.append(text)
+        self.dm.append((chat_id, text))
         return SimpleNamespace(message_id=1)
 
     async def send_photo(self, chat_id, photo, caption=None, **kw):
@@ -70,6 +72,9 @@ class FakeBot:
     async def delete_message_reaction(self, chat_id, message_id, user_id=None, actor_chat_id=None, **kw):
         self.calls.append(("unreact", message_id, user_id))
         return True
+
+    async def send_poll(self, chat_id, question, options, is_anonymous=True, **kw):
+        self.calls.append(("poll", question, tuple(options), is_anonymous))
 
     async def get_chat_member_count(self, chat_id, **kw):
         return 42

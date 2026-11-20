@@ -24,6 +24,7 @@ from zhoo.repositories.groups import GroupsRepo
 from zhoo.repositories.members import MembersRepo
 from zhoo.repositories.punishments import PunishmentsRepo
 from zhoo.repositories.replies import RepliesRepo
+from zhoo.repositories.social import SocialRepo
 from zhoo.repositories.swear_logs import SwearLogsRepo
 from zhoo.repositories.users import UsersRepo
 
@@ -45,6 +46,7 @@ class Services:
     swear_logs: SwearLogsRepo
     aliases: AliasesRepo
     replies: RepliesRepo
+    social: SocialRepo
     flood: FloodTracker = field(default_factory=FloodTracker)
     repeats: RepeatTracker = field(default_factory=RepeatTracker)
     strikes: StrikeTracker = field(default_factory=StrikeTracker)
@@ -66,7 +68,7 @@ class Services:
             tracker=Tracker(users, groups, members),
             punishments=PunishmentsRepo(db), group_settings=GroupSettingsRepo(db),
             captcha=CaptchaRepo(db), swear_logs=SwearLogsRepo(db),
-            aliases=AliasesRepo(db), replies=RepliesRepo(db),
+            aliases=AliasesRepo(db), replies=RepliesRepo(db), social=SocialRepo(db),
         )
 
     @property

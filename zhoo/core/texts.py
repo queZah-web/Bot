@@ -400,6 +400,118 @@ REPLY_NOT_FOUND = f"{BULLET} ماكو رد بهذا الاسم 🌸 تأكد م�
 REPLIES_CLEARED = f"{BULLET} انمسحت كل {{kind}} ✨"
 REPLIES_LIMIT = f"{BULLET} وصلت للحد الأقصى ({{n}} رد) 🌸 احذف واحد أول"
 
+# ── الملف الشخصي والشكر ─────────────────────────────
+PROFILE = (
+    title("مَـلَـفّ {name}", "🌸") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} الرتبة: {{rank}}\n"
+    f"{BULLET} الرسائل: <b>{{messages}}</b> ⋅ التفاعل: {{activity}}\n"
+    f"{BULLET} الشكر: <b>{{thanks}}</b> 🤍\n"
+    f"{BULLET} التحذيرات: <b>{{warns}}/{{limit}}</b>\n"
+    "{partner}"
+    f"{BULLET} أول ظهور: <code>{{since}}</code>\n"
+    f"{LINE}\n"
+    f"{BULLET} النبذة: {{bio}}"
+)
+PROFILE_PARTNER = f"{BULLET} الشريك: {{partner}} 💍\n"
+PROFILE_NO_BIO = "<i>ما مكتوبة بعد</i> ✏️"
+BIO_SET = f"{BULLET} انحفظت نبذتك ✨ تطلع بملفك الشخصي"
+BIO_DELETED = f"{BULLET} انمسحت نبذتك 🌸"
+BIO_BAD = f"{BULLET} اكتب النبذة بعد الأمر رجاءً 🌸 (لحد 200 حرف)"
+THANKS_DONE = f"{BULLET} وصل شكرك لـ {{mention}} 🤍 صار عنده <b>{{count}}</b> شكر"
+THANKS_SELF = f"{BULLET} ما يصير تشكر نفسك 😄🌸"
+THANKS_BOT = f"{BULLET} تسلم 🤍 بس البوتات ما تنحسب بالشكر"
+THANKS_AGAIN = f"{BULLET} شكرت {{mention}} قبل شوية 🌸 تگدر تشكره مرة ثانية بعد {{left}}"
+THANKS_LIMIT = f"{BULLET} وصلت للحد اليومي من الشكر 🌸 ارجع باچر"
+TOP_THANKED_HEADER = title("الأكثر شكراً", "🤍") + f"\n{LINE}"
+TOP_THANKED_EMPTY = f"{BULLET} ماكو شكر لحد هسه 🌸 اشكر أحد بالرد عليه بكلمة <code>شكر</code>"
+
+# ── الاقتراحات ─────────────────────────────────────
+SUGG_STATUS = {
+    "new": "🆕 جديد",
+    "review": "🔍 قيد المراجعة",
+    "accepted": "✅ مقبول",
+    "rejected": "❌ مرفوض",
+}
+SUGGESTION = (
+    title("اِقْـتِـرَاح #{id}", "💡") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} من: {{mention}}\n"
+    f"{BULLET} الاقتراح:\n<i>{{text}}</i>\n"
+    f"{LINE}\n"
+    f"{BULLET} الحالة: <b>{{status}}</b>\n"
+    f"{BULLET} التصويت: 👍 <b>{{up}}</b> ⋅ 👎 <b>{{down}}</b>"
+    "{decided}"
+)
+SUGG_DECIDED = f"\n{BULLET} القرار بواسطة: {{actor}}"
+SUGG_BAD = f"{BULLET} اكتب الاقتراح بعد الأمر رجاءً 🌸 (من 5 لـ 1000 حرف)"
+SUGG_WAIT = f"{BULLET} على كيفك 🌸 تگدر تقترح مرة ثانية بعد {{left}}"
+SUGG_VOTED = {1: "صوّتت 👍", -1: "صوّتت 👎", 0: "انلغى صوتك"}
+SUGG_NEED_STAFF = "قرار الاقتراحات للأدمن وفوگ بس 🔐"
+SUGG_GONE = "هذا الاقتراح ما موجود 🌸"
+SUGG_LIST_HEADER = title("آخر الاقتراحات", "💡") + f"\n{LINE}"
+SUGG_LIST_EMPTY = f"{BULLET} ماكو اقتراحات لحد هسه 🌸 اقترح بأمر <code>اقتراح</code>"
+BTN_SUGG_REVIEW = "🔍 مراجعة"
+BTN_SUGG_ACCEPT = "✅ قبول"
+BTN_SUGG_REJECT = "❌ رفض"
+
+# ── الشكاوى ────────────────────────────────────────
+COMPLAINT_BAD = f"{BULLET} اكتب الشكوى بعد الأمر رجاءً 🌸 (من 5 لـ 1000 حرف)"
+COMPLAINT_WAIT = f"{BULLET} شكوتك السابقة وصلت 🌸 تگدر ترسل وحدة ثانية بعد {{left}}"
+COMPLAINT_SENT = f"{BULLET} {{mention}} وصلت شكوتك للإدارة بسرية تامة 🤍 رقمها <b>#{{id}}</b>"
+COMPLAINT_DM = (
+    title("شَـكْـوَى #{id}", "📮") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} المجموعة: <b>{{group}}</b>\n"
+    f"{BULLET} من: {{mention}}\n"
+    f"{BULLET} الشكوى:\n<i>{{text}}</i>"
+)
+COMPLAINT_CLOSED_DM = f"{BULLET} شكوتك <b>#{{id}}</b> بمجموعة <b>{{group}}</b> انحلّت ✅ شكراً لصبرك 🤍"
+COMPLAINT_CLOSED = f"{BULLET} انحلّت الشكوى <b>#{{id}}</b> ✅"
+COMPLAINT_ALREADY = "هاي الشكوى انحلّت من قبل ✅"
+COMPLAINT_NOT_FOUND = f"{BULLET} ماكو شكوى مفتوحة بهذا الرقم 🌸"
+COMPLAINTS_HEADER = title("الشكاوى المفتوحة", "📮") + f"\n{LINE}"
+COMPLAINTS_EMPTY = f"{BULLET} ماكو شكاوى مفتوحة، الكل مرتاح 🤍"
+COMPLAINT_ITEM = "▫️ <b>#{id}</b> ⋅ {mention}\n    <i>{text}</i>"
+COMPLAINTS_FOOTER = f"{LINE}\n{BULLET} للحل: <code>حل شكوى رقمها</code>"
+COMPLAINT_NEED_STAFF = "حل الشكاوى للمدير وفوگ بس 🔐"
+BTN_COMPLAINT_CLOSE = "✅ تم الحل"
+
+# ── التصويت ────────────────────────────────────────
+POLL_BAD = (
+    f"{BULLET} اكتب السؤال بالسطر الأول، وكل خيار بسطر 🌸 (من 2 لـ 10 خيارات)\n"
+    f"{BULLET} مثال:\n<code>تصويت شنو تحبون نسوي؟\nمسابقة\nسهرة\nتحدي</code>"
+)
+POLL_FAILED = f"{BULLET} ما گدرت أسوي التصويت 🤍 تأكد السؤال أقل من 300 حرف وكل خيار أقل من 100"
+
+# ── الثنائيات ──────────────────────────────────────
+PAIRS_OFF = f"{BULLET} الثنائيات معطّلة بهاي المجموعة 🌸 المدير يگدر يفعّلها بأمر <code>تفعيل الثنائيات</code>"
+PAIRS_ON = f"{BULLET} تم تفعيل الثنائيات 💍"
+PAIRS_DISABLED = f"{BULLET} تم تعطيل الثنائيات 🌸"
+PAIR_REQUEST = (
+    title("طَـلَـب اِرْتِـبَـاط", "💍") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} {{from_}} يطلب الارتباط بـ {{to}} 🤍\n"
+    f"{BULLET} القرار بإيد {{to}} بس"
+)
+PAIR_ACCEPTED = title("مَـبْـرُوك", "💍") + f"\n{LINE}\n{BULLET} {{a}} و {{b}} صاروا ثنائي 🤍✨"
+PAIR_REJECTED = f"{BULLET} {{to}} اعتذر عن الطلب 🌸"
+PAIR_SELF = f"{BULLET} ما يصير ترتبط بنفسك 😄🌸"
+PAIR_BOT = f"{BULLET} البوتات ما ترتبط 🤖"
+PAIR_YOU_TAKEN = f"{BULLET} انت مرتبط أصلاً 💍 فك ارتباطك أول"
+PAIR_THEY_TAKEN = f"{BULLET} {{mention}} مرتبط أصلاً 🌸"
+PAIR_NOT_YOURS = "القرار لصاحب الطلب بس 🌸"
+PAIR_EXPIRED = "هذا الطلب ما عاد صالح 🌸"
+PAIR_NONE = f"{BULLET} انت مو مرتبط 🌸"
+PAIR_UNLINKED = f"{BULLET} تم فك الارتباط بين {{a}} و {{b}} 🤍"
+PAIR_SHOW = f"{BULLET} شريكك: {{mention}} 💍 من <code>{{since}}</code>"
+PAIR_HIDDEN = f"{BULLET} صار ارتباطك مخفي 🙈 ما يطلع بالملف ولا بالقائمة"
+PAIR_SHOWN = f"{BULLET} صار ارتباطك ظاهر 💍"
+PAIRS_HEADER = title("الثنائيات", "💍") + f"\n{LINE}"
+PAIRS_EMPTY = f"{BULLET} ماكو ثنائيات لحد هسه 🌸"
+BTN_PAIR_ACCEPT = "💍 قبول"
+BTN_PAIR_REJECT = "🙅 رفض"
+
 # ── القفل والفتح ───────────────────────────────────
 LOCK_PANEL = (
     title("الأقفال", "🔒") + "\n"
