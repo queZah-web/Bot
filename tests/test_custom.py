@@ -129,7 +129,7 @@ async def test_discard_and_delete(env):
     await say(env, CREATOR, "هلو")
     await say(env, CREATOR, "هلا بيك")
     assert "ما انحفظ" in await say(env, CREATOR, "حذف")
-    assert await say(env, ALI, "هلو") is None
+    assert await say(env, ALI, "هلو") != "هلا بيك"   # الرد الخاص انحذف (ممكن ترد ردود زهو المدمجة)
 
     await say(env, CREATOR, "اضف رد")
     await say(env, CREATOR, "هلو")
@@ -137,7 +137,7 @@ async def test_discard_and_delete(env):
     await say(env, CREATOR, "تم")
     assert "اختار الرد" in await say(env, CREATOR, "حذف رد")
     assert "انحذف" in await say(env, CREATOR, "هلو")
-    assert await say(env, ALI, "هلو") is None
+    assert await say(env, ALI, "هلو") != "هلا بيك"   # الرد الخاص انحذف (ممكن ترد ردود زهو المدمجة)
 
 
 async def test_reply_word_cannot_be_command(env):

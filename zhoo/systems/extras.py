@@ -347,22 +347,59 @@ async def azkar_job(context) -> None:
 
 
 # ── ردود زهو ────────────────────────────────────────
-_SOURCE = {normalize(k): v for k, v in bank.SOURCE_REPLIES.items()}
-_source_limiter = RateLimiter(1, 60)
+# الصيغة الموحدة ← اسم المجموعة
+_TRIGGERS: dict[tuple[str, ...], str] = {}
+for _gid, (_triggers, _) in bank.REPLY_GROUPS.items():
+    for _t in _triggers:
+        _TRIGGERS[tuple(normalize(_t).split())] = _gid
+_MAX_TRIGGER_WORDS = max(len(k) for k in _TRIGGERS)
+PREFIX_MAX_WORDS = 7                       # «السلام عليكم يا جماعة الخير» تنحسب، الجمل الطويلة لا
+_source_limiter = RateLimiter(1, 40)        # لكل شخص ولكل نوع رد
+_chat_source_limiter = RateLimiter(6, 60)   # ولكل مجموعة، حتى ما تصير زحمة ردود
+_last_reply: dict[tuple[int, str], int] = {}
+_STRIP = " !.،,؟?~…🌸🤍❤️♥️✨🌹🌷💐😍🥰😊☺️🙏"
+
+
+def match_reply_group(text: str) -> str | None:
+    """يرجع اسم مجموعة الرد: الرسالة كلها صيغة معروفة، أو تبدأ بيها وهي قصيرة."""
+    words = normalize(text.strip(_STRIP)).split()
+    if not words:
+        return None
+    gid = _TRIGGERS.get(tuple(words))
+    if gid is not None or len(words) > PREFIX_MAX_WORDS:
+        return gid
+    for n in range(min(len(words) - 1, _MAX_TRIGGER_WORDS), 0, -1):
+        gid = _TRIGGERS.get(tuple(words[:n]))
+        if gid is not None:
+            return gid
+    return None
+
+
+def pick_reply(chat_id: int, gid: str, name: str) -> str:
+    """رد عشوائي من المجموعة بدون تكرار آخر رد بنفس المجموعة."""
+    replies = bank.REPLY_GROUPS[gid][1]
+    choices = [i for i in range(len(replies)) if i != _last_reply.get((chat_id, gid))] or [0]
+    idx = random.choice(choices)
+    if len(_last_reply) > 20_000:
+        _last_reply.clear()
+    _last_reply[(chat_id, gid)] = idx
+    return replies[idx].replace("{name}", esc(name or "")).replace("  ", " ")
 
 
 async def maybe_source_reply(svc: Services, msg: Message, chat) -> bool:
     from zhoo.systems import features
-    if not msg.text:
+    if not msg.text or len(msg.text) > 120:
         return False
-    key = normalize(msg.text.strip(" !.؟?🌸🤍❤️"))
-    replies = _SOURCE.get(key)
-    if not replies or not await features.enabled(svc, chat.id, "source_replies"):
+    gid = match_reply_group(msg.text)
+    if gid is None or not await features.enabled(svc, chat.id, "source_replies"):
         return False
-    if not _source_limiter.hit((chat.id, key)):
+    user = msg.from_user
+    uid = user.id if user else 0
+    if not _source_limiter.hit((chat.id, uid, gid)) or not _chat_source_limiter.hit(chat.id):
         return False
+    name = (user.first_name if user else "")[:30]
     try:
-        await msg.reply_text(random.choice(replies))
+        await msg.reply_text(pick_reply(chat.id, gid, name))
     except TelegramError:
         return False
     return True

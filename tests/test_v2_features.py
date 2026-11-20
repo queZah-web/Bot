@@ -305,7 +305,8 @@ async def test_service_commands(env):
 async def test_source_replies_and_toggle(env):
     await _setup(env)
     assert "وعليكم السلام" in await say(env, ALI, "السلام عليكم")
-    assert await say(env, SARA, "السلام عليكم") is None  # مرة بالدقيقة حتى ما يصير سبام
+    assert "وعليكم السلام" in await say(env, SARA, "السلام عليكم")  # كل شخص ينرد عليه
+    assert await say(env, ALI, "السلام عليكم") is None   # نفس الشخص مرة وحدة كل 40 ثانية (ضد السبام)
     await say(env, CREATOR, "تعطيل ردود زهو")
     extras._source_limiter._hits.clear()
     assert await say(env, ALI, "صباح الخير") is None
@@ -320,3 +321,48 @@ async def test_azkar(env):
     bot.sent.clear()
     await extras.azkar_job(ctx)
     assert bot.sent and "ذِكْـر" in bot.sent[-1]
+
+
+# ── ردود زهو الكثيرة ──
+def test_reply_groups_match_variants_and_prefixes():
+    from zhoo.data import extras_bank as bank
+    m = extras.match_reply_group
+    assert m("السلام عليكم") == m("سلام عليكم ورحمة الله وبركاته") == m("السلام عليكم يا جماعة") == "salam"
+    assert m("مساء الخير 🌸") == m("مساءكم خير") == "evening"
+    assert m("صباحو") == "morning" and m("زهو شلونج") == "zhoo_how" and m("شكرا زهو") == "thanks"
+    assert m("تصبحون على خير") == "night" and m("جمعة مباركة") == "friday"
+    assert m("مساء الخير قبل شوية صار عندي موضوع طويل كلش وما اعرف شسوي بيه") is None   # جملة طويلة
+    assert m("كتبت السلام عليكم بالغلط") is None                                         # مو بالبداية
+    for gid, (triggers, replies) in bank.REPLY_GROUPS.items():
+        assert len(replies) >= 3, gid
+        for t in triggers:
+            assert m(t) == gid, (gid, t)
+
+
+def test_pick_reply_never_repeats_and_fills_name():
+    seen = []
+    for _ in range(30):
+        r = extras.pick_reply(-1, "salam", "سارة")
+        assert "{name}" not in r and "  " not in r
+        seen.append(r)
+    assert all(a != b for a, b in zip(seen, seen[1:]))
+    assert len(set(seen)) > 4
+
+
+async def test_zhoo_replies_vary(env):
+    outs = []
+    for _ in range(6):
+        env[0].command_limiter._hits.clear()
+        outs.append(await say(env, ALI, "زهو"))
+    assert all(a != b for a, b in zip(outs, outs[1:]))
+
+
+async def test_link_card(env):
+    svc, bot, _ = env
+    await _setup(env)
+    await svc.group_settings.set(GROUP, "invite_link", "https://t.me/+abc", CREATOR)
+    out = await say(env, ALI, "الرابط")
+    assert "رَابِـط الـمَـجْـمُـوعَـة" in out and "الأعضاء: <b>42</b>" in out and "https://t.me/+abc" in out
+    kb = bot.last_kw["reply_markup"].inline_keyboard
+    assert kb[0][0].url == "https://t.me/+abc" and "share/url" in kb[0][1].url
+    assert kb[1][0].copy_text.text == "https://t.me/+abc"

@@ -207,7 +207,7 @@ async def test_dev_commands_hidden(env):
 
 
 async def test_sentence_ignored(env):
-    assert await say(env, ALI, "زهو شلونك اليوم") is None
+    assert await say(env, ALI, "زهو حلوة اليوم والجو طيب") is None
 
 
 async def test_help_menu_and_staff(env):

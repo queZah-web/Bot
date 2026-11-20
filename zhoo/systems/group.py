@@ -241,7 +241,27 @@ async def cmd_link(cx: CommandContext) -> None:
     if not link:
         await cx.reply(T.LINK_NONE)
         return
-    await cx.reply(T.LINK_TEXT.format(title=esc(cx.chat.title or ""), link=esc(link)))
+    text, kb = await link_card(cx.bot, cx.chat, link)
+    await cx.reply(text, reply_markup=kb)
+
+
+async def link_card(bot, chat, link: str) -> tuple[str, InlineKeyboardMarkup]:
+    """بطاقة الرابط: الاسم والأعضاء والرابط + أزرار انضمام ومشاركة ونسخ."""
+    from urllib.parse import quote
+
+    from telegram import CopyTextButton
+    try:
+        members = T.LINK_MEMBERS.format(n=await bot.get_chat_member_count(chat.id))
+    except TelegramError:
+        members = ""
+    title = chat.title or ""
+    text = T.LINK_TEXT.format(title=esc(title), members=members, link=esc(link))
+    share = f"https://t.me/share/url?url={quote(link, safe='')}&text={quote(T.LINK_SHARE_TEXT.format(title=title))}"
+    kb = InlineKeyboardMarkup([
+        [InlineKeyboardButton(T.LINK_BTN_JOIN, url=link), InlineKeyboardButton(T.LINK_BTN_SHARE, url=share)],
+        [InlineKeyboardButton(T.LINK_BTN_COPY, copy_text=CopyTextButton(link[:256]))],
+    ])
+    return text, kb
 
 
 @registry.command("link_set", ("تعيين الرابط", "وضع الرابط", "ضع رابط", "ضع الرابط", "اضف رابط", "اضافة رابط", "إضافة رابط"), section="group", min_rank=EDIT_RANK,

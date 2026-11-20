@@ -16,6 +16,7 @@ from zhoo.handlers.views import about_text, help_main_text
 from zhoo.keyboards.menus import help_main_keyboard
 
 S = "general"
+_last_zhoo: dict[int, str] = {}   # آخر رد لـ«زهو» بكل مجموعة (حتى ما يتكرر)
 
 
 async def reply_target_error(cx: CommandContext, err: TargetError, example: str) -> None:
@@ -204,4 +205,9 @@ async def cmd_about(cx: CommandContext) -> None:
 @registry.command("zhoo", ("زهو", "زهوو", "بوت"), section=S,
                   description="نادِ زهو 🤍", where="any", order=7)
 async def cmd_zhoo(cx: CommandContext) -> None:
-    await cx.reply(random.choice(T.ZHOO_REPLIES))
+    choices = [r for r in T.ZHOO_REPLIES if r != _last_zhoo.get(cx.chat.id)]
+    reply = random.choice(choices)
+    _last_zhoo[cx.chat.id] = reply
+    if len(_last_zhoo) > 20_000:
+        _last_zhoo.clear()
+    await cx.reply(reply.replace("{name}", esc(cx.user.first_name[:30])).replace("  ", " "))
