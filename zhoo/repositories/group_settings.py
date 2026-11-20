@@ -26,6 +26,8 @@ DEFAULTS: dict[str, str] = {
     "goodbye_text": "",
     "rules": "",
     "invite_link": "",
+    "id_template": "",       # كليشة الايدي الخاصة (فارغة = الأصلية)
+    "force_channels": "",    # الاشتراك الإجباري (JSON)
     # السب: off | smart | delete | mute | ban
     "swear_mode": "off",
     "insult_mode": "",    # قفل الإهانات (فارغ = يتبع قفل السب، للمجموعات القديمة)

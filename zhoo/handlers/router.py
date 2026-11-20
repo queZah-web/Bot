@@ -12,7 +12,7 @@ from zhoo.core.context import CommandContext, get_services
 from zhoo.core.ranks import RANK_NAMES, Rank
 from zhoo.core import conversation
 from zhoo.core.normalize import normalize
-from zhoo.systems import (ai, aliases, botstate, extras, features, games, levels, locks, protect, replies,
+from zhoo.systems import (ai, aliases, channels, botstate, extras, features, games, levels, locks, protect, replies,
                           swear)
 
 log = logging.getLogger(__name__)
@@ -61,6 +61,8 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             if await swear.check(context, svc, msg, chat, user):
                 return
             if await locks.check(context, svc, msg, chat, user):
+                return
+            if await channels.check(context, svc, msg, chat, user):   # الاشتراك الإجباري
                 return
 
     # ٢) التحليل

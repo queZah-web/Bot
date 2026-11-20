@@ -111,7 +111,7 @@ download_impl = _download_sync
 
 
 # ── الأمر ───────────────────────────────────────────
-@registry.command("youtube", ("يوت", "يوتيوب", "بحث يوتيوب"), section=S, args="text", usage="اللي تدور عليه",
+@registry.command("youtube", ("يوت", "يوتيوب", "بحث يوتيوب", "بحث"), section=S, args="text", usage="اللي تدور عليه",
                   description="يدور بيوتيوب ويدزلك صوت (mp3)", order=70)
 async def cmd_youtube(cx: CommandContext) -> None:
     query = " ".join(cx.raw_args.split())[:100]

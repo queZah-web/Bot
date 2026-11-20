@@ -67,6 +67,7 @@ class Services:
     yt_results: dict = field(default_factory=dict)     # (chat, رسالة النتائج) ← (صاحب الطلب، النتائج، الوقت)
     yt_busy: set = field(default_factory=set)          # مجموعات بيها تحميل شغّال
     ai_client: object = None                           # عميل Claude (ينخلق أول مرة ينحتاج)
+    fsub_cache: dict = field(default_factory=dict)    # (قناة، عضو) ← (مشترك؟، وقت الفحص)
     swear_cache: dict = field(default_factory=dict)   # chat_id ← قاموس المجموعة المجهز (0 = العام)
     chat_buffer: dict = field(default_factory=dict)    # chat_id ← آخر 150 رسالة (بالذاكرة بس، للتلخيص)
     restoring: bool = False                            # أثناء الاستعادة نوقف استقبال التحديثات
@@ -82,6 +83,7 @@ class Services:
         self.xp_seen.clear()
         self.games.clear()
         self.swear_cache.clear()
+        self.fsub_cache.clear()
     command_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(5, 10))
     button_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(4, 3))
     started_at: float = field(default_factory=time.time)

@@ -168,7 +168,7 @@ def _register_welcome() -> None:
 
         registry.command(f"{kind}_status", (word,), section=section, min_rank=VIEW_RANK,
                          description=f"حالة {word} ومعاينته", order=base)(status)
-        registry.command(f"{kind}_set", (f"تعيين {word}", f"وضع {word}"), section=section, min_rank=EDIT_RANK,
+        registry.command(f"{kind}_set", (f"تعيين {word}", f"وضع {word}", f"ضع {word}"), section=section, min_rank=EDIT_RANK,
                          args="text", usage="النص", description=f"قالب {word} الخاص بك", order=base + 1)(set_t)
         registry.command(f"{kind}_on", (f"تفعيل {word}",), section=section, min_rank=EDIT_RANK,
                          description=f"يشغّل {word}", order=base + 2)(on)
@@ -191,7 +191,7 @@ async def cmd_rules(cx: CommandContext) -> None:
     await cx.reply(T.RULES_TEXT.format(title=esc(cx.chat.title or ""), rules=esc(rules)))
 
 
-@registry.command("rules_set", ("تعيين القوانين", "وضع القوانين"), section="group", min_rank=EDIT_RANK,
+@registry.command("rules_set", ("تعيين القوانين", "وضع القوانين", "ضع قوانين", "ضع القوانين"), section="group", min_rank=EDIT_RANK,
                   args="text", usage="النص", description="يحفظ قوانين المجموعة", order=2)
 async def cmd_rules_set(cx: CommandContext) -> None:
     text = cx.raw_args.strip()
@@ -244,7 +244,7 @@ async def cmd_link(cx: CommandContext) -> None:
     await cx.reply(T.LINK_TEXT.format(title=esc(cx.chat.title or ""), link=esc(link)))
 
 
-@registry.command("link_set", ("تعيين الرابط", "وضع الرابط"), section="group", min_rank=EDIT_RANK,
+@registry.command("link_set", ("تعيين الرابط", "وضع الرابط", "ضع رابط", "ضع الرابط", "اضف رابط", "اضافة رابط", "إضافة رابط"), section="group", min_rank=EDIT_RANK,
                   args="text", usage="https://t.me/...", description="يحفظ رابطاً مخصصاً", order=5)
 async def cmd_link_set(cx: CommandContext) -> None:
     link = cx.args[0] if cx.args else ""
@@ -257,7 +257,7 @@ async def cmd_link_set(cx: CommandContext) -> None:
     await cx.reply(T.LINK_SET)
 
 
-@registry.command("link_del", ("حذف الرابط",), section="group", min_rank=EDIT_RANK,
+@registry.command("link_del", ("حذف الرابط", "مسح الرابط"), section="group", min_rank=EDIT_RANK,
                   description="يحذف الرابط المحفوظ", order=6)
 async def cmd_link_del(cx: CommandContext) -> None:
     await cx.services.group_settings.set(cx.chat.id, "invite_link", "", cx.user.id)
@@ -397,3 +397,76 @@ async def on_settings_button(q, msg: Message, svc: Services, bot, uid_raw: str, 
         await msg.edit_text(text, reply_markup=kb)
     except BadRequest:
         pass
+
+
+# ── معلومات المجموعة والمنشئ وإنشاء رابط ─────────────
+async def _creator(bot, svc: Services, chat_id: int):
+    """منشئ المجموعة من تيليجرام (أو None إذا مخفي/ما انعرف)."""
+    from telegram.constants import ChatMemberStatus
+    try:
+        admins = await bot.get_chat_administrators(chat_id)
+    except TelegramError:
+        return None, 0
+    creator = next((a for a in admins if a.status == ChatMemberStatus.OWNER), None)
+    if creator is None or getattr(creator, "is_anonymous", False):
+        return None, len(admins)
+    return creator.user, len(admins)
+
+
+@registry.command("group_info", ("المجموعه", "معلومات المجموعه", "معلومات الجروب"), section="group",
+                  min_rank=Rank.ADMIN, description="بطاقة المجموعة: الأعضاء والمنشئ والحماية وصلاحيات زهو",
+                  order=3)
+async def cmd_group_info(cx: CommandContext) -> None:
+    from zhoo.systems import botstate, channels, locks, protect, swear
+    svc, chat = cx.services, cx.chat
+    try:
+        members = await cx.bot.get_chat_member_count(chat.id)
+    except TelegramError:
+        members = "—"
+    creator, n_admins = await _creator(cx.bot, svc, chat.id)
+    lvl = protect.current_level(await protect.guards_state(svc, chat.id))
+    modes = await swear.get_modes(svc, chat.id)
+    rights = await svc.perms.bot_rights(cx.bot, chat.id)
+    if rights is None:
+        rights_text = T.GROUP_BOT_NOT_ADMIN
+    else:
+        lacking = [name for attr, name in T.BOT_RIGHT_NAMES.items() if not getattr(rights, attr, False)]
+        rights_text = T.GROUP_RIGHTS_MISSING.format(names="، ".join(lacking)) if lacking else T.GROUP_RIGHTS_FULL
+    n_channels = len(await channels.load(svc, chat.id))
+    await cx.reply(T.GROUP_INFO.format(
+        title=esc(chat.title or ""), id=chat.id,
+        username=f"@{esc(chat.username)}" if chat.username else T.GROUP_NO_USERNAME,
+        members=members, admins=n_admins,
+        creator=mention(creator.id, creator.full_name) if creator else T.GROUP_CREATOR_HIDDEN,
+        state=T.GROUP_STATES.get(await botstate.get_state(svc, chat.id), ""),
+        guard=T.GUARD_LEVELS[lvl] if lvl else T.GUARD_CUSTOM, locks=await locks.active_count(svc, chat.id),
+        swear=T.SWEAR_SUMMARY.format(vulgar=T.SWEAR_MODES[modes["vulgar"]], insult=T.SWEAR_MODES[modes["insult"]]),
+        channels=T.GROUP_CHANNELS_COUNT.format(n=n_channels) if n_channels else T.GROUP_CHANNELS_NONE,
+        rights=rights_text))
+
+
+@registry.command("creator", ("المنشئ", "المنشئين", "المالك الاساسي", "المالكين الاساسيين", "المالكين الاساسين"),
+                  section="group", description="منشئ المجموعة بتيليجرام", order=4)
+async def cmd_creator(cx: CommandContext) -> None:
+    creator, _ = await _creator(cx.bot, cx.services, cx.chat.id)
+    if creator is None:
+        await cx.reply(T.CREATOR_HIDDEN)
+        return
+    await cx.reply(T.CREATOR_TEXT.format(mention=mention(creator.id, creator.full_name)))
+
+
+@registry.command("link_create", ("انشاء رابط", "إنشاء رابط", "رابط جديد"), section="group", min_rank=EDIT_RANK,
+                  description="يسوي رابط دعوة جديد من تيليجرام ويحفظه", order=7)
+async def cmd_link_create(cx: CommandContext) -> None:
+    rights = await cx.services.perms.bot_rights(cx.bot, cx.chat.id)
+    if rights is None or not rights.can_invite_users:
+        await cx.reply(T.LINK_NEED_INVITE)
+        return
+    try:
+        created = await cx.bot.create_chat_invite_link(cx.chat.id, name="Zhoo")
+    except TelegramError:
+        await cx.reply(T.LINK_NEED_INVITE)
+        return
+    await cx.services.group_settings.set(cx.chat.id, "invite_link", created.invite_link, cx.user.id)
+    await cx.services.audit.log("link_create", chat_id=cx.chat.id, actor_id=cx.user.id)
+    await cx.reply(T.LINK_CREATED.format(link=esc(created.invite_link)))

@@ -1315,3 +1315,103 @@ BTN_BROADCAST = "📢 إذاعة"
 BTN_BACKUP = "💾 نسخة احتياطية"
 BTN_REPORT = "📊 تقرير"
 BTN_HEALTH = "🩺 فحص النظام"
+
+
+# ── معلومات المجموعة والمنشئ ─────────────────────────
+GROUP_INFO = (
+    title("مَـعْـلُـومَـات الـمَـجْـمُـوعَـة", "🏡") + f"\n{LINE}\n"
+    f"{BULLET} الاسم: <b>{{title}}</b>\n"
+    f"{BULLET} الايدي: <code>{{id}}</code>\n"
+    f"{BULLET} اليوزر: {{username}}\n"
+    f"{BULLET} الأعضاء: <b>{{members}}</b> ⋅ المشرفين: <b>{{admins}}</b>\n"
+    f"{BULLET} المنشئ: {{creator}}\n"
+    f"{LINE}\n"
+    f"{BULLET} زهو: {{state}}\n"
+    f"{BULLET} الحماية: {{guard}} ⋅ الأقفال: <b>{{locks}}</b>\n"
+    f"{BULLET} السب: {{swear}}\n"
+    f"{BULLET} الاشتراك الإجباري: {{channels}}\n"
+    f"{BULLET} صلاحيات زهو: {{rights}}"
+)
+GROUP_NO_USERNAME = "خاصة 🔒"
+GROUP_CREATOR_HIDDEN = "مخفي 🌸"
+GROUP_CHANNELS_NONE = "مطفي"
+GROUP_CHANNELS_COUNT = "<b>{n}</b> قناة"
+GROUP_RIGHTS_FULL = "✅ كاملة"
+GROUP_RIGHTS_MISSING = "⚠️ ناقصها: {names}"
+GROUP_BOT_NOT_ADMIN = "⚠️ مو مشرفة"
+GROUP_STATES = {"on": "🟢 شغّالة", "paused": "⏸ موقوفة", "disabled": "⛔ معطّلة"}
+BOT_RIGHT_NAMES = {
+    "can_delete_messages": "حذف الرسائل",
+    "can_restrict_members": "حظر المستخدمين",
+    "can_invite_users": "دعوة المستخدمين",
+    "can_pin_messages": "تثبيت الرسائل",
+    "can_change_info": "تغيير المعلومات",
+}
+CREATOR_TEXT = title("مُـنْـشِـئ الـمَـجْـمُـوعَـة", "👑") + f"\n{LINE}\n{BULLET} {{mention}}"
+CREATOR_HIDDEN = f"{BULLET} منشئ المجموعة مخفي 🌸"
+
+# ── إنشاء رابط ─────────────────────────────────────
+LINK_CREATED = (
+    title("تَـمَّ إِنْـشَـاء الـرَّابِـط", "🔗") + f"\n{LINE}\n"
+    "{link}\n"
+    f"{BULLET} صار هذا رابط المجموعة الحالي ✨"
+)
+LINK_NEED_INVITE = f"{BULLET} أحتاج صلاحية «<b>دعوة المستخدمين</b>» حتى أسوي رابط 🔐"
+
+# ── كليشة الايدي ───────────────────────────────────
+# المتغيرات (مع صيغها البديلة) ← مفتاح القيمة
+ID_TPL_VARS = {
+    "الاسم": "name", "اليوزر": "username", "المعرف": "username", "الايدي": "id",
+    "الرتبة": "rank", "الرتبه": "rank", "الرسائل": "messages", "التفاعل": "activity",
+    "المجموعة": "group", "المجموعه": "group",
+}
+ID_TPL_HELP = (
+    title("كَـلِـيـشَـة الايـدي", "🪪") + f"\n{LINE}\n"
+    f"{BULLET} اكتب الكليشة بعد الأمر، وحط المتغيرات بين قوسين:\n"
+    "<code>{الاسم}</code> <code>{اليوزر}</code> <code>{الايدي}</code> <code>{الرتبة}</code> "
+    "<code>{الرسائل}</code> <code>{التفاعل}</code> <code>{المجموعة}</code>\n"
+    f"{BULLET} مثال:\n"
+    "<code>تعيين الايدي\n✨ {الاسم}\n🆔 {الايدي}\n🎖 {الرتبة}\n💌 {الرسائل}</code>"
+)
+ID_TPL_SET = f"{BULLET} انحفظت كليشة الايدي ✨ هاي معاينتها:"
+ID_TPL_RESET = f"{BULLET} رجعت كليشة الايدي الأصلية 🌸"
+ID_TPL_DEFAULT = f"{BULLET} المجموعة تستخدم الكليشة الأصلية ✨"
+ID_TPL_CURRENT = f"{BULLET} الكليشة الحالية:\n<code>{{tpl}}</code>"
+ID_TPL_BAD = f"{BULLET} الكليشة لازم تكون من 5 لـ 800 حرف، وبيها متغير واحد على الأقل مثل <code>{{الاسم}}</code> 🌸"
+
+# ── الاشتراك الإجباري ───────────────────────────────
+FSUB_NOTICE = f"{BULLET} {{mention}} حتى تكدر تكتب بالمجموعة، اشترك بالقناة أولاً 🤍 وبعدها اضغط «اشتركت»"
+FSUB_BTN_JOIN = "📢 {title}"
+FSUB_BTN_CHECK = "✅ اشتركت"
+FSUB_OK = "تم التحقق، تكدر تكتب هسه 🤍"
+FSUB_NOT_YET = "بعدك ما مشترك بكل القنوات 🌸"
+FSUB_NOT_YOURS = "هذا الزر لصاحب الرسالة بس 🌸"
+FSUB_ADDED = (
+    title("تَـمَّ إِضَـافَـة الـقَـنَـاة", "📢") + f"\n{LINE}\n"
+    f"{BULLET} القناة: <b>{{title}}</b>\n"
+    f"{BULLET} هسه الأعضاء لازم يشتركون بيها حتى يكتبون (المشرفين مستثنين) 🌸"
+)
+FSUB_REMOVED = f"{BULLET} انشالت القناة <b>{{title}}</b> من الاشتراك الإجباري ✨"
+FSUB_CLEARED = f"{BULLET} انطفى الاشتراك الإجباري وانشالت كل القنوات 🌸"
+FSUB_NOT_FOUND = f"{BULLET} هاي القناة مو مضافة 🌸 شوف <code>القنوات</code>"
+FSUB_EXISTS = f"{BULLET} هاي القناة مضافة من قبل ✨"
+FSUB_LIMIT = f"{BULLET} أكثر شي {{n}} قنوات 🌸 احذف وحدة قبل لا تضيف"
+FSUB_NEED_ARG = f"{BULLET} اكتب يوزر القناة أو ايديها 🌸 مثال: <code>اضف قناه @channel</code>"
+FSUB_BAD_CHANNEL = f"{BULLET} ما لگيت هاي القناة 🌸 تأكد من اليوزر (@...) أو الايدي (-100...)"
+FSUB_NOT_CHANNEL = f"{BULLET} هذا مو قناة 🌸 الاشتراك الإجباري للقنوات بس"
+FSUB_BOT_NOT_ADMIN = f"{BULLET} لازم ترفعني مشرفة بالقناة أولاً حتى أكدر أتأكد من المشتركين 🔐"
+FSUB_NO_LINK = f"{BULLET} القناة خاصة وما كدرت أسوي إلها رابط 🌸 انطيني صلاحية «دعوة المستخدمين» بالقناة"
+FSUB_LIST_HEADER = title("قَـنَـوَات الاشْـتِـرَاك", "📢") + f"\n{LINE}"
+FSUB_LIST_EMPTY = f"{BULLET} الاشتراك الإجباري مطفي، ماكو قنوات 🌸"
+FSUB_LIST_ITEM = "▫️ <a href=\"{link}\">{title}</a> ⋅ <code>{id}</code>"
+
+# ── التحميل (تيك توك + ساوند كلاود) ────────────────
+DL_NEED_URL = f"{BULLET} حط الرابط بعد الأمر 🌸 مثال: <code>{{example}}</code>"
+DL_BAD_URL = f"{BULLET} هذا مو رابط {{site}} 🌸"
+DL_SITES = {"tiktok": "تيك توك", "soundcloud": "ساوند كلاود"}
+DL_EXAMPLES = {"tiktok": "تيك https://vm.tiktok.com/...", "soundcloud": "ساوند https://soundcloud.com/..."}
+DL_DOWNLOADING = f"{BULLET} دا أحمّل من {{site}} ⏳ ثواني وتوصلك..."
+DL_TOO_LONG = f"{BULLET} المقطع طويل (<b>{{dur}}</b>)، الحد الأقصى {{limit}} 🌸"
+DL_FAILED = f"{BULLET} ما گدرت أحمّله 🤍 يمكن الرابط خاص أو محذوف أو النت ضعيف"
+DL_CAPTION_VIDEO = f"🎬 {{title}}\n{BULLET} طلبه: {{mention}}"
+DL_CAPTION_AUDIO = f"🎧 <b>{{title}}</b>\n{BULLET} {{artist}} ⋅ ⏱ {{dur}}\n{BULLET} طلبها: {{mention}}"
