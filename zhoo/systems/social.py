@@ -72,10 +72,18 @@ async def profile_view(svc: Services, bot, chat_id: int, user_id: int, name: str
     rating = T.PROFILE_RATING.format(stars=stars(avg), score=f"{avg:.1f}" if avg is not None else T.RATE_NO_SCORE,
                                      voters=voters, good=good, bad=bad)
     from zhoo.core import levels as L
+    from zhoo.systems import economy
     xp, _ = await svc.levels.get(chat_id, user_id)
     lvl = L.level_for(xp)
+    wallet = await svc.economy.wallet(chat_id, user_id)
+    eco = ""
+    if await economy.enabled(svc, chat_id):
+        eco = T.PROFILE_ECONOMY.format(balance=f"{wallet['balance']:,}")
+        shop_title = economy.title_text(wallet)
+        if shop_title:
+            eco = T.PROFILE_SHOP_TITLE.format(title=esc(shop_title)) + eco
     text = T.PROFILE.format(
-        name=mention(user_id, name), rank=rank_label(rank), level=lvl, level_title=L.title_for(lvl),
+        economy=eco, name=economy.framed(wallet, mention(user_id, name)), rank=rank_label(rank), level=lvl, level_title=L.title_for(lvl),
         messages=messages,
         activity=activity_level(messages), thanks=await svc.social.thanks_count(chat_id, user_id),
         warns=await svc.punishments.warning_count(chat_id, user_id),
@@ -224,6 +232,8 @@ async def cmd_thanks(cx: CommandContext) -> None:
         return
     count = await svc.social.add_thanks(cx.chat.id, cx.user.id, target.user_id)
     await cx.reply(T.THANKS_DONE.format(mention=who, count=count))
+    from zhoo.systems import economy
+    await economy.mission(cx.context, svc, cx.chat, cx.user, "thank")
 
 
 @registry.command("top_thanked", ("الاكثر شكرا", "الأكثر شكراً", "توب الشكر"), section=S,

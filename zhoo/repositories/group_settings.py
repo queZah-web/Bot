@@ -39,6 +39,8 @@ DEFAULTS: dict[str, str] = {
     "levels_on": "1",
     "levelup_notice": "1",
     "daily_riddle": "",   # YYYY-MM-DD:user_id لأول واحد حل لغز اليوم
+    # الاقتصاد
+    "economy_on": "1",
 }
 
 

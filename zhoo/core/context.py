@@ -19,6 +19,7 @@ from zhoo.repositories.aliases import AliasesRepo
 from zhoo.repositories.audit import AuditRepo
 from zhoo.repositories.bot_settings import BotSettingsRepo
 from zhoo.repositories.captcha import CaptchaRepo
+from zhoo.repositories.economy import EconomyRepo
 from zhoo.repositories.group_settings import GroupSettingsRepo
 from zhoo.repositories.groups import GroupsRepo
 from zhoo.repositories.levels import LevelsRepo
@@ -50,6 +51,7 @@ class Services:
     social: SocialRepo
     ratings: RatingsRepo
     levels: LevelsRepo
+    economy: EconomyRepo
     flood: FloodTracker = field(default_factory=FloodTracker)
     repeats: RepeatTracker = field(default_factory=RepeatTracker)
     strikes: StrikeTracker = field(default_factory=StrikeTracker)
@@ -74,7 +76,7 @@ class Services:
             punishments=PunishmentsRepo(db), group_settings=GroupSettingsRepo(db),
             captcha=CaptchaRepo(db), swear_logs=SwearLogsRepo(db),
             aliases=AliasesRepo(db), replies=RepliesRepo(db), social=SocialRepo(db),
-            ratings=RatingsRepo(db), levels=LevelsRepo(db),
+            ratings=RatingsRepo(db), levels=LevelsRepo(db), economy=EconomyRepo(db),
         )
 
     @property

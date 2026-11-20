@@ -229,6 +229,9 @@ async def check_answer(context, svc: Services, msg: Message, chat, user: User) -
     else:
         await svc.levels.add_xp(chat.id, user.id, 0)  # نضمن وجود العضو حتى ينحسب الفوز
     await svc.levels.add_win(chat.id, user.id)
+    from zhoo.systems import economy
+    await economy.earn(svc, chat.id, user.id, game.xp, "game", game.kind)
+    await economy.mission(context, svc, chat, user, "win")
     if game.kind == "daily":
         await svc.group_settings.set(chat.id, "daily_riddle", f"{date.today().isoformat()}:{user.id}", user.id)
     await msg.reply_text(T.GAME_WIN.format(mention=mention(user.id, user.full_name),

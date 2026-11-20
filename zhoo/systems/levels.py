@@ -36,6 +36,9 @@ async def give_xp(context, svc: Services, chat, user, amount: int) -> int:
     """يضيف خبرة، ويعلن الترقية إذا صارت. يرجع المستوى الجديد."""
     old, new = await svc.levels.add_xp(chat.id, user.id, amount)
     old_lvl, new_lvl = L.level_for(old), L.level_for(new)
+    if new_lvl > old_lvl:
+        from zhoo.systems import economy
+        await economy.on_levelup(svc, chat.id, user.id, new_lvl)
     if new_lvl > old_lvl and (await svc.group_settings.get(chat.id, "levelup_notice")) == "1":
         from zhoo.systems.protect import send_notice
         await send_notice(context, chat.id, T.LEVEL_UP.format(
@@ -59,6 +62,8 @@ async def on_message(context, svc: Services, msg, chat, user) -> None:
         svc.xp_seen.clear()
     svc.xp_seen[key] = (now, fp)
     await give_xp(context, svc, chat, user, random.randint(XP_MIN, XP_MAX))
+    from zhoo.systems import economy
+    await economy.mission(context, svc, chat, user, "messages")
 
 
 # ── بطاقة المستوى ───────────────────────────────────

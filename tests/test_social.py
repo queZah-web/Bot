@@ -41,7 +41,9 @@ async def test_thanks(env):
     await _setup(env)
     assert await say(env, ALI, "شكرا") is None  # بدون رد = كلام عادي
     assert await say(env, ALI, "شكرا على كلشي") is None
-    assert "<b>1</b>" in await say(env, ALI, "شكراً", reply_to=SARA)
+    await say(env, ALI, "شكراً", reply_to=SARA)
+    sent = " ".join(env[1].sent)
+    assert "وصل شكرك" in sent and "<b>1</b>" in sent and "اشكر عضو" in sent  # + مكافأة المهمة
     assert "قبل شوية" in await say(env, ALI, "شكر", reply_to=SARA)
     assert "نفسك" in await say(env, ALI, "شكر", reply_to=ALI)
     assert "الأكثر شكراً" in await say(env, CREATOR, "الأكثر شكراً")

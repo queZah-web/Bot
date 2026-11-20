@@ -18,7 +18,7 @@ from zhoo.handlers import callbacks, errors, membership, router, start
 
 # استيراد الأنظمة يسجل أوامرها بالسجل المركزي
 from zhoo.systems import (aliases, botstate, general, group, locks, owner, protect, punish, ranks,  # noqa: F401
-                          feedback, games, levels, replies, social, swear)
+                          economy, feedback, games, levels, replies, social, swear)
 
 log = logging.getLogger(__name__)
 
@@ -31,7 +31,8 @@ async def _flush_job(context: ContextTypes.DEFAULT_TYPE) -> None:
     await svc.punishments.expire()  # العقوبات المؤقتة المنتهية (تيليجرام يرفعها بنفسه)
     await protect.sweep_captcha(context)  # طرد اللي ما تحققوا بالوقت
     await svc.swear_logs.prune()  # سجل السب يبقى 30 يوم بس
-    await svc.levels.prune_daily()  # الخبرة اليومية تبقى 40 يوم (للترتيب الأسبوعي والشهري)
+    await svc.levels.prune_daily()
+    await economy.prune(svc)  # المهام القديمة  # الخبرة اليومية تبقى 40 يوم (للترتيب الأسبوعي والشهري)
 
 
 async def _post_init(app: Application) -> None:

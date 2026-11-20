@@ -410,12 +410,15 @@ PROFILE = (
     f"{BULLET} الشكر: <b>{{thanks}}</b> 🤍\n"
     f"{BULLET} التحذيرات: <b>{{warns}}/{{limit}}</b>\n"
     "{partner}"
+    "{economy}"
     f"{BULLET} أول ظهور: <code>{{since}}</code>\n"
     "{rating}"
     f"{LINE}\n"
     f"{BULLET} النبذة: {{bio}}"
 )
 PROFILE_PARTNER = f"{BULLET} الشريك: {{partner}} 💍\n"
+PROFILE_ECONOMY = f"{BULLET} الرصيد: <b>{{balance}}</b> 🌸\n"
+PROFILE_SHOP_TITLE = f"{BULLET} اللقب الخاص: <b>{{title}}</b>\n"
 PROFILE_RATING = (
     f"{LINE}\n"
     f"{BULLET} التقييم: {{stars}} <b>{{score}}</b>/10 <i>({{voters}} تقييم)</i>\n"
@@ -602,7 +605,7 @@ GAME_WIN = (
     f"{BULLET} الفائز: {{mention}} 🏆\n"
     f"{BULLET} الجواب: <b>{{answer}}</b>\n"
     f"{BULLET} الوقت: <b>{{secs}}</b> ثانية\n"
-    f"{BULLET} الجائزة: <b>+{{xp}}</b> نقطة خبرة"
+    f"{BULLET} الجائزة: <b>+{{xp}}</b> نقطة خبرة و <b>+{{xp}}</b> 🌸"
 )
 GAME_TIMEOUT = title("خِـلَـص الـوَقْـت", "⏰") + f"\n{BULLET} الجواب الصحيح: <b>{{answer}}</b>\n{BULLET} الجاية تكون إلكم 💪"
 GAME_STOPPED = f"{BULLET} توقفت اللعبة 🌸 الجواب كان: <b>{{answer}}</b>"
@@ -620,6 +623,95 @@ BTN_GAMES = {
     "riddle": "🧩 لغز",
     "daily": "🌟 لغز اليوم",
 }
+
+# ── الاقتصاد ───────────────────────────────────────
+COIN = "🌸"
+CURRENCY = "زهرة"
+ECONOMY_OFF = f"{BULLET} الاقتصاد معطّل بهاي المجموعة 🌸"
+WALLET = (
+    title("مَـحْـفَـظَـة {name}", "👛") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} الرصيد: <b>{{balance}}</b> {COIN}\n"
+    f"{BULLET} مجموع اللي ربحه: <b>{{earned}}</b> {COIN}\n"
+    f"{BULLET} سلسلة الأيام: <b>{{streak}}</b> 🔥\n"
+    f"{BULLET} الترتيب بالأغنى: <b>#{{pos}}</b>\n"
+    f"{LINE}\n"
+    f"{BULLET} <i>الزهرات نقاط افتراضية للمتعة بس، مو فلوس حقيقية</i>"
+)
+DAILY_DONE = (
+    title("الـمُـكَـافَـأَة الـيَـوْمِـيَّـة", "🎁") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} ربحت: <b>+{{amount}}</b> {COIN}\n"
+    f"{BULLET} سلسلة الأيام: <b>{{streak}}</b> 🔥 {{bonus}}\n"
+    f"{BULLET} رصيدك هسه: <b>{{balance}}</b> {COIN}\n"
+    f"{BULLET} ارجع باچر حتى تكبر السلسلة ✨"
+)
+DAILY_BONUS = "(+{n} مكافأة سلسلة)"
+DAILY_WAIT = f"{BULLET} أخذت مكافأتك 🌸 ارجع بعد <b>{{left}}</b>"
+MISSIONS_HEADER = title("مَـهَـامّ الـيَـوْم", "🎯") + f"\n{LINE}"
+MISSION_LINE = "{mark} {name}  <b>{progress}/{target}</b> ⋅ " + COIN + " {reward}"
+MISSIONS_FOOTER = f"{LINE}\n{BULLET} المهام تتجدد كل يوم، والمكافأة تنضاف تلقائياً لما تكملها ✨"
+MISSION_DONE = f"🎯 {{mention}} خلص مهمة «{{name}}» وربح <b>+{{reward}}</b> {COIN}"
+MISSION_NAMES = {
+    "messages": "💬 تفاعل بالمجموعة",
+    "win": "🎮 افوز بلعبة",
+    "thank": "🤍 اشكر عضو",
+}
+SHOP_MARK = "الـمَـتْـجَـر"
+SHOP = (
+    title(SHOP_MARK, "🛍") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} رصيدك: <b>{{balance}}</b> {COIN}\n"
+    f"{BULLET} اضغط على أي عنصر حتى تشتريه وتلبسه مباشرة ✨\n"
+    f"{BULLET} اللقب المخصص: اكتب <code>لقب مخصص النص</code>\n"
+    f"{LINE}\n"
+    f"{BULLET} <i>كل العناصر شكلية، تطلع بملفك الشخصي</i>"
+)
+SHOP_ITEM_BTN = "{name} ⋅ {price}{coin}"
+SHOP_OWNED_BTN = "✅ {name}"
+BOUGHT = "اشتريت {name} ولبسته ✨"
+EQUIPPED = "لبست {name} ✨"
+UNEQUIPPED = "نزعت {name} 🌸"
+NO_FUNDS = "رصيدك ما يكفي 🌸 تحتاج {price}{coin} وعندك {balance}{coin}"
+NO_FUNDS_TEXT = f"{BULLET} رصيدك ما يكفي 🌸 تحتاج <b>{{price}}</b> {COIN} وعندك <b>{{balance}}</b> {COIN}"
+NOT_YOUR_SHOP = "هذا المتجر مو إلك 🌸 اكتب «المتجر» حتى يطلعلك متجرك"
+INVENTORY = (
+    title("مُـمْـتَـلَـكَـاتِـي", "🎒") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} اللقب: {{title}}\n"
+    f"{BULLET} الإطار: {{frame}}\n"
+    f"{LINE}\n"
+    f"{BULLET} اضغط على أي عنصر حتى تلبسه أو تنزعه ✨"
+)
+INVENTORY_EMPTY = f"{BULLET} ما عندك ممتلكات لحد هسه 🌸 روح للمتجر بأمر <code>المتجر</code>"
+NOTHING = "ماكو"
+CUSTOM_TITLE_BAD = f"{BULLET} اكتب اللقب بعد الأمر رجاءً 🌸 (من 2 لـ 20 حرف) مثال: <code>لقب مخصص ملك الضحك</code>"
+CUSTOM_TITLE_SWEAR = f"{BULLET} هذا اللقب بيه كلام مو مقبول 🌸 اختار لقب ثاني"
+CUSTOM_TITLE_DONE = f"{BULLET} صار لقبك: <b>{{title}}</b> ✨ وانخصم <b>{{price}}</b> {COIN}"
+TRANSFER_DONE = (
+    title("تَـمَّ الـتَّـحْـوِيـل", "💸") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} من: {{from_}}\n"
+    f"{BULLET} إلى: {{to}}\n"
+    f"{BULLET} المبلغ: <b>{{amount}}</b> {COIN}\n"
+    f"{BULLET} الرسوم: <b>{{fee}}</b> {COIN}"
+)
+TRANSFER_BAD = f"{BULLET} اكتب المبلغ ويا الرد على الشخص رجاءً 🌸 (من 10 لـ 5000) مثال: <code>تحويل 100</code>"
+TRANSFER_SELF = f"{BULLET} ما يصير تحوّل لنفسك 😄"
+TRANSFER_BOT = f"{BULLET} البوتات ما تستلم زهرات 🤖"
+TRANSFER_NEW = f"{BULLET} حتى تگدر تحوّل، لازم يكون عندك {{n}} رسالة بالمجموعة على الأقل 🌸"
+TRANSFER_LIMIT = f"{BULLET} وصلت للحد اليومي للتحويل ({{n}} {COIN}) 🌸 ارجع باچر"
+HISTORY_HEADER = title("سِـجِـلّ الـمَـحْـفَـظَـة", "📒") + f"\n{LINE}"
+HISTORY_EMPTY = f"{BULLET} ماكو حركات لحد هسه 🌸"
+TX_KINDS = {
+    "daily": "🎁 مكافأة يومية", "mission": "🎯 مهمة", "game": "🎮 فوز بلعبة", "levelup": "📈 ترقية مستوى",
+    "transfer_in": "📥 تحويل وارد", "transfer_out": "📤 تحويل صادر", "buy": "🛍 شراء",
+    "admin_give": "👑 إضافة من الإدارة", "admin_take": "👑 خصم من الإدارة",
+}
+RICH_HEADER = title("الأَغْـنَـى", "💰")
+ADMIN_GIVE = f"{BULLET} انضاف <b>{{amount}}</b> {COIN} لـ {{mention}} ✨ رصيده هسه <b>{{balance}}</b> {COIN}"
+ADMIN_TAKE = f"{BULLET} انخصم <b>{{amount}}</b> {COIN} من {{mention}} 🌸 رصيده هسه <b>{{balance}}</b> {COIN}"
+ADMIN_AMOUNT_BAD = f"{BULLET} اكتب المبلغ ويا الرد رجاءً 🌸 (من 1 لـ 100000)"
 
 # ── القفل والفتح ───────────────────────────────────
 LOCK_PANEL = (
