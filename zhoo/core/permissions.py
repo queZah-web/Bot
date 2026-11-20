@@ -39,10 +39,17 @@ class PermissionService:
     def __init__(self, members: MembersRepo, developer_id: int):
         self.members = members
         self.developer_id = developer_id
+        self.helpers: set[int] = set()   # مساعدين المطور (صلاحيات عرض محدودة)
         self._admins: dict[int, tuple[float, dict[int, ChatMember]]] = {}
 
     def is_developer(self, user_id: int) -> bool:
         return user_id == self.developer_id
+
+    def is_helper(self, user_id: int) -> bool:
+        return user_id in self.helpers
+
+    def is_staff(self, user_id: int) -> bool:
+        return self.is_developer(user_id) or self.is_helper(user_id)
 
     def invalidate(self, chat_id: int) -> None:
         self._admins.pop(chat_id, None)

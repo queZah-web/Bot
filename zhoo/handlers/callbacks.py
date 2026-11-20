@@ -11,10 +11,10 @@ from zhoo.core import texts as T
 from zhoo.core.commands import registry
 from zhoo.core.context import Services, get_services
 from zhoo.core.fmt import mention
-from zhoo.handlers.views import about_text, audit_text, groups_text, help_main_text, owner_panel_text
-from zhoo.systems import botstate, economy, feedback, games, group, locks, protect, punish, social
+from zhoo.handlers.views import about_text, help_main_text
+from zhoo.systems import botstate, economy, feedback, games, group, locks, owner, protect, punish, social
 from zhoo.keyboards.menus import (SECTION_MAP, back_to_start_keyboard, help_main_keyboard,
-                                  owner_keyboard, owner_sub_keyboard, section_keyboard, section_text,
+                                  section_keyboard, section_text,
                                   start_keyboard)
 
 log = logging.getLogger(__name__)
@@ -67,6 +67,9 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await q.answer(T.MAINTENANCE.replace("⌯ ", ""), show_alert=True)
         return
 
+    if svc.restoring:
+        await q.answer(T.MAINTENANCE.replace(f"{T.BULLET} ", ""), show_alert=True)
+        return
     parts = (q.raw.data or "").split(":")
     kind = parts[0]
     if msg.chat.type != Chat.PRIVATE and kind != "c" and await botstate.is_quiet(svc, msg.chat.id):
@@ -78,7 +81,11 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         elif kind == "s" and len(parts) == 2:
             await _start(q, msg, svc, context, parts[1])
         elif kind == "o" and len(parts) == 2:
-            await _owner(q, msg, svc, parts[1])
+            await owner.on_owner_button(q, msg, svc, context, parts[1])
+        elif kind == "bc" and len(parts) == 3:
+            await owner.on_broadcast_button(q, msg, svc, context.bot, parts[1], parts[2])
+        elif kind == "rs" and len(parts) == 2:
+            await owner.on_restore_button(q, msg, svc, parts[1])
         elif kind == "g" and len(parts) == 4:
             await protect.on_panel_button(q, msg, svc, context.bot, parts[1], parts[2], parts[3])
         elif kind == "l" and len(parts) == 4:
@@ -146,32 +153,11 @@ async def _start(q, msg: Message, svc: Services, context, action: str) -> None:
         return
     if action == "home":
         await _edit(msg, T.START_PRIVATE.format(name=mention(user.id, user.first_name)),
-                    start_keyboard(context.bot.username, is_dev))
+                    start_keyboard(context.bot.username, svc.perms.is_staff(user.id)))
     elif action == "help":
         rank = await svc.perms.rank_of(context.bot, msg.chat.id, user.id, private=True)
         await _edit(msg, help_main_text(rank), help_main_keyboard(user.id, rank, private=True))
     elif action == "about":
         await _edit(msg, await about_text(svc), back_to_start_keyboard())
-    else:
-        await q.answer(STALE)
-
-
-async def _owner(q, msg: Message, svc: Services, action: str) -> None:
-    user_id = q.from_user.id
-    if not svc.perms.is_developer(user_id) or msg.chat.type != Chat.PRIVATE:
-        await q.answer(T.OWNER_ONLY, show_alert=True)
-        return
-    if action == "main":
-        await _edit(msg, await owner_panel_text(svc), owner_keyboard(svc.maintenance))
-    elif action == "maint":
-        new_state = not svc.maintenance
-        await svc.bot_settings.set("maintenance", "1" if new_state else "0")
-        await svc.audit.log("maintenance_on" if new_state else "maintenance_off", actor_id=user_id)
-        await q.answer(T.MAINTENANCE_ON if new_state else T.MAINTENANCE_OFF)
-        await _edit(msg, await owner_panel_text(svc), owner_keyboard(svc.maintenance))
-    elif action == "audit":
-        await _edit(msg, await audit_text(svc), owner_sub_keyboard())
-    elif action == "groups":
-        await _edit(msg, await groups_text(svc), owner_sub_keyboard())
     else:
         await q.answer(STALE)

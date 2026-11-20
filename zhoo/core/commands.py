@@ -31,6 +31,7 @@ class Command:
     show_in_help: bool = True
     order: int = 0
     args: str = "none"          # none | target | punish (هدف + مدة/سبب) | text
+    helpers: bool = False       # يسمح لمساعدين المطور (مع إن الرتبة مطور)
 
     @property
     def display_name(self) -> str:
@@ -65,14 +66,14 @@ class CommandRegistry:
     def command(self, key: str, names: tuple[str, ...] | list[str] | str, *, section: str,
                 description: str, min_rank: Rank = Rank.MEMBER, usage: str = "",
                 where: str = "group", show_in_help: bool = True, order: int = 0,
-                args: str = "none"):
+                args: str = "none", helpers: bool = False):
         """مزخرف لتسجيل أمر."""
         if isinstance(names, str):
             names = (names,)
 
         def deco(func: Handler) -> Handler:
             self.add(Command(key, tuple(names), section, min_rank, description, func,
-                             usage, where, show_in_help, order, args))
+                             usage, where, show_in_help, order, args, helpers))
             return func
         return deco
 

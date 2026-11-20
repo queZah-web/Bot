@@ -21,9 +21,10 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await msg.reply_text(T.MAINTENANCE)
         return
     if chat.type == Chat.PRIVATE:
+        await svc.users.set_started(user.id, True)  # حتى توصله الإذاعة
         await msg.reply_text(
             T.START_PRIVATE.format(name=mention(user.id, user.first_name)),
-            reply_markup=start_keyboard(context.bot.username, svc.perms.is_developer(user.id)),
+            reply_markup=start_keyboard(context.bot.username, svc.perms.is_staff(user.id)),
         )
     else:
         await msg.reply_text(T.START_GROUP)

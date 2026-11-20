@@ -48,6 +48,10 @@ class GroupsRepo:
             await conn.execute("UPDATE audit_logs SET chat_id = ? WHERE chat_id = ?", (new_id, old_id))
             await conn.execute("DELETE FROM groups WHERE chat_id = ?", (old_id,))
 
+    async def active_ids(self) -> list[int]:
+        rows = await self.db.fetchall("SELECT chat_id FROM groups WHERE is_active = 1")
+        return [r["chat_id"] for r in rows]
+
     async def count_active(self) -> int:
         return await self.db.fetchval("SELECT COUNT(*) FROM groups WHERE is_active = 1", default=0)
 

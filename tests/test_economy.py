@@ -140,7 +140,7 @@ async def test_transfer_rules(env):
     await svc.economy.change(GROUP, ALI, 1000, "admin_give")
     assert "50 رسالة" in await say(env, ALI, "تحويل 100", reply_to=SARA)  # حساب جديد
     await svc.members.add_message_counts([(GROUP, ALI, 60, 1)])
-    assert "تحويل" in await say(env, ALI, "تحويل 5", reply_to=SARA)  # أقل من الحد = شرح
+    assert "تحويل" in await say(env, ALI, "تحويل 0", reply_to=SARA)  # صفر = شرح
     assert "نفسك" in await say(env, ALI, "تحويل 100", reply_to=ALI)
     out = await say(env, ALI, "تحويل 100", reply_to=SARA)
     assert "تَـمَّ الـتَّـحْـوِيـل" in out and "<b>5</b>" in out
@@ -149,7 +149,10 @@ async def test_transfer_rules(env):
     assert "ما يكفي" in await say(env, ALI, "تحويل 4000", reply_to=SARA)
     svc.flood.reset((GROUP, ALI))  # رسائل الاختبار السريعة تحسبها الحماية إغراق
     svc.command_limiter._hits.clear()  # ونفس الشي لحد الأوامر (5 كل 10 ثواني)
-    assert "للحد اليومي" in await say(env, ALI, "تحويل 5000", reply_to=SARA)
+    # بدون حد يومي: تحويل كبير يمشي إذا الرصيد يكفي، ومليون هو الأعلى
+    await svc.economy.change(GROUP, ALI, 2_000_000, "admin_give")
+    assert "تَـمَّ الـتَّـحْـوِيـل" in await say(env, ALI, "تحويل 1000000", reply_to=SARA)
+    assert "لحد مليون" in await say(env, ALI, "تحويل 1000001", reply_to=SARA)
     assert "تحويل صادر" in await say(env, ALI, "سجل محفظتي")
     assert "U3000003" in await say(env, CREATOR, "الأغنى")
 

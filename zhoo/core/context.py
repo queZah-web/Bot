@@ -60,6 +60,19 @@ class Services:
     conversations: Conversations = field(default_factory=Conversations)
     games: dict = field(default_factory=dict)          # chat_id ← اللعبة الشغّالة
     xp_seen: dict = field(default_factory=dict)        # (chat, user) ← (آخر وقت، بصمة آخر رسالة)
+    broadcast_running: bool = False
+    restoring: bool = False                            # أثناء الاستعادة نوقف استقبال التحديثات
+
+    def reset_caches(self) -> None:
+        """بعد استعادة نسخة احتياطية: نمسح كل الذاكرة المؤقتة حتى نقرا من القاعدة الجديدة."""
+        self.group_settings._cache.clear()
+        self.aliases._cache.clear()
+        self.replies._cache.clear()
+        self.tracker._user_seen.clear()
+        self.tracker._group_seen.clear()
+        self.perms._admins.clear()
+        self.xp_seen.clear()
+        self.games.clear()
     command_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(5, 10))
     button_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(4, 3))
     started_at: float = field(default_factory=time.time)

@@ -1,7 +1,7 @@
 """الاقتصاد الافتراضي: زهرات 🌸 (نقاط افتراضية للمتعة، ما تنسحب ولا تمثل فلوس حقيقية).
 
 الكسب: مكافأة يومية بسلسلة أيام، مهام يومية، الفوز بالألعاب، الترقية بالمستوى.
-الصرف: متجر ألقاب وإطارات شكلية، لقب مخصص، تحويل بين الأعضاء (بحدود وضريبة 5%).
+الصرف: متجر ألقاب وإطارات شكلية، لقب مخصص، تحويل بين الأعضاء (لحد مليون، ضريبة 5%).
 الحماية: كل حركة ذرية ومسجلة، الرصيد ما ينزل تحت الصفر، وحدود ضد الحسابات الوهمية.
 """
 from __future__ import annotations
@@ -30,7 +30,7 @@ S = "economy"
 DAILY_COOLDOWN = 20 * 3600
 STREAK_WINDOW = 48 * 3600
 DAILY_BASE, DAILY_STEP, DAILY_MAX_STEPS = 50, 10, 7
-TRANSFER_MIN, TRANSFER_MAX, TRANSFER_DAILY = 10, 5000, 5000
+TRANSFER_MIN, TRANSFER_MAX = 1, 1_000_000   # بدون حد يومي، وأعلى تحويل مليون
 TRANSFER_FEE_PCT = 5
 TRANSFER_MIN_MESSAGES = 50
 ADMIN_RANK = Rank.OWNER
@@ -326,9 +326,6 @@ async def cmd_transfer(cx: CommandContext) -> None:
     messages = await svc.members.message_count(cx.chat.id, cx.user.id) + svc.tracker.pending_count(cx.chat.id, cx.user.id)
     if messages < TRANSFER_MIN_MESSAGES:
         await cx.reply(T.TRANSFER_NEW.format(n=TRANSFER_MIN_MESSAGES))
-        return
-    if await svc.economy.sent_since(cx.chat.id, cx.user.id, 86400) + amount > TRANSFER_DAILY:
-        await cx.reply(T.TRANSFER_LIMIT.format(n=TRANSFER_DAILY))
         return
     fee = max(1, amount * TRANSFER_FEE_PCT // 100)
     try:

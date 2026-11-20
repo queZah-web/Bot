@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import time as dtime
 
 from telegram import BotCommand, LinkPreviewOptions, Update
 from telegram.constants import ParseMode
@@ -17,7 +18,8 @@ from zhoo.database.db import Database
 from zhoo.handlers import callbacks, errors, membership, router, start
 
 # استيراد الأنظمة يسجل أوامرها بالسجل المركزي
-from zhoo.systems import (aliases, botstate, general, group, locks, owner, protect, punish, ranks,  # noqa: F401
+from zhoo.systems import (aliases, backup, botstate, general, group, locks, owner, protect, punish,  # noqa: F401
+                          ranks, reports,
                           economy, feedback, games, levels, replies, social, swear)
 
 log = logging.getLogger(__name__)
@@ -39,6 +41,7 @@ async def _post_init(app: Application) -> None:
     svc: Services = app.bot_data["services"]
     await svc.db.connect()
     await svc.bot_settings.load()
+    svc.perms.helpers = {int(x) for x in (svc.bot_settings.get("helpers") or "").split(",") if x.isdigit()}
     try:
         await app.bot.set_my_commands([
             BotCommand("start", "بدء زهو"),
@@ -49,6 +52,9 @@ async def _post_init(app: Application) -> None:
     if app.job_queue is not None:
         app.job_queue.run_repeating(_flush_job, interval=FLUSH_INTERVAL, first=FLUSH_INTERVAL,
                                     name="flush_counts")
+        # نسخة احتياطية تلقائية كل يوم (03:17 UTC) وتقرير أسبوعي كل أحد (09:13 UTC)
+        app.job_queue.run_daily(backup.daily_job, time=dtime(3, 17), name="daily_backup")
+        app.job_queue.run_daily(reports.weekly_job, time=dtime(9, 13), days=(0,), name="weekly_report")
     log.info("زهو %s اشتغل باسم @%s", __version__, app.bot.username)
 
 

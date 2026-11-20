@@ -64,6 +64,16 @@ class UsersRepo:
         )
         return _to_record(row)
 
+    async def set_started(self, user_id: int, started: bool) -> None:
+        await self.db.execute("UPDATE users SET started = ? WHERE user_id = ?", (int(started), user_id))
+
+    async def started_ids(self) -> list[int]:
+        rows = await self.db.fetchall("SELECT user_id FROM users WHERE started = 1 AND is_bot = 0")
+        return [r["user_id"] for r in rows]
+
+    async def count_started(self) -> int:
+        return await self.db.fetchval("SELECT COUNT(*) FROM users WHERE started = 1 AND is_bot = 0", default=0)
+
     async def count(self) -> int:
         return await self.db.fetchval("SELECT COUNT(*) FROM users WHERE is_bot = 0", default=0)
 

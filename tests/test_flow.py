@@ -76,6 +76,20 @@ class FakeBot:
     async def send_poll(self, chat_id, question, options, is_anonymous=True, **kw):
         self.calls.append(("poll", question, tuple(options), is_anonymous))
 
+    async def copy_message(self, chat_id, from_chat_id, message_id, **kw):
+        if chat_id in getattr(self, "blocked", set()):
+            raise __import__("telegram").error.Forbidden("bot was blocked by the user")
+        self.calls.append(("copy", chat_id, message_id))
+        return SimpleNamespace(message_id=999)
+
+    async def send_document(self, chat_id, document, filename=None, caption=None, **kw):
+        data = document.read() if hasattr(document, "read") else document
+        self.calls.append(("document", chat_id, filename, len(data)))
+        self.sent.append(caption or "")
+
+    async def get_me(self, **kw):
+        return SimpleNamespace(id=self.id, username=self.username)
+
     async def get_chat_member_count(self, chat_id, **kw):
         return 42
 

@@ -128,16 +128,3 @@ def start_keyboard(bot_username: str, is_developer: bool) -> InlineKeyboardMarku
 
 def back_to_start_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([[B(T.BTN_HOME, callback_data="s:home")]])
-
-
-def owner_keyboard(maintenance: bool) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
-        [B(T.BTN_REFRESH, callback_data="o:main"),
-         B(T.BTN_MAINT_OFF if maintenance else T.BTN_MAINT_ON, callback_data="o:maint")],
-        [B(T.BTN_AUDIT, callback_data="o:audit"), B(T.BTN_GROUPS, callback_data="o:groups")],
-        [B(T.BTN_HOME, callback_data="s:home")],
-    ])
-
-
-def owner_sub_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([[B(T.BTN_BACK, callback_data="o:main")]])

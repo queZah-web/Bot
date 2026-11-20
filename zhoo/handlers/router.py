@@ -24,6 +24,8 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     if msg is None or chat is None or user is None:
         return
     svc = get_services(context)
+    if svc.restoring:
+        return  # لحظات الاستعادة: نتجاهل التحديثات حتى ما نلمس قاعدة مسكّرة
     in_group = chat.type in GROUP_TYPES
     state = await botstate.get_state(svc, chat.id) if in_group else botstate.ON
     quiet = state != botstate.ON
@@ -125,7 +127,7 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         return
 
     rank = await svc.perms.rank_of(context.bot, chat.id, user.id, private=private)
-    if rank < cmd.min_rank:
+    if rank < cmd.min_rank and not (cmd.helpers and svc.perms.is_helper(user.id)):
         if cmd.min_rank >= Rank.DEVELOPER:
             return  # أوامر المطور مخفية تماماً عن غيره
         await msg.reply_text(T.NO_PERMISSION.format(rank=RANK_NAMES[cmd.min_rank]))

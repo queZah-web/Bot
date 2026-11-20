@@ -696,11 +696,10 @@ TRANSFER_DONE = (
     f"{BULLET} المبلغ: <b>{{amount}}</b> {COIN}\n"
     f"{BULLET} الرسوم: <b>{{fee}}</b> {COIN}"
 )
-TRANSFER_BAD = f"{BULLET} اكتب المبلغ ويا الرد على الشخص رجاءً 🌸 (من 10 لـ 5000) مثال: <code>تحويل 100</code>"
+TRANSFER_BAD = f"{BULLET} اكتب المبلغ ويا الرد على الشخص رجاءً 🌸 (لحد مليون) مثال: <code>تحويل 100</code>"
 TRANSFER_SELF = f"{BULLET} ما يصير تحوّل لنفسك 😄"
 TRANSFER_BOT = f"{BULLET} البوتات ما تستلم زهرات 🤖"
 TRANSFER_NEW = f"{BULLET} حتى تگدر تحوّل، لازم يكون عندك {{n}} رسالة بالمجموعة على الأقل 🌸"
-TRANSFER_LIMIT = f"{BULLET} وصلت للحد اليومي للتحويل ({{n}} {COIN}) 🌸 ارجع باچر"
 HISTORY_HEADER = title("سِـجِـلّ الـمَـحْـفَـظَـة", "📒") + f"\n{LINE}"
 HISTORY_EMPTY = f"{BULLET} ماكو حركات لحد هسه 🌸"
 TX_KINDS = {
@@ -879,6 +878,137 @@ NEW_GROUP_NOTICE = title("انضفت لمجموعة جديدة", "🎀") + f"\n{
 LEFT_GROUP_NOTICE = title("طلعت من مجموعة", "🤍") + f"\n{BULLET} {{title}}\n{BULLET} <code>{{chat_id}}</code>"
 ERROR_NOTICE = "⚠️ <b>خطأ</b>\n<code>{error}</code>\n" + f"{BULLET} المكان: {{where}}"
 
+# ── الإذاعة ────────────────────────────────────────
+BC_TARGETS = {"groups": "👥 المجموعات", "users": "👤 المستخدمين", "all": "🌐 الكل"}
+BC_ASK_TARGET = (
+    title("الإِذَاعَـة", "📢") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} المجموعات الفعّالة: <b>{{groups}}</b>\n"
+    f"{BULLET} المستخدمين اللي بدوا محادثة ويايه: <b>{{users}}</b>\n"
+    f"{LINE}\n"
+    f"{BULLET} منو تريد توصله الإذاعة؟"
+)
+BC_ASK_CONTENT = (
+    f"{BULLET} تمام ✨ الجمهور: <b>{{target}}</b>\n"
+    f"{BULLET} هسه دزلي رسالة الإذاعة (نص، صورة، فيديو، ملف، أو أي شي)\n" + "{cancel}"
+)
+BC_CONFIRM = (
+    title("مُـعَـايَـنَـة الإِذَاعَـة", "👀") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} فوگ تشوف شكل الرسالة بالضبط\n"
+    f"{BULLET} الجمهور: <b>{{target}}</b> ⋅ العدد: <b>{{count}}</b>\n"
+    f"{BULLET} الوقت المتوقع: <b>{{eta}}</b>\n"
+    f"{LINE}\n"
+    f"{BULLET} متأكد تريد ترسلها؟"
+)
+BC_PRESS_BUTTON = f"{BULLET} اضغط «إرسال» أو «إلغاء» فوگ 🌸"
+BC_STARTED = f"{BULLET} بديت الإرسال ⏳ أبلغك أول ما أخلص"
+BC_BUSY = "اكو إذاعة شغّالة هسه، انتظرها تخلص 🌸"
+BC_EXPIRED = "هاي الإذاعة انتهت أو انلغت 🌸"
+BC_CANCELLED = f"{BULLET} انلغت الإذاعة 🌸"
+BC_DONE = (
+    title("خِـلْـصَـت الإِذَاعَـة", "✅") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} وصلت: <b>{{sent}}</b>\n"
+    f"{BULLET} ما وصلت: <b>{{failed}}</b> <i>(طلعوني أو حظروني)</i>\n"
+    f"{BULLET} الوقت: <b>{{secs}}</b>"
+)
+BC_EMPTY = f"{BULLET} ماكو أحد بهذا الجمهور لحد هسه 🌸"
+LESS_THAN_MINUTE = "أقل من دقيقة"
+BTN_BC_SEND = "✅ إرسال"
+BTN_BC_CANCEL = "✖️ إلغاء"
+
+# ── النسخ الاحتياطي ─────────────────────────────────
+BACKUP_CAPTION = (
+    title("نُـسْـخَـة اِحْـتِـيَـاطِـيَّـة", "💾") + "\n"
+    f"{BULLET} المجموعات: <b>{{groups}}</b> ⋅ المستخدمين: <b>{{users}}</b>\n"
+    f"{BULLET} إصدار القاعدة: <b>{{version}}</b> ⋅ الحجم: <b>{{size}}</b>\n"
+    f"{BULLET} السلامة: ✅ مفحوصة\n"
+    f"{BULLET} <i>احتفظ بيها، وللاستعادة: <code>استعادة نسخة</code></i>"
+)
+BACKUP_WORKING = f"{BULLET} دا أسوي نسخة احتياطية ⏳"
+BACKUP_FAILED = f"{BULLET} ما گدرت أسوي النسخة 🤍 شوف السجل"
+RESTORE_ASK = (
+    title("اِسْـتِـعَـادَة نُـسْـخَـة", "♻️") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} دزلي ملف النسخة (ينتهي بـ <code>.db</code>)\n"
+    f"{BULLET} قبل الاستعادة راح أسوي نسخة أمان من الحالية، فما يضيع شي\n" + "{cancel}"
+)
+RESTORE_NEED_FILE = f"{BULLET} لازم تدزلي ملف <code>.db</code> 🌸 (أقل من 20 ميگا)"
+RESTORE_BAD_FILE = f"{BULLET} هذا الملف مو نسخة صالحة من زهو 🤍 (فشل فحص السلامة)"
+RESTORE_CONFIRM = (
+    title("فَـحْـص الـنُّـسْـخَـة", "🔍") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} السلامة: ✅\n"
+    f"{BULLET} المجموعات: <b>{{groups}}</b> ⋅ المستخدمين: <b>{{users}}</b>\n"
+    f"{BULLET} إصدار القاعدة: <b>{{version}}</b>\n"
+    f"{LINE}\n"
+    f"{BULLET} ⚠️ الاستعادة تبدل كل البيانات الحالية بهاي النسخة. متأكد؟"
+)
+RESTORE_DONE = (
+    title("تَـمَّـت الاِسْـتِـعَـادَة", "✅") + "\n"
+    f"{BULLET} رجعت البيانات من النسخة بنجاح 🤍\n"
+    f"{BULLET} نسخة الأمان من قبل الاستعادة: <code>{{pre}}</code>"
+)
+RESTORE_FAILED = f"{BULLET} فشلت الاستعادة، ورجّعت البيانات مثل ما جانت 🤍"
+RESTORE_MEMORY = f"{BULLET} الاستعادة تحتاج قاعدة بيانات بملف 🌸"
+BTN_RESTORE_GO = "♻️ استعادة"
+
+# ── التقارير ────────────────────────────────────────
+REPORT_GLOBAL = (
+    title("تَـقْـرِيـر زَهـو", "📊") + "\n"
+    f"<i>آخر {{days}} أيام</i>\n"
+    f"{LINE}\n"
+    f"{BULLET} المجموعات الفعّالة: <b>{{groups}}</b> ⋅ جديدة: <b>+{{new_groups}}</b>\n"
+    f"{BULLET} المستخدمين: <b>{{users}}</b> ⋅ جدد: <b>+{{new_users}}</b>\n"
+    f"{BULLET} بدوا محادثة بالخاص: <b>{{started}}</b>\n"
+    f"{LINE}\n"
+    f"{BULLET} العقوبات: <b>{{punish}}</b> ⋅ السب المحذوف: <b>{{swear}}</b>\n"
+    f"{BULLET} إجراءات الحماية: <b>{{guard}}</b> ⋅ الأخطاء من التشغيل: <b>{{errors}}</b>\n"
+    f"{LINE}\n"
+    f"{BULLET} أنشط المجموعات:\n{{top}}"
+)
+REPORT_GROUP = (
+    title("تَـقْـرِيـر {title}", "📊") + "\n"
+    f"<i>آخر {{days}} أيام</i>\n"
+    f"{LINE}\n"
+    f"{BULLET} الأعضاء: <b>{{members}}</b> ⋅ جدد: <b>+{{new}}</b>\n"
+    f"{BULLET} الأعضاء النشطين: <b>{{active}}</b>\n"
+    f"{BULLET} الخبرة المكتسبة: <b>{{xp}}</b>\n"
+    f"{LINE}\n"
+    f"{BULLET} العقوبات: <b>{{punish}}</b> ⋅ السب المحذوف: <b>{{swear}}</b>\n"
+    f"{BULLET} إجراءات الحماية: <b>{{guard}}</b>\n"
+    f"{LINE}\n"
+    f"{BULLET} الأنشط بهالفترة:\n{{top}}"
+)
+REPORT_NONE = "    —"
+EXPORT_SENT = f"{BULLET} دزيتلك ملف الأعضاء بالخاص 📩"
+EXPORT_NEED_START = f"{BULLET} ما گدرت أدزلك بالخاص 🌸 ابدأ محادثة ويايه أول (<code>/start</code>) وارجع جرب"
+EXPORT_CAPTION = f"{BULLET} أعضاء <b>{{title}}</b> ⋅ <b>{{n}}</b> عضو 📄"
+
+# ── فحص النظام ──────────────────────────────────────
+HEALTH = (
+    title("فَـحْـص الـنِّـظَـام", "🩺") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} قاعدة البيانات: {{db}} ⋅ الحجم: <b>{{size}}</b>\n"
+    f"{BULLET} اتصال تيليجرام: {{tg}} ⋅ <b>{{ping}}</b>\n"
+    f"{BULLET} المهام المجدولة: <b>{{jobs}}</b>\n"
+    f"{BULLET} آخر نسخة احتياطية: <b>{{backup}}</b>\n"
+    f"{BULLET} وقت التشغيل: <b>{{uptime}}</b> ⋅ الأخطاء: <b>{{errors}}</b>\n"
+    f"{BULLET} الإصدارات: زهو <code>{{version}}</code> ⋅ بايثون <code>{{py}}</code> ⋅ PTB <code>{{ptb}}</code>"
+)
+HEALTH_OK = "✅ سليمة"
+HEALTH_BAD = "❌ بيها مشكلة"
+
+# ── المساعدين ──────────────────────────────────────
+HELPER_ADDED = f"{BULLET} صار <code>{{id}}</code> مساعد للمطور ✨ (يشوف اللوحة والتقارير والفحص بس)"
+HELPER_REMOVED = f"{BULLET} انشال <code>{{id}}</code> من المساعدين 🌸"
+HELPER_BAD = f"{BULLET} اكتب ايدي الشخص بعد الأمر رجاءً 🌸 مثال: <code>رفع مساعد 123456789</code>"
+HELPER_NOT_FOUND = f"{BULLET} هذا مو من المساعدين 🌸"
+HELPERS_HEADER = title("مُـسَـاعِـدِيـن الـمُـطَـوِّر", "🧑‍💻") + f"\n{LINE}"
+HELPERS_EMPTY = f"{BULLET} ماكو مساعدين لحد هسه 🌸"
+DEV_ONLY = "هذا للمطور بس 🔐"
+
 # ── الأزرار ────────────────────────────────────────
 BTN_COMMANDS = "📜 الأوامر"
 BTN_ADD = "🎀 أضفني لمجموعتك"
@@ -892,3 +1022,7 @@ BTN_AUDIT = "📋 آخر العمليات"
 BTN_GROUPS = "🌸 المجموعات"
 BTN_MAINT_ON = "🛠 تفعيل الصيانة"
 BTN_MAINT_OFF = "✅ إيقاف الصيانة"
+BTN_BROADCAST = "📢 إذاعة"
+BTN_BACKUP = "💾 نسخة احتياطية"
+BTN_REPORT = "📊 تقرير"
+BTN_HEALTH = "🩺 فحص النظام"
