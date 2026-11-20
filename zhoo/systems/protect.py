@@ -77,6 +77,9 @@ async def _delete_later(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def send_notice(context, chat_id: int, text: str, ttl: int = NOTICE_TTL, **kw) -> Message | None:
+    from zhoo.systems import botstate
+    if await botstate.is_quiet(get_services(context), chat_id):
+        return None  # موقوفة/معطّلة: ولا رسالة
     try:
         sent = await context.bot.send_message(chat_id, text, **kw)
     except TelegramError:
@@ -99,6 +102,9 @@ async def _safe_delete(msg: Message) -> bool:
 async def inspect(update: Update, context: ContextTypes.DEFAULT_TYPE, svc: Services,
                   msg: Message, chat: Chat, user: User) -> bool:
     """يفحص رسالة بالمجموعة. يرجع True إذا انحذفت (فما نكمل معالجتها)."""
+    from zhoo.systems import botstate
+    if not await botstate.is_active(svc, chat.id):
+        return False
     state = await guards_state(svc, chat.id)
     key = (chat.id, user.id)
     violation: str | None = None
@@ -152,8 +158,9 @@ async def inspect(update: Update, context: ContextTypes.DEFAULT_TYPE, svc: Servi
 
 
 async def _auto_mute(context, svc: Services, chat_id: int, user: User, why: str, seconds: int, rights) -> None:
-    if not rights.can_restrict_members:
-        return
+    from zhoo.systems import botstate
+    if not rights.can_restrict_members or await botstate.is_quiet(svc, chat_id):
+        return  # بالإيقاف: مسح بس بدون كتم
     until = int(time.time()) + seconds
     try:
         await mod.apply(context.bot, chat_id, user.id, "mute", until)
@@ -176,6 +183,10 @@ async def on_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return
     svc = get_services(context)
     await svc.tracker.track_group(chat)
+    from zhoo.systems import botstate
+    if not await botstate.is_active(svc, chat.id):
+        return
+    quiet = await botstate.is_quiet(svc, chat.id)
     state = await guards_state(svc, chat.id)
     adder = msg.from_user
     adder_rank = await svc.perms.rank_of(context.bot, chat.id, adder.id) if adder else Rank.MEMBER
@@ -191,7 +202,7 @@ async def on_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 await _kick_bot(context, svc, chat.id, member, adder)
             continue
 
-        if state["captcha"] and (self_joined or adder_rank < Rank.ADMIN) and \
+        if state["captcha"] and not quiet and (self_joined or adder_rank < Rank.ADMIN) and \
                 await start_captcha(context, svc, chat.id, member):
             continue  # الترحيب بعد التحقق
         from zhoo.systems.group import send_welcome

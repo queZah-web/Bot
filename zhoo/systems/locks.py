@@ -91,6 +91,9 @@ async def lock_state(svc: Services, chat_id: int) -> dict[str, bool]:
 
 async def check(context, svc: Services, msg: Message, chat, user) -> bool:
     """يرجع True إذا انحذفت الرسالة لأنها مقفولة."""
+    from zhoo.systems import botstate
+    if not await botstate.is_active(svc, chat.id):
+        return False
     key = media_lock(msg)
     if key is None or not await is_locked(svc, chat.id, key):
         return False
@@ -311,7 +314,8 @@ async def on_reaction(update, context) -> None:
         return  # شال تفاعله أو ماكو جديد
     svc = get_services(context)
     chat = r.chat
-    if not await is_locked(svc, chat.id, "reactions"):
+    from zhoo.systems import botstate
+    if not await botstate.is_active(svc, chat.id) or not await is_locked(svc, chat.id, "reactions"):
         return
     rights = await svc.perms.bot_rights(context.bot, chat.id)
     if rights is None or not rights.can_delete_messages:

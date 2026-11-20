@@ -17,7 +17,7 @@ from zhoo.database.db import Database
 from zhoo.handlers import callbacks, errors, membership, router, start
 
 # استيراد الأنظمة يسجل أوامرها بالسجل المركزي
-from zhoo.systems import (aliases, general, group, locks, owner, protect, punish, ranks,  # noqa: F401
+from zhoo.systems import (aliases, botstate, general, group, locks, owner, protect, punish, ranks,  # noqa: F401
                           feedback, replies, social, swear)
 
 log = logging.getLogger(__name__)

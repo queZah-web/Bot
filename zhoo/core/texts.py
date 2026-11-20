@@ -410,10 +410,31 @@ PROFILE = (
     f"{BULLET} التحذيرات: <b>{{warns}}/{{limit}}</b>\n"
     "{partner}"
     f"{BULLET} أول ظهور: <code>{{since}}</code>\n"
+    "{rating}"
     f"{LINE}\n"
     f"{BULLET} النبذة: {{bio}}"
 )
 PROFILE_PARTNER = f"{BULLET} الشريك: {{partner}} 💍\n"
+PROFILE_RATING = (
+    f"{LINE}\n"
+    f"{BULLET} التقييم: {{stars}} <b>{{score}}</b>/10 <i>({{voters}} تقييم)</i>\n"
+    f"{BULLET} إنسان جميل ✨: <b>{{good}}</b>\n"
+    f"{BULLET} إنسان سيئ 👎🏻: <b>{{bad}}</b>\n"
+)
+PROFILE_RATE_HINT = f"{BULLET} <i>قيّمه من الأزرار الجوه 👇</i>"
+RATE_NO_SCORE = "—"
+BTN_RATE_GOOD = "إنسان جميل ✨ {n}"
+BTN_RATE_BAD = "إنسان سيئ 👎🏻 {n}"
+RATE_GOOD_DONE = "قيّمته: إنسان جميل ✨"
+RATE_BAD_DONE = "قيّمته: إنسان سيئ 👎🏻"
+RATE_REMOVED = "انشال تقييمك 🌸"
+RATE_SCORE_DONE = "عطيته {n}/10 ⭐"
+RATE_SELF = "ما يصير تقيّم نفسك 😄🌸"
+RATE_BOT = "البوتات ما تنقيّم 🤖"
+RATE_CMD_DONE = f"{BULLET} قيّمت {{mention}} بـ <b>{{n}}/10</b> ⭐"
+RATE_CMD_BAD = f"{BULLET} اكتب رقم من 1 لـ 10 ويا الرد رجاءً 🌸 مثال: <code>قيمه 9</code>"
+TOP_RATED_HEADER = title("الأعلى تقييماً", "⭐") + f"\n{LINE}"
+TOP_RATED_EMPTY = f"{BULLET} ماكو تقييمات كافية لحد هسه 🌸 (يحتاج 3 تقييمات على الأقل)"
 PROFILE_NO_BIO = "<i>ما مكتوبة بعد</i> ✏️"
 BIO_SET = f"{BULLET} انحفظت نبذتك ✨ تطلع بملفك الشخصي"
 BIO_DELETED = f"{BULLET} انمسحت نبذتك 🌸"
@@ -606,6 +627,32 @@ STATS_TEXT = (
     f"{LINE}\n"
     f"{BULLET} الأكثر تفاعلاً:\n{{top}}"
 )
+
+# ── إيقاف وتعطيل زهو ───────────────────────────────
+BOT_PAUSED = (
+    title("تَـمَّ إِيـقَـاف زَهـو", "🌙") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} الحماية باقية شغّالة بصمت: أمسح السب والمقفولات بسرعة، بدون كتم ولا ردود\n"
+    f"{BULLET} لتشغيل كل الخدمات اكتب: <code>/فتح زهو</code>\n"
+    f"{BULLET} بواسطة: {{actor}}"
+)
+BOT_PAUSED_REPLY = (
+    f"{BULLET} البوت تم إيقاف نص خدماته 🌙\n"
+    f"{BULLET} لتشغيلها اكتب: <code>/فتح زهو</code>"
+)
+BOT_RESUMED = title("تَـمَّ تَـشْـغِـيـل زَهـو", "✨") + f"\n{BULLET} رجعت كل الخدمات 🤍\n{BULLET} بواسطة: {{actor}}"
+BOT_DISABLED = (
+    title("تَـمَّ تَـعْـطِـيـل الـبُـوت", "💤") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} الحماية والردود كلها متوقفة\n"
+    f"{BULLET} للتفعيل اكتب: <code>/تفعيل البوت</code>\n"
+    f"{BULLET} بواسطة: {{actor}}"
+)
+BOT_ENABLED = title("تَـمَّ تَـفْـعِـيـل الـبُـوت", "✨") + f"\n{BULLET} رجعت الحماية وكل الخدمات 🤍\n{BULLET} بواسطة: {{actor}}"
+BOT_ALREADY_PAUSED = f"{BULLET} زهو موقوفة من قبل 🌙"
+BOT_ALREADY_DISABLED = f"{BULLET} البوت معطّل من قبل 💤"
+BOT_ALREADY_ON = f"{BULLET} زهو شغّالة أصلاً ✨"
+BOT_QUIET_ALERT = "زهو موقوفة بهاي المجموعة 🌙"
 
 # ── لوحة الإعدادات ─────────────────────────────────
 SETTINGS_PANEL = (

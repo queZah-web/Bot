@@ -163,3 +163,45 @@ class SocialRepo:
             "FROM partners p LEFT JOIN users a ON a.user_id = p.user_id LEFT JOIN users b ON b.user_id = p.partner_id "
             "WHERE p.chat_id = ? AND p.user_id < p.partner_id AND p.hidden = 0 ORDER BY p.since DESC LIMIT ?",
             (chat_id, limit))
+
+
+class RatingsRepo:
+    """كل شخص يقيّم الثاني مرة وحدة (ويگدر يغيّر تقييمه)."""
+
+    def __init__(self, db: Database):
+        self.db = db
+
+    async def set_vibe(self, chat_id: int, target_id: int, rater_id: int, vibe: int) -> int:
+        """يرجع الانطباع الحالي بعد الضغط (0 = انلغى لأنه ضغط نفس الزر)."""
+        async with self.db.transaction() as conn:
+            cur = await conn.execute(
+                "SELECT vibe FROM ratings WHERE chat_id = ? AND target_id = ? AND rater_id = ?",
+                (chat_id, target_id, rater_id))
+            row = await cur.fetchone()
+            new = 0 if row is not None and row[0] == vibe else vibe
+            await conn.execute(
+                "INSERT INTO ratings (chat_id, target_id, rater_id, vibe, updated_at) VALUES (?, ?, ?, ?, ?) "
+                "ON CONFLICT (chat_id, target_id, rater_id) DO UPDATE SET vibe = excluded.vibe, "
+                "updated_at = excluded.updated_at", (chat_id, target_id, rater_id, new or None, now()))
+            return new
+
+    async def set_score(self, chat_id: int, target_id: int, rater_id: int, score: int) -> None:
+        await self.db.execute(
+            "INSERT INTO ratings (chat_id, target_id, rater_id, score, updated_at) VALUES (?, ?, ?, ?, ?) "
+            "ON CONFLICT (chat_id, target_id, rater_id) DO UPDATE SET score = excluded.score, "
+            "updated_at = excluded.updated_at", (chat_id, target_id, rater_id, score, now()))
+
+    async def summary(self, chat_id: int, target_id: int) -> tuple[int, int, float | None, int]:
+        """(جميل، سيئ، معدل الدرجة، عدد اللي أعطوا درجة)"""
+        row = await self.db.fetchone(
+            "SELECT COALESCE(SUM(vibe = 1), 0), COALESCE(SUM(vibe = -1), 0), AVG(score), COUNT(score) "
+            "FROM ratings WHERE chat_id = ? AND target_id = ?", (chat_id, target_id))
+        return int(row[0]), int(row[1]), (float(row[2]) if row[2] is not None else None), int(row[3])
+
+    async def top(self, chat_id: int, min_votes: int = 3, limit: int = 10):
+        return await self.db.fetchall(
+            "SELECT r.target_id AS user_id, AVG(r.score) AS avg, COUNT(r.score) AS n, "
+            "SUM(r.vibe = 1) AS good, u.first_name, u.last_name FROM ratings r "
+            "LEFT JOIN users u ON u.user_id = r.target_id WHERE r.chat_id = ? AND r.score IS NOT NULL "
+            "GROUP BY r.target_id HAVING COUNT(r.score) >= ? ORDER BY avg DESC, n DESC LIMIT ?",
+            (chat_id, min_votes, limit))

@@ -32,6 +32,8 @@ DEFAULTS: dict[str, str] = {
     "swear_allow": "",    # كلمات مسموحة بهاي المجموعة
     # التفاعل الاجتماعي
     "pairs_on": "0",
+    # حالة زهو: on | paused | disabled
+    "bot_state": "on",
 }
 
 

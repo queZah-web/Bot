@@ -67,7 +67,8 @@ async def _rules_keyboard(svc: Services, chat_id: int) -> InlineKeyboardMarkup |
 
 
 async def send_welcome(bot, svc: Services, chat: Chat, user: User) -> None:
-    if (await svc.group_settings.get(chat.id, "welcome_on")) != "1":
+    from zhoo.systems import botstate
+    if (await svc.group_settings.get(chat.id, "welcome_on")) != "1" or await botstate.is_quiet(svc, chat.id):
         return
     text = render(await template_of(svc, chat.id, "welcome"), user, chat, await _member_count(bot, chat.id))
     try:
@@ -90,6 +91,9 @@ async def on_left_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return
     svc = get_services(context)
     left = msg.left_chat_member
+    from zhoo.systems import botstate
+    if not await botstate.is_active(svc, chat.id):
+        return
     if (await svc.group_settings.get(chat.id, "lock_service")) == "1":
         try:
             await msg.delete()

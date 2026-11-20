@@ -56,6 +56,9 @@ async def set_mode(svc: Services, chat_id: int, mode: str, by: int) -> str:
 # ── الفحص ───────────────────────────────────────────
 async def check(context, svc: Services, msg: Message, chat, user) -> bool:
     """يرجع True إذا انمسحت الرسالة بسبب السب."""
+    from zhoo.systems import botstate
+    if not await botstate.is_active(svc, chat.id):
+        return False
     mode = await get_mode(svc, chat.id)
     if mode == "off":
         return False
@@ -82,6 +85,8 @@ async def check(context, svc: Services, msg: Message, chat, user) -> bool:
         return False
 
     action = mode if rank < NO_PUNISH_RANK else "delete"
+    if await botstate.is_quiet(svc, chat.id):
+        action = "delete"  # بالإيقاف: مسح سريع بس، بدون كتم أو حظر
     if action in ("mute", "ban") and not rights.can_restrict_members:
         action = "delete"
 

@@ -12,7 +12,7 @@ from zhoo.core.context import CommandContext, get_services
 from zhoo.core.ranks import RANK_NAMES, Rank
 from zhoo.core import conversation
 from zhoo.core.normalize import normalize
-from zhoo.systems import aliases, locks, protect, replies, swear
+from zhoo.systems import aliases, botstate, locks, protect, replies, swear
 
 log = logging.getLogger(__name__)
 
@@ -25,6 +25,8 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         return
     svc = get_services(context)
     in_group = chat.type in GROUP_TYPES
+    state = await botstate.get_state(svc, chat.id) if in_group else botstate.ON
+    quiet = state != botstate.ON
 
     # ١) التتبع (خفيف ومجمّع)
     if in_group:
@@ -33,6 +35,9 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         await svc.tracker.track_user(user)
         # محادثة بخطوات شغّالة (اضف رد، اضف امر...): الرسالة جواب إلها
         pending = svc.conversations.get(chat.id, user.id)
+        if pending is not None and quiet:
+            svc.conversations.end(chat.id, user.id)
+            pending = None
         if pending is not None:
             if in_group:
                 svc.tracker.count_message(chat.id, user.id)
@@ -58,7 +63,8 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     # ٢) التحليل
     text = msg.text
     if not text:
-        if in_group and msg.caption and msg.sender_chat is None and not user.is_bot and not svc.maintenance:
+        if in_group and not quiet and msg.caption and msg.sender_chat is None and not user.is_bot \
+                and not svc.maintenance:
             await replies.maybe_reply(svc, msg, chat, user)
         return
     has_tm = any(e.type == MessageEntity.TEXT_MENTION for e in msg.entities or ())
@@ -69,10 +75,22 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         if expanded:
             parsed = registry.parse(expanded, has_text_mention=has_tm, has_reply=has_reply)
     if parsed is None:
-        if in_group and msg.sender_chat is None and not user.is_bot and not svc.maintenance:
+        if in_group and not quiet and msg.sender_chat is None and not user.is_bot and not svc.maintenance:
             await replies.maybe_reply(svc, msg, chat, user)
         return
     cmd = parsed.command
+
+    # زهو موقوفة/معطّلة: بس أوامر التشغيل، وتذكير إذا نادوها
+    if quiet:
+        if cmd.key not in botstate.ALLOWED_WHEN[state] or msg.sender_chat is not None or user.is_bot:
+            return
+        if cmd.key == "zhoo":
+            if svc.command_limiter.hit(("paused", chat.id)):
+                await msg.reply_text(T.BOT_PAUSED_REPLY)
+            return
+        rank = await svc.perms.rank_of(context.bot, chat.id, user.id)
+        if rank < cmd.min_rank:
+            return  # بصمت
 
     # ٣) فحوصات الأمان
     if msg.sender_chat is not None:

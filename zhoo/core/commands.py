@@ -84,6 +84,8 @@ class CommandRegistry:
         """
         if not text or len(text) > 4096:
             return None
+        if text.startswith("/") and len(text) > 1 and not text[1].isascii():
+            text = text[1:]  # «/فتح زهو» = «فتح زهو»
         tokens = split_tokens(text)
         if not tokens:
             return None

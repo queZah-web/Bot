@@ -37,11 +37,27 @@ async def _optional_target(cx: CommandContext) -> Target | None:
     return await resolve_target(cx)
 
 
-# ── الملف الشخصي ────────────────────────────────────
-async def _profile(cx: CommandContext, user_id: int, name: str) -> None:
-    svc = cx.services
-    chat_id = cx.chat.id
-    rank = await svc.perms.rank_of(cx.bot, chat_id, user_id)
+# ── الملف الشخصي والتقييم ───────────────────────────
+def stars(avg: float | None) -> str:
+    if avg is None:
+        return "☆☆☆☆☆"
+    full = max(0, min(5, round(avg / 2)))
+    return "★" * full + "☆" * (5 - full)
+
+
+def rating_keyboard(user_id: int, good: int, bad: int) -> InlineKeyboardMarkup:
+    p = f"rt:{user_id}"
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(T.BTN_RATE_GOOD.format(n=good), callback_data=f"{p}:g:-"),
+         InlineKeyboardButton(T.BTN_RATE_BAD.format(n=bad), callback_data=f"{p}:b:-")],
+        [InlineKeyboardButton(str(n), callback_data=f"{p}:s:{n}") for n in range(1, 6)],
+        [InlineKeyboardButton(str(n), callback_data=f"{p}:s:{n}") for n in range(6, 11)],
+    ])
+
+
+async def profile_view(svc: Services, bot, chat_id: int, user_id: int, name: str):
+    """يبني نص الملف وأزرار التقييم (يُستخدم بالأمر وبعد كل تقييم)."""
+    rank = await svc.perms.rank_of(bot, chat_id, user_id)
     messages = await svc.members.message_count(chat_id, user_id) + svc.tracker.pending_count(chat_id, user_id)
     since = await svc.db.fetchval("SELECT first_seen FROM group_members WHERE chat_id = ? AND user_id = ?",
                                   (chat_id, user_id))
@@ -52,21 +68,95 @@ async def _profile(cx: CommandContext, user_id: int, name: str) -> None:
             pname = " ".join(p for p in (row["first_name"], row["last_name"]) if p) or str(row["partner_id"])
             partner = T.PROFILE_PARTNER.format(partner=mention(row["partner_id"], pname))
     bio = await svc.social.get_bio(user_id)
+    good, bad, avg, voters = await svc.ratings.summary(chat_id, user_id)
+    rating = T.PROFILE_RATING.format(stars=stars(avg), score=f"{avg:.1f}" if avg is not None else T.RATE_NO_SCORE,
+                                     voters=voters, good=good, bad=bad)
     text = T.PROFILE.format(
         name=mention(user_id, name), rank=rank_label(rank), messages=messages,
         activity=activity_level(messages), thanks=await svc.social.thanks_count(chat_id, user_id),
         warns=await svc.punishments.warning_count(chat_id, user_id),
         limit=await svc.group_settings.get_int(chat_id, "warn_limit"),
-        partner=partner, since=_date(since), bio=f"<i>{esc(bio)}</i>" if bio else T.PROFILE_NO_BIO)
+        partner=partner, since=_date(since), rating=rating,
+        bio=f"<i>{esc(bio)}</i>" if bio else T.PROFILE_NO_BIO)
+    return text, rating_keyboard(user_id, good, bad)
 
+
+async def _profile(cx: CommandContext, user_id: int, name: str) -> None:
+    svc = cx.services
+    text, kb = await profile_view(svc, cx.bot, cx.chat.id, user_id, name)
     try:
         photos = await cx.bot.get_user_profile_photos(user_id, limit=1)
         if photos.total_count:
-            await cx.message.reply_photo(photos.photos[0][-1].file_id, caption=text)
+            await cx.message.reply_photo(photos.photos[0][-1].file_id, caption=text, reply_markup=kb)
             return
     except TelegramError:
         pass
-    await cx.reply(text)
+    await cx.reply(text, reply_markup=kb)
+
+
+async def on_rating_button(q, msg: Message, svc: Services, bot, uid_raw: str, action: str, arg: str) -> None:
+    """rt:<target>:g|b|s:<n> — أي عضو يقيّم (عدا نفسه)، وكل شخص تقييم واحد يگدر يغيّره."""
+    if not uid_raw.isdigit():
+        await q.answer()
+        return
+    target_id, rater = int(uid_raw), q.from_user.id
+    if target_id == rater:
+        await q.answer(T.RATE_SELF, show_alert=True)
+        return
+    target = await svc.users.get(target_id)
+    if target is not None and target.is_bot:
+        await q.answer(T.RATE_BOT, show_alert=True)
+        return
+    chat_id = msg.chat.id
+    if action in ("g", "b"):
+        result = await svc.ratings.set_vibe(chat_id, target_id, rater, 1 if action == "g" else -1)
+        await q.answer({1: T.RATE_GOOD_DONE, -1: T.RATE_BAD_DONE, 0: T.RATE_REMOVED}[result])
+    elif action == "s" and arg.isdigit() and 1 <= int(arg) <= 10:
+        await svc.ratings.set_score(chat_id, target_id, rater, int(arg))
+        await q.answer(T.RATE_SCORE_DONE.format(n=arg))
+    else:
+        await q.answer()
+        return
+    text, kb = await profile_view(svc, bot, chat_id, target_id, target.full_name if target else str(target_id))
+    try:
+        if msg.photo:
+            await msg.edit_caption(caption=text, reply_markup=kb)
+        else:
+            await msg.edit_text(text, reply_markup=kb)
+    except BadRequest:
+        pass
+
+
+@registry.command("rate", ("قيمه", "قيمها", "تقييم"), section=S, args="text", usage="بالرد + رقم من 1 لـ 10",
+                  description="تعطي عضو درجة من 10", order=16)
+async def cmd_rate(cx: CommandContext) -> None:
+    reply = cx.message.reply_to_message
+    raw = (cx.args[0] if cx.args else "").translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789"))
+    if reply is None or reply.from_user is None or not raw.isdigit() or not 1 <= int(raw) <= 10:
+        await cx.reply(T.RATE_CMD_BAD)
+        return
+    target = reply.from_user
+    if target.id == cx.user.id:
+        await cx.reply(T.RATE_SELF)
+        return
+    if target.is_bot:
+        await cx.reply(T.RATE_BOT)
+        return
+    await cx.services.ratings.set_score(cx.chat.id, target.id, cx.user.id, int(raw))
+    await cx.reply(T.RATE_CMD_DONE.format(mention=mention(target.id, target.full_name), n=int(raw)))
+
+
+@registry.command("top_rated", ("الاعلى تقييما", "الأعلى تقييماً", "توب التقييم"), section=S,
+                  description="أعلى 10 أعضاء تقييماً", order=17)
+async def cmd_top_rated(cx: CommandContext) -> None:
+    rows = await cx.services.ratings.top(cx.chat.id)
+    if not rows:
+        await cx.reply(f"{T.TOP_RATED_HEADER}\n{T.TOP_RATED_EMPTY}")
+        return
+    medals = ["🥇", "🥈", "🥉"] + ["🏅"] * 7
+    lines = [f"{medals[i]} {mention(r['user_id'], ' '.join(p for p in (r['first_name'], r['last_name']) if p))}"
+             f" ⋅ <b>{r['avg']:.1f}</b>/10 <i>({r['n']})</i> ⋅ ✨ {r['good'] or 0}" for i, r in enumerate(rows)]
+    await cx.reply(f"{T.TOP_RATED_HEADER}\n" + "\n".join(lines))
 
 
 @registry.command("profile", ("ملفي", "بروفايلي"), section=S, description="ملفك الشخصي بالمجموعة", order=1)
