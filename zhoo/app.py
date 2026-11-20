@@ -7,7 +7,8 @@ from telegram import BotCommand, LinkPreviewOptions, Update
 from telegram.constants import ParseMode
 from telegram.error import TelegramError
 from telegram.ext import (Application, ApplicationBuilder, CallbackQueryHandler, ChatMemberHandler,
-                          CommandHandler, ContextTypes, Defaults, MessageHandler, filters)
+                          CommandHandler, ContextTypes, Defaults, MessageHandler,
+                          MessageReactionHandler, filters)
 
 from zhoo import __version__
 from zhoo.config import Settings
@@ -16,7 +17,8 @@ from zhoo.database.db import Database
 from zhoo.handlers import callbacks, errors, membership, router, start
 
 # استيراد الأنظمة يسجل أوامرها بالسجل المركزي
-from zhoo.systems import general, group, locks, owner, protect, punish, ranks, swear  # noqa: F401
+from zhoo.systems import (aliases, general, group, locks, owner, protect, punish, ranks,  # noqa: F401
+                          replies, swear)
 
 log = logging.getLogger(__name__)
 
@@ -87,6 +89,7 @@ def build_application(settings: Settings) -> Application:
     app.add_handler(MessageHandler(filters.UpdateType.MESSAGE & chats & ~filters.COMMAND, router.on_message))
     app.add_handler(MessageHandler(filters.UpdateType.EDITED_MESSAGE & filters.ChatType.GROUPS, swear.on_edited))
     app.add_handler(CallbackQueryHandler(callbacks.on_callback))
+    app.add_handler(MessageReactionHandler(locks.on_reaction))
     app.add_handler(ChatMemberHandler(membership.on_my_chat_member, ChatMemberHandler.MY_CHAT_MEMBER))
     app.add_handler(ChatMemberHandler(membership.on_chat_member, ChatMemberHandler.CHAT_MEMBER))
     app.add_error_handler(errors.on_error)

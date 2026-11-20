@@ -61,6 +61,16 @@ class FakeBot:
         self.calls.append(("restrict", user_id, permissions.can_send_messages, until_date))
         return True
 
+    async def send_sticker(self, chat_id, sticker, **kw):
+        self.sent.append(f"[sticker:{sticker}]")
+
+    async def send_video(self, chat_id, video, caption=None, **kw):
+        self.sent.append(f"[video:{video}] {caption or ''}")
+
+    async def delete_message_reaction(self, chat_id, message_id, user_id=None, actor_chat_id=None, **kw):
+        self.calls.append(("unreact", message_id, user_id))
+        return True
+
     async def get_chat_member_count(self, chat_id, **kw):
         return 42
 

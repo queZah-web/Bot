@@ -10,7 +10,9 @@ from zhoo.core import texts as T
 from zhoo.core.commands import registry
 from zhoo.core.context import CommandContext, get_services
 from zhoo.core.ranks import RANK_NAMES, Rank
-from zhoo.systems import locks, protect, swear
+from zhoo.core import conversation
+from zhoo.core.normalize import normalize
+from zhoo.systems import aliases, locks, protect, replies, swear
 
 log = logging.getLogger(__name__)
 
@@ -29,6 +31,20 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         await svc.tracker.track_group(chat)
     if msg.sender_chat is None and not user.is_bot:
         await svc.tracker.track_user(user)
+        # محادثة بخطوات شغّالة (اضف رد، اضف امر...): الرسالة جواب إلها
+        pending = svc.conversations.get(chat.id, user.id)
+        if pending is not None:
+            if in_group:
+                svc.tracker.count_message(chat.id, user.id)
+            if msg.text and normalize(msg.text.strip()) in conversation.CANCEL_WORDS:
+                svc.conversations.end(chat.id, user.id)
+                await msg.reply_text(T.CONV_CANCELLED)
+                return
+            handler = conversation.HANDLERS.get(pending.kind)
+            if handler is not None:
+                await handler(svc, context, msg, chat, user, pending)
+                return
+            svc.conversations.end(chat.id, user.id)
         if in_group:
             svc.tracker.count_message(chat.id, user.id)
             # الحماية تفحص قبل أي شي؛ إذا انحذفت الرسالة نوقف
@@ -42,11 +58,19 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     # ٢) التحليل
     text = msg.text
     if not text:
+        if in_group and msg.caption and msg.sender_chat is None and not user.is_bot and not svc.maintenance:
+            await replies.maybe_reply(svc, msg, chat, user)
         return
     has_tm = any(e.type == MessageEntity.TEXT_MENTION for e in msg.entities or ())
     has_reply = msg.reply_to_message is not None and not msg.reply_to_message.forum_topic_created
     parsed = registry.parse(text, has_text_mention=has_tm, has_reply=has_reply)
+    if parsed is None and in_group:
+        expanded = await aliases.expand(svc, chat.id, text)  # اختصار أمر (مثل: تق ← تقييد)
+        if expanded:
+            parsed = registry.parse(expanded, has_text_mention=has_tm, has_reply=has_reply)
     if parsed is None:
+        if in_group and msg.sender_chat is None and not user.is_bot and not svc.maintenance:
+            await replies.maybe_reply(svc, msg, chat, user)
         return
     cmd = parsed.command
 

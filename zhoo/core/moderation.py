@@ -40,11 +40,16 @@ def check_punish(actor: Rank, target_effective: Rank, target_floor: Rank, kind: 
     return PunishDecision.OK
 
 
-def _text_only() -> ChatPermissions:
-    """تقييد = يكتب نص فقط، بدون وسائط أو روابط أو ملصقات."""
+def _mute_permissions() -> ChatPermissions:
+    """كتم = ما يكتب ولا يرسل أي شي، بس يگدر يتفاعل (رياكت)."""
     data = ChatPermissions.no_permissions().to_dict()
-    data["can_send_messages"] = True
+    data["can_react_to_messages"] = True
     return ChatPermissions(**data)
+
+
+def _restrict_permissions() -> ChatPermissions:
+    """تقييد = يشوف المجموعة بس: لا كتابة ولا وسائط ولا رياكت ولا أي تفاعل."""
+    return ChatPermissions.no_permissions()
 
 
 async def apply(bot: Bot, chat_id: int, user_id: int, kind: str, until: int | None) -> None:
@@ -54,10 +59,10 @@ async def apply(bot: Bot, chat_id: int, user_id: int, kind: str, until: int | No
         await bot.ban_chat_member(chat_id, user_id)
         await bot.unban_chat_member(chat_id, user_id, only_if_banned=True)
     elif kind == "mute":
-        await bot.restrict_chat_member(chat_id, user_id, ChatPermissions.no_permissions(),
+        await bot.restrict_chat_member(chat_id, user_id, _mute_permissions(),
                                        until_date=until, use_independent_chat_permissions=True)
     elif kind == "restrict":
-        await bot.restrict_chat_member(chat_id, user_id, _text_only(),
+        await bot.restrict_chat_member(chat_id, user_id, _restrict_permissions(),
                                        until_date=until, use_independent_chat_permissions=True)
     else:
         raise ValueError(kind)

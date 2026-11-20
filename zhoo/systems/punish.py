@@ -272,16 +272,16 @@ async def _unrestrict(cx): await unpunish(cx, "restrict")  # noqa: E704
 _reg("ban", ("حظر", "بان"), MIN_RANK["ban"], "يحظر العضو (مع مدة وسبب اختياريين)", 1, _ban,
      usage="بالرد/اليوزر + مدة + سبب")
 _reg("kick", ("طرد",), MIN_RANK["kick"], "يطرد العضو، ويمكنه العودة بالرابط", 2, _kick, usage="بالرد/اليوزر + سبب")
-_reg("mute", ("كتم", "اسكات"), MIN_RANK["mute"], "يمنع العضو من الكتابة", 3, _mute,
+_reg("mute", ("كتم", "اسكات"), MIN_RANK["mute"], "يمنع العضو من الكتابة والإرسال (يگدر يتفاعل بس)", 3, _mute,
      usage="بالرد/اليوزر + مدة + سبب")
-_reg("restrict", ("تقييد",), MIN_RANK["restrict"], "يسمح بالنص فقط، بدون وسائط أو روابط", 4, _restrict,
+_reg("restrict", ("تقييد",), MIN_RANK["restrict"], "يخلي العضو يشوف المجموعة بس، بلا كتابة ولا رياكت ولا أي تفاعل", 4, _restrict,
      usage="بالرد/اليوزر + مدة + سبب")
 _reg("warn", ("تحذير", "انذار"), MIN_RANK["warn"], "تحذير، وعند الحد الأقصى تُطبَّق عقوبة تلقائية", 5, warn,
      usage="بالرد/اليوزر + سبب")
-_reg("unban", ("إلغاء الحظر", "رفع الحظر", "فك الحظر"), MIN_RANK["ban"], "يرفع الحظر عن العضو", 10, _unban,
+_reg("unban", ("إلغاء الحظر", "رفع الحظر", "فك الحظر", "فتح الحظر"), MIN_RANK["ban"], "يرفع الحظر عن العضو", 10, _unban,
      args="target")
-_reg("unmute", ("فك الكتم", "إلغاء الكتم"), MIN_RANK["mute"], "يعيد للعضو صلاحية الكتابة", 11, _unmute, args="target")
-_reg("unrestrict", ("فك التقييد", "إلغاء التقييد"), MIN_RANK["restrict"], "يرفع التقييد عن العضو", 12,
+_reg("unmute", ("فك الكتم", "إلغاء الكتم", "فتح الكتم"), MIN_RANK["mute"], "يعيد للعضو صلاحية الكتابة", 11, _unmute, args="target")
+_reg("unrestrict", ("فك التقييد", "إلغاء التقييد", "فتح التقييد"), MIN_RANK["restrict"], "يرفع التقييد عن العضو", 12,
      _unrestrict, args="target")
 _reg("clear_warns", ("مسح التحذيرات", "حذف التحذيرات"), MIN_RANK["warn"], "يمسح كل تحذيرات العضو", 13,
      clear_warns, args="target")

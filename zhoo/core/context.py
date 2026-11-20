@@ -10,10 +10,12 @@ from telegram.ext import ContextTypes
 from zhoo.config import Settings
 from zhoo.core.permissions import PermissionService
 from zhoo.core.ranks import Rank
+from zhoo.core.conversation import Conversations
 from zhoo.core.guards import FloodTracker, RepeatTracker, StrikeTracker
 from zhoo.core.ratelimit import RateLimiter
 from zhoo.core.tracker import Tracker
 from zhoo.database.db import Database
+from zhoo.repositories.aliases import AliasesRepo
 from zhoo.repositories.audit import AuditRepo
 from zhoo.repositories.bot_settings import BotSettingsRepo
 from zhoo.repositories.captcha import CaptchaRepo
@@ -21,6 +23,7 @@ from zhoo.repositories.group_settings import GroupSettingsRepo
 from zhoo.repositories.groups import GroupsRepo
 from zhoo.repositories.members import MembersRepo
 from zhoo.repositories.punishments import PunishmentsRepo
+from zhoo.repositories.replies import RepliesRepo
 from zhoo.repositories.swear_logs import SwearLogsRepo
 from zhoo.repositories.users import UsersRepo
 
@@ -40,10 +43,14 @@ class Services:
     group_settings: GroupSettingsRepo
     captcha: CaptchaRepo
     swear_logs: SwearLogsRepo
+    aliases: AliasesRepo
+    replies: RepliesRepo
     flood: FloodTracker = field(default_factory=FloodTracker)
     repeats: RepeatTracker = field(default_factory=RepeatTracker)
     strikes: StrikeTracker = field(default_factory=StrikeTracker)
     notice_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(1, 20))
+    reply_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(4, 10))
+    conversations: Conversations = field(default_factory=Conversations)
     command_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(5, 10))
     button_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(4, 3))
     started_at: float = field(default_factory=time.time)
@@ -59,6 +66,7 @@ class Services:
             tracker=Tracker(users, groups, members),
             punishments=PunishmentsRepo(db), group_settings=GroupSettingsRepo(db),
             captcha=CaptchaRepo(db), swear_logs=SwearLogsRepo(db),
+            aliases=AliasesRepo(db), replies=RepliesRepo(db),
         )
 
     @property

@@ -46,6 +46,7 @@ LOCKS: tuple[Lock, ...] = (
     Lock("locations", "المواقع", "📍", ("الموقع",), "lock_locations"),
     Lock("polls", "الاستفتاءات", "📊", ("الاستفتاء", "التصويت"), "lock_polls"),
     Lock("service", "الإشعارات", "🔔", ("اشعارات الدخول",), "lock_service"),
+    Lock("reactions", "الرياكت", "❤️", ("الرياكشن", "التفاعلات", "الريأكت", "الرياكتات"), "lock_reactions"),
     Lock("links", "الروابط", "🔗", ("روابط",), "guard_links"),
     Lock("forward", "التوجيه", "↪️", ("الفوروارد",), "guard_forward"),
     Lock("chat", "الدردشة", "💬", ("الشات", "المجموعه"), "lock_chat"),
@@ -115,6 +116,7 @@ _OPEN_CHAT = ChatPermissions(
     can_send_videos=True, can_send_video_notes=True, can_send_voice_notes=True, can_send_polls=True,
     can_send_other_messages=True, can_add_web_page_previews=True, can_invite_users=True,
     can_change_info=False, can_pin_messages=False, can_manage_topics=False,
+    can_react_to_messages=True,
 )
 
 
@@ -297,3 +299,36 @@ async def on_panel_button(q, msg: Message, svc: Services, bot, uid_raw: str, act
         await msg.edit_reply_markup(reply_markup=panel_keyboard(q.from_user.id, state, back=back, swear_mode=mode))
     except BadRequest:
         pass
+
+
+# ── قفل الرياكت ─────────────────────────────────────
+async def on_reaction(update, context) -> None:
+    """إذا الرياكت مقفول: نشيل تفاعل أي شخص أقل من مميز."""
+    from zhoo.core.context import get_services
+    from zhoo.systems.protect import send_notice
+    r = update.message_reaction
+    if r is None or not r.new_reaction:
+        return  # شال تفاعله أو ماكو جديد
+    svc = get_services(context)
+    chat = r.chat
+    if not await is_locked(svc, chat.id, "reactions"):
+        return
+    rights = await svc.perms.bot_rights(context.bot, chat.id)
+    if rights is None or not rights.can_delete_messages:
+        return
+    try:
+        if r.user is not None:
+            if r.user.is_bot or await svc.perms.rank_of(context.bot, chat.id, r.user.id) >= EXEMPT_RANK:
+                return
+            await context.bot.delete_message_reaction(chat.id, r.message_id, user_id=r.user.id)
+        elif r.actor_chat is not None and r.actor_chat.id != chat.id:  # قناة تتفاعل (مو مشرف مخفي)
+            await context.bot.delete_message_reaction(chat.id, r.message_id, actor_chat_id=r.actor_chat.id)
+            return
+        else:
+            return
+    except TelegramError as e:
+        log.info("فشل حذف الرياكت: %s", e)
+        return
+    if svc.notice_limiter.hit((chat.id, r.user.id)):
+        await send_notice(context, chat.id, T.REACTION_NOTICE.format(
+            mention=mention(r.user.id, r.user.full_name)), ttl=10)

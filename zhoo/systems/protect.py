@@ -224,7 +224,7 @@ async def start_captcha(context, svc: Services, chat_id: int, member: User) -> b
     if rights is None or not rights.can_restrict_members:
         return False
     try:
-        await mod.apply(context.bot, chat_id, member.id, "mute", None)
+        await mod.apply(context.bot, chat_id, member.id, "restrict", None)  # مشاهدة فقط لحد التحقق
     except TelegramError as e:
         log.info("فشل تقييد العضو الجديد: %s", e)
         return False

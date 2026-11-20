@@ -328,6 +328,78 @@ SWEAR_WORDS_EMPTY = f"{BULLET} ماكو كلمات مضافة، القاموس �
 SWEAR_ALLOWED_LABEL = f"{BULLET} كلمات مسموحة:"
 SWEAR_NEED_DELETE = f"{BULLET} تنبيه: أحتاج صلاحية «<b>حذف الرسائل</b>» حتى يشتغل قفل السب 🔐"
 
+# ── المحادثات بخطوات ────────────────────────────────
+CONV_CANCEL_HINT = f"{BULLET} للإلغاء اكتب: <code>الغاء</code>"
+CONV_CANCELLED = f"{BULLET} تم الإلغاء 🌸"
+
+# ── اختصارات الأوامر ────────────────────────────────
+ALIAS_ASK_OLD = (
+    f"{BULLET} تمام 🌸 اكتبلي الأمر القديم\n"
+    f"{BULLET} مثلاً: <code>تقييد</code>\n" + CONV_CANCEL_HINT
+)
+ALIAS_NOT_COMMAND = f"{BULLET} هذا مو أمر من أوامري 🤍 اكتب اسم الأمر بالضبط، مثلاً: <code>تقييد</code>"
+ALIAS_ASK_NEW = (
+    f"{BULLET} حلو ✨ الأمر القديم: <b>{{old}}</b>\n"
+    f"{BULLET} هسه اكتب الأمر الجديد (الاختصار)\n"
+    f"{BULLET} مثلاً: <code>تق</code>"
+)
+ALIAS_BAD = f"{BULLET} الاختصار لازم يكون من كلمة لـ 3 كلمات، وأقل من 25 حرف 🌸 جرب مرة ثانية"
+ALIAS_CONFLICT = f"{BULLET} «<b>{{alias}}</b>» هو أصلاً أمر من أوامري، اختار غيره 🌸"
+ALIAS_EXISTS = f"{BULLET} الاختصار «<b>{{alias}}</b>» موجود من قبل ويشير لـ «<b>{{old}}</b>» 🌸 اختار غيره"
+ALIAS_ADDED = (
+    title("تَـمَّ إِضَـافَـة الأَمْـر", "🎀") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} <code>{{alias}}</code> ← <code>{{old}}</code>\n"
+    f"{BULLET} هسه تگدر تستخدم الاختصار، وصلاحياته نفس الأمر الأصلي ✨"
+)
+ALIAS_ASK_DELETE = f"{BULLET} اكتبلي الاختصار اللي تريد تحذفه 🌸\n" + CONV_CANCEL_HINT
+ALIAS_DELETED = f"{BULLET} انحذف الاختصار <code>{{alias}}</code> ✨"
+ALIAS_NOT_FOUND = f"{BULLET} ماكو اختصار بهذا الاسم 🌸"
+ALIASES_HEADER = title("الأوامر المضافة", "⚡") + f"\n{LINE}"
+ALIASES_EMPTY = f"{BULLET} ماكو أوامر مضافة لحد هسه 🌸\n{BULLET} تگدر تضيف بأمر <code>اضف امر</code>"
+ALIASES_CLEARED = f"{BULLET} انمسحت كل الأوامر المضافة ✨"
+ALIASES_LIMIT = f"{BULLET} وصلت للحد الأقصى ({{n}} اختصار) 🌸 احذف واحد أول"
+
+# ── الردود ─────────────────────────────────────────
+REPLY_KINDS = {False: "رد عادي 💬", True: "رد مميز ✨"}
+REPLY_ASK_WORD = f"{BULLET} ارسل الكلمة اللي تريد أضيفلها رد 🌸\n" + CONV_CANCEL_HINT
+REPLY_ASK_WORD_SPECIAL = (
+    f"{BULLET} ارسل الكلمة للرد المميز 🌸\n"
+    f"{BULLET} الرد المميز ينرسل حتى لو الكلمة جت بنص كليشة ✨\n" + CONV_CANCEL_HINT
+)
+REPLY_WORD_BAD = f"{BULLET} الكلمة لازم تكون نص، من كلمة لـ 5 كلمات، وأقل من 50 حرف 🌸 جرب مرة ثانية"
+REPLY_WORD_IS_COMMAND = f"{BULLET} «<b>{{word}}</b>» أمر من أوامري، ما يصير يكون رد 🌸 اختار كلمة ثانية"
+REPLY_EXISTS = f"{BULLET} الرد «<b>{{word}}</b>» موجود من قبل 🌸 احذفه أول إذا تريد تغيره"
+REPLY_ASK_CONTENT = (
+    f"{BULLET} تمام ✨ الكلمة: <b>{{word}}</b>\n"
+    f"{BULLET} هسه ارسل الرد: نص، يوزر، رابط، صورة، ملصق، متحركة، فيديو، بصمة، صوت، ملف، "
+    "أو رسالة محوّلة 🌸"
+)
+REPLY_ITEM_ADDED = (
+    f"{BULLET} تم إضافة الرد ✅ باقي <b>{{left}}</b>\n"
+    f"{BULLET} ارسل رد ثاني، أو ارسل <code>تم</code> حتى أحفظ\n"
+    f"{BULLET} أو اكتب <code>حذف</code> حتى ينمسح الرد مباشرة وما ينحفظ"
+)
+REPLY_UNSUPPORTED = f"{BULLET} هذا النوع ما أگدر أحفظه 🌸 جرب نص، صورة، ملصق، فيديو أو ملف"
+REPLY_NO_ITEMS = f"{BULLET} بعدك ما ارسلت ولا رد 🌸 ارسل رد، أو اكتب <code>حذف</code>"
+REPLY_DISCARDED = f"{BULLET} انمسح الرد وما انحفظ 🌸"
+REPLY_SAVED = (
+    title("تَـمَّ حِـفْـظ الـرَّد", "🎀") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} النوع: {{kind}}\n"
+    f"{BULLET} الكلمة: <b>{{word}}</b>\n"
+    f"{BULLET} عدد الردود: <b>{{count}}</b>"
+)
+REPLIES_HEADER = {False: title("الردود", "💬") + f"\n{LINE}", True: title("الردود المميزة", "✨") + f"\n{LINE}"}
+REPLIES_EMPTY = f"{BULLET} ماكو ردود لحد هسه 🌸\n{BULLET} تگدر تضيف بأمر <code>{{cmd}}</code>"
+REPLY_LINE = "▫️ <b>{word}</b> ⋅ {n} رد"
+REPLIES_FOOTER = f"{LINE}\n{BULLET} العدد: <b>{{n}}</b>"
+REPLY_ASK_DELETE = f"{BULLET} اختار الرد: اكتبلي اسم الرد اللي تريد تحذفه 🌸\n" + CONV_CANCEL_HINT
+REPLY_DELETED = f"{BULLET} انحذف الرد <b>{{word}}</b> ✨"
+REPLY_NOT_FOUND = f"{BULLET} ماكو رد بهذا الاسم 🌸 تأكد منه بأمر <code>{{cmd}}</code>"
+REPLIES_CLEARED = f"{BULLET} انمسحت كل {{kind}} ✨"
+REPLIES_LIMIT = f"{BULLET} وصلت للحد الأقصى ({{n}} رد) 🌸 احذف واحد أول"
+
 # ── القفل والفتح ───────────────────────────────────
 LOCK_PANEL = (
     title("الأقفال", "🔒") + "\n"
@@ -347,9 +419,10 @@ LOCK_NOTICE = f"{BULLET} {{mention}} عيني، <b>{{what}}</b> مقفولة ه�
 LOCK_NEED_RIGHTS = f"{BULLET} أحتاج صلاحية «<b>حذف الرسائل</b>» حتى تشتغل الأقفال 🔐"
 LOCK_CHAT_NEED_RIGHTS = f"{BULLET} أحتاج صلاحية «<b>حظر المستخدمين</b>» حتى أقفل الدردشة 🔐"
 LOCK_NEED_RANK = "تعديل الأقفال يحتاج رتبة أدمن أو أعلى 🔐"
+REACTION_NOTICE = f"{BULLET} {{mention}} عيني، الرياكت مقفول بالمجموعة 🌸 شلت تفاعلك"
 HELP_LOCK_TYPES = (
     f"\n{BULLET} الأنواع: الصور، الفيديو، المتحركات، الملصقات، البصمات، الصوتيات، الملفات، "
-    "الجهات، المواقع، الاستفتاءات، الإشعارات، الروابط، التوجيه، الدردشة\n"
+    "الجهات، المواقع، الاستفتاءات، الإشعارات، الرياكت، الروابط، التوجيه، الدردشة\n"
     f"{BULLET} مثال: <code>قفل الصور</code> ، <code>فتح الملصقات</code>\n"
     f"{BULLET} السب: <code>قفل السب</code> ، <code>قفل السب بالكتم</code> ، "
     "<code>قفل السب بالحظر</code> ، <code>فتح السب</code>"
