@@ -19,7 +19,7 @@ from zhoo.handlers import callbacks, errors, membership, router, start
 
 # استيراد الأنظمة يسجل أوامرها بالسجل المركزي
 from zhoo.systems import (aliases, backup, botstate, general, group, locks, owner, protect, punish,  # noqa: F401
-                          ranks, reports,
+                          ranks, reports, features, extras,
                           economy, feedback, games, levels, replies, social, swear)
 
 log = logging.getLogger(__name__)
@@ -55,6 +55,7 @@ async def _post_init(app: Application) -> None:
         # نسخة احتياطية تلقائية كل يوم (03:17 UTC) وتقرير أسبوعي كل أحد (09:13 UTC)
         app.job_queue.run_daily(backup.daily_job, time=dtime(3, 17), name="daily_backup")
         app.job_queue.run_daily(reports.weekly_job, time=dtime(9, 13), days=(0,), name="weekly_report")
+        app.job_queue.run_repeating(extras.azkar_job, interval=3 * 3600, first=600, name="azkar")
     log.info("زهو %s اشتغل باسم @%s", __version__, app.bot.username)
 
 
@@ -95,7 +96,7 @@ def build_application(settings: Settings) -> Application:
     app.add_handler(MessageHandler(filters.StatusUpdate.LEFT_CHAT_MEMBER & filters.ChatType.GROUPS,
                                    group.on_left_member))
     app.add_handler(MessageHandler(filters.UpdateType.MESSAGE & chats & ~filters.COMMAND, router.on_message))
-    app.add_handler(MessageHandler(filters.UpdateType.EDITED_MESSAGE & filters.ChatType.GROUPS, swear.on_edited))
+    app.add_handler(MessageHandler(filters.UpdateType.EDITED_MESSAGE & filters.ChatType.GROUPS, locks.on_edited))
     app.add_handler(CallbackQueryHandler(callbacks.on_callback))
     app.add_handler(MessageReactionHandler(locks.on_reaction))
     app.add_handler(ChatMemberHandler(membership.on_my_chat_member, ChatMemberHandler.MY_CHAT_MEMBER))

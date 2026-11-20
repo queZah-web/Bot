@@ -70,7 +70,10 @@ async def cmd_id(cx: CommandContext) -> None:
                             username=username_text(username), rank=rank_label(rank), extra=extra)
 
     photo_id = None
+    from zhoo.systems import features
     try:
+        if not await features.enabled(cx.services, cx.chat.id, "id_photo"):
+            raise TelegramError("الايدي بالصورة معطّل")
         photos = await cx.bot.get_user_profile_photos(user_id, limit=1)
         if photos.total_count:
             photo_id = photos.photos[0][-1].file_id

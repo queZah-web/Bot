@@ -12,7 +12,8 @@ from zhoo.core.context import CommandContext, get_services
 from zhoo.core.ranks import RANK_NAMES, Rank
 from zhoo.core import conversation
 from zhoo.core.normalize import normalize
-from zhoo.systems import aliases, botstate, games, levels, locks, protect, replies, swear
+from zhoo.systems import (aliases, botstate, extras, features, games, levels, locks, protect, replies,
+                          swear)
 
 log = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     text = msg.text
     if not text:
         if in_group and not quiet and msg.caption and msg.sender_chat is None and not user.is_bot \
-                and not svc.maintenance:
+                and not svc.maintenance and await features.enabled(svc, chat.id, "replies"):
             await replies.maybe_reply(svc, msg, chat, user)
         return
     has_tm = any(e.type == MessageEntity.TEXT_MENTION for e in msg.entities or ())
@@ -81,7 +82,9 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             await levels.on_message(context, svc, msg, chat, user)       # خبرة الرسائل
             if await games.check_answer(context, svc, msg, chat, user):  # جواب لعبة شغّالة
                 return
-            await replies.maybe_reply(svc, msg, chat, user)
+            if await features.enabled(svc, chat.id, "replies") and await replies.maybe_reply(svc, msg, chat, user):
+                return
+            await extras.maybe_source_reply(svc, msg, chat)              # ردود زهو المدمجة
         return
     cmd = parsed.command
 
@@ -133,9 +136,15 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         await msg.reply_text(T.NO_PERMISSION.format(rank=RANK_NAMES[cmd.min_rank]))
         return
 
+    # الميزات المعطّلة (المالك وفوگ يتجاوزونها)
+    if in_group and await features.blocked(svc, chat.id, cmd.key, rank):
+        await msg.reply_text(T.FEATURE_DISABLED)
+        return
+
     # ٤) التنفيذ
     cx = CommandContext(update=update, context=context, services=svc, message=msg, chat=chat,
-                        user=user, rank=rank, args=parsed.args, raw_args=parsed.raw_args)
+                        user=user, rank=rank, args=parsed.args, raw_args=parsed.raw_args,
+                        quote=not in_group or await features.enabled(svc, chat.id, "quote"))
     log.debug("أمر %s من %s في %s", cmd.key, user.id, chat.id)
     await cmd.handler(cx)
 

@@ -71,6 +71,57 @@ def count_mentions(msg: Message) -> int:
     return n
 
 
+def is_persian(text: str | None) -> bool:
+    """فارسي؟ (الكردي والعراقي ما يتأثرون: نستثني حروف الكردي، وما نحسب گ و چ)."""
+    from zhoo.data.extras_bank import PERSIAN_CHARS, PERSIAN_WORDS
+    if not text:
+        return False
+    if any(ch in text for ch in "ۆێڵڕەڤ"):  # حروف كردية
+        return False
+    chars = sum(1 for ch in text if ch in PERSIAN_CHARS)
+    words = sum(1 for w in text.split() if w in PERSIAN_WORDS)
+    return chars >= 2 or words >= 2
+
+
+_PORN_WORDS: set[str] | None = None
+
+
+def has_porn(msg: Message) -> bool:
+    """كشف بالنص والروابط بس — الصور نفسها ما تنفحص."""
+    from zhoo.data.extras_bank import PORN_DOMAINS, PORN_WORDS_RAW
+    global _PORN_WORDS
+    if _PORN_WORDS is None:
+        _PORN_WORDS = {normalize(w.replace("_", " ")) for w in PORN_WORDS_RAW.split()}
+    text = " ".join(t for t in (msg.text, msg.caption) if t)
+    if not text:
+        return False
+    norm = f" {normalize(text)} "
+    if any(f" {w} " in norm for w in _PORN_WORDS):
+        return True
+    return any(any(d in split_link(l)[0] for d in PORN_DOMAINS) for l in extract_links(msg))
+
+
+def has_usernames(msg: Message) -> bool:
+    return any(e.type == MessageEntity.MENTION for e in list(msg.entities or ()) + list(msg.caption_entities or ()))
+
+
+def has_tag(msg: Message) -> bool:
+    return any(e.type == MessageEntity.TEXT_MENTION
+               for e in list(msg.entities or ()) + list(msg.caption_entities or ()))
+
+
+def is_long(text: str | None, max_chars: int = 800, max_lines: int = 25) -> bool:
+    return bool(text) and (len(text) > max_chars or text.count("\n") >= max_lines)
+
+
+_USERBOT = re.compile(r"^\.[\u0621-\u064Aa-zA-Z]")
+
+
+def is_userbot_command(text: str | None) -> bool:
+    """أوامر السورسات واليوزربوت (جمثون وأمثاله) تبدي بنقطة: .ايدي ، .فحص"""
+    return bool(text) and len(text) <= 60 and bool(_USERBOT.match(text.strip()))
+
+
 def is_forward(msg: Message) -> bool:
     return msg.forward_origin is not None and not msg.is_automatic_forward
 

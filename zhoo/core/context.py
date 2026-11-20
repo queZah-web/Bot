@@ -61,6 +61,7 @@ class Services:
     games: dict = field(default_factory=dict)          # chat_id ← اللعبة الشغّالة
     xp_seen: dict = field(default_factory=dict)        # (chat, user) ← (آخر وقت، بصمة آخر رسالة)
     broadcast_running: bool = False
+    mention_tasks: dict = field(default_factory=dict)  # chat_id ← مهمة النداء الشغّالة
     restoring: bool = False                            # أثناء الاستعادة نوقف استقبال التحديثات
 
     def reset_caches(self) -> None:
@@ -112,6 +113,7 @@ class CommandContext:
     rank: Rank
     args: list[str]
     raw_args: str
+    quote: bool = True   # وضع الاقتباس: الرد يكون «رد» على رسالة الشخص
 
     @property
     def bot(self):
@@ -122,4 +124,6 @@ class CommandContext:
         return self.chat.type == Chat.PRIVATE
 
     async def reply(self, text: str, **kwargs) -> Message:
+        if not self.quote:
+            kwargs.setdefault("do_quote", False)
         return await self.message.reply_text(text, **kwargs)

@@ -56,7 +56,7 @@ CAPTCHA_TTL = 3 * 60
 
 # ── أدوات ───────────────────────────────────────────
 async def guards_state(svc: Services, chat_id: int) -> dict[str, bool]:
-    return {k: (await svc.group_settings.get(chat_id, f"guard_{k}")) == "1" for k in GUARD_KEYS}
+    return {k: (await svc.group_settings.get(chat_id, f"guard_{k}")) not in ("0", "") for k in GUARD_KEYS}
 
 
 def current_level(state: dict[str, bool]) -> str | None:
@@ -102,8 +102,8 @@ async def _safe_delete(msg: Message) -> bool:
 async def inspect(update: Update, context: ContextTypes.DEFAULT_TYPE, svc: Services,
                   msg: Message, chat: Chat, user: User) -> bool:
     """يفحص رسالة بالمجموعة. يرجع True إذا انحذفت (فما نكمل معالجتها)."""
-    from zhoo.systems import botstate
-    if not await botstate.is_active(svc, chat.id):
+    from zhoo.systems import botstate, features
+    if not await botstate.is_active(svc, chat.id) or not await features.enabled(svc, chat.id, "protection"):
         return False
     state = await guards_state(svc, chat.id)
     key = (chat.id, user.id)
@@ -119,12 +119,7 @@ async def inspect(update: Update, context: ContextTypes.DEFAULT_TYPE, svc: Servi
     # ٣) المنشن الجماعي
     elif state["mentions"] and guards.count_mentions(msg) > MENTION_LIMIT:
         violation = "mentions"
-    # ٤) التوجيه
-    elif state["forward"] and guards.is_forward(msg):
-        violation = "forward"
-    # ٥) الروابط
-    elif state["links"] and guards.forbidden_links(msg, await whitelist(svc, chat.id), chat.username):
-        violation = "links"
+    # الروابط والتوجيه صارت أقفال بأوضاع عقوبة (systems/locks.py)
 
     if violation is None:
         return False
@@ -196,10 +191,18 @@ async def on_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             continue
         await svc.tracker.track_user(member)
         self_joined = adder is None or adder.id == member.id
+        await svc.members.set_added_by(chat.id, member.id, 0 if self_joined else adder.id)
+
+        from zhoo.systems import locks
+        if not member.is_bot and adder_rank < Rank.ADMIN and await locks.is_locked(svc, chat.id, "join"):
+            await _kick_join(context, svc, chat.id, member)
+            continue
 
         if member.is_bot:
             if state["bots"] and adder_rank < Rank.ADMIN:
                 await _kick_bot(context, svc, chat.id, member, adder)
+                if adder is not None and not self_joined and await locks.get_mode(svc, chat.id, "bots") == "kick":
+                    await _kick_adder(context, svc, chat.id, adder)
             continue
 
         if state["captcha"] and not quiet and (self_joined or adder_rank < Rank.ADMIN) and \
@@ -227,6 +230,30 @@ async def _kick_bot(context, svc: Services, chat_id: int, bot_user: User, adder:
     await svc.audit.log("guard_bot", chat_id=chat_id, actor_id=context.bot.id, target_id=bot_user.id,
                         details={"added_by": adder.id if adder else None})
     await send_notice(context, chat_id, T.GUARD_BOT_KICKED.format(bot=mention(bot_user.id, bot_user.full_name)))
+
+
+async def _kick_join(context, svc: Services, chat_id: int, member: User) -> None:
+    rights = await svc.perms.bot_rights(context.bot, chat_id)
+    if rights is None or not rights.can_restrict_members:
+        return
+    try:
+        await mod.apply(context.bot, chat_id, member.id, "kick", None)
+    except TelegramError as e:
+        log.info("ما گدرت أطرد الداخل: %s", e)
+        return
+    await svc.audit.log("guard_join", chat_id=chat_id, actor_id=context.bot.id, target_id=member.id)
+    await send_notice(context, chat_id, T.JOIN_KICKED.format(mention=mention(member.id, member.full_name)))
+
+
+async def _kick_adder(context, svc: Services, chat_id: int, adder: User) -> None:
+    try:
+        await mod.apply(context.bot, chat_id, adder.id, "kick", None)
+    except TelegramError as e:
+        log.info("ما گدرت أطرد اللي ضاف البوت: %s", e)
+        return
+    await svc.punishments.add(chat_id, adder.id, "kick", context.bot.id, T.GUARD_WHAT.get("bots", "إضافة بوت"), None)
+    await svc.audit.log("guard_bot_adder", chat_id=chat_id, actor_id=context.bot.id, target_id=adder.id)
+    await send_notice(context, chat_id, T.BOTS_ADDER_KICKED.format(mention=mention(adder.id, adder.full_name)))
 
 
 async def start_captcha(context, svc: Services, chat_id: int, member: User) -> bool:

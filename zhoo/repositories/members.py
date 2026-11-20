@@ -51,6 +51,28 @@ class MembersRepo:
             (chat_id,),
         )
 
+    async def set_added_by(self, chat_id: int, user_id: int, added_by: int) -> None:
+        ts = now()
+        await self.db.execute(
+            """
+            INSERT INTO group_members (chat_id, user_id, added_by, first_seen, last_seen)
+            SELECT ?1, ?2, ?3, ?4, ?4 WHERE EXISTS (SELECT 1 FROM groups WHERE chat_id = ?1)
+            ON CONFLICT (chat_id, user_id) DO UPDATE SET added_by = excluded.added_by
+            """,
+            (chat_id, user_id, added_by, ts),
+        )
+
+    async def added_by(self, chat_id: int, user_id: int) -> int | None:
+        return await self.db.fetchval(
+            "SELECT added_by FROM group_members WHERE chat_id = ? AND user_id = ?", (chat_id, user_id))
+
+    async def recent_active(self, chat_id: int, days: int = 30, limit: int = 150) -> list[int]:
+        rows = await self.db.fetchall(
+            "SELECT m.user_id FROM group_members m LEFT JOIN users u ON u.user_id = m.user_id "
+            "WHERE m.chat_id = ? AND m.last_seen > ? AND COALESCE(u.is_bot, 0) = 0 "
+            "ORDER BY m.last_seen DESC LIMIT ?", (chat_id, now() - days * 86400, limit))
+        return [r["user_id"] for r in rows]
+
     async def message_count(self, chat_id: int, user_id: int) -> int:
         return await self.db.fetchval(
             "SELECT msg_count FROM group_members WHERE chat_id = ? AND user_id = ?",

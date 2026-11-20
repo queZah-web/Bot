@@ -258,6 +258,7 @@ GUARD_WHY = {
     "links": "إرسال الروابط",
     "forward": "التوجيه",
     "mentions": "المنشن الجماعي",
+    "lock": "مخالفة الأقفال",
 }
 GUARD_WHAT = {
     "repeat": "تكرار نفس الرسالة",
@@ -732,13 +733,106 @@ LOCK_NEED_RIGHTS = f"{BULLET} أحتاج صلاحية «<b>حذف الرسائل
 LOCK_CHAT_NEED_RIGHTS = f"{BULLET} أحتاج صلاحية «<b>حظر المستخدمين</b>» حتى أقفل الدردشة 🔐"
 LOCK_NEED_RANK = "تعديل الأقفال يحتاج رتبة أدمن أو أعلى 🔐"
 REACTION_NOTICE = f"{BULLET} {{mention}} عيني، الرياكت مقفول بالمجموعة 🌸 شلت تفاعلك"
-HELP_LOCK_TYPES = (
-    f"\n{BULLET} الأنواع: الصور، الفيديو، المتحركات، الملصقات، البصمات، الصوتيات، الملفات، "
-    "الجهات، المواقع، الاستفتاءات، الإشعارات، الرياكت، الروابط، التوجيه، الدردشة\n"
-    f"{BULLET} مثال: <code>قفل الصور</code> ، <code>فتح الملصقات</code>\n"
-    f"{BULLET} السب: <code>قفل السب</code> ، <code>قفل السب بالكتم</code> ، "
-    "<code>قفل السب بالحظر</code> ، <code>فتح السب</code>"
+
+# ── الأقفال v2: الأوضاع والصفحات ─────────────────────
+LOCK_MODES = {
+    "delete": ("🗑", "مسح"),
+    "warn": ("⚠️", "تحذير"),
+    "mute": ("🔇", "كتم ساعة"),
+    "restrict": ("⛓", "تقييد"),
+    "kick": ("👢", "طرد"),
+}
+LOCK_PAGES = {"media": "🖼 الوسائط", "content": "📝 المحتوى", "behavior": "🛡 السلوك"}
+LOCK_PANEL_V2 = (
+    title("الأقفال", "🔒") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} الصفحة: <b>{{page}}</b> ⋅ الأقفال الفعالة: <b>{{count}}</b>\n"
+    f"{BULLET} اضغط على أي نوع حتى يتنقل: 🔓 مفتوح ← 🗑 مسح ← ⚠️ تحذير ← 🔇 كتم ← ⛓ تقييد ← 👢 طرد\n"
+    f"{BULLET} المسح متدرج: بعد 3 مخالفات بنص ساعة يصير كتم ساعة\n"
+    f"{LINE}\n"
+    f"{BULLET} المميزين وفوگ ما تشملهم الأقفال (عدا السب) 🤍"
 )
+LOCKED_MODE = title("تَـمَّ الـقَـفْـل", "🔒") + f"\n{BULLET} {{what}}\n{BULLET} العقوبة: <b>{{mode}}</b>\n{BULLET} بواسطة: {{actor}}"
+ALREADY_LOCKED_MODE = f"{BULLET} {{what}} مقفولة من قبل بوضع <b>{{mode}}</b> 🔒"
+LOCK_MODE_NOT_ALLOWED = f"{BULLET} هذا القفل ما يقبل هالوضع 🌸 الأوضاع المتاحة: {{modes}}"
+LOCK_STRIKE_NOTICE = f"{BULLET} {{mention}} عيني، <b>{{what}}</b> مقفولة هسه بالمجموعة 🔒 <i>({{strike}}/{{max}})</i>"
+LOCK_PUNISHED = (
+    title("{head}", "{emoji}") + "\n"
+    f"{BULLET} العضو: {{mention}}\n"
+    f"{BULLET} السبب: <b>{{what}}</b> مقفولة\n"
+    "{extra}"
+)
+LOCK_WARNED = f"{BULLET} التحذيرات: <b>{{count}}/{{limit}}</b>\n"
+LOCK_WHY = "مخالفة الأقفال"
+JOIN_KICKED = f"{BULLET} الدخول مقفول هسه 🔒 طلعت {{mention}} تلقائياً"
+BOTS_ADDER_KICKED = f"{BULLET} وطردت {{mention}} اللي ضافه، لأن إضافة البوتات مقفولة بالطرد 👢"
+EDIT_LOCK_NOTICE = f"{BULLET} {{mention}} عيني، التعديل مقفول بالمجموعة 🔒 انمسحت رسالتك المعدّلة"
+HELP_LOCK_TYPES = (
+    f"\n{BULLET} <b>الوسائط:</b> الصور، الفيديو، المتحركات، الملصقات، البصمات، الصوتيات، الملفات، "
+    "الجهات، المواقع، الاستفتاءات\n"
+    f"{BULLET} <b>المحتوى:</b> الكتابة، الروابط، المعرفات، التاك، التوجيه، الانلاين، الكلايش، "
+    "الإيرانية، الإباحي، جمثون\n"
+    f"{BULLET} <b>السلوك:</b> التعديل، تعديل الميديا، التكرار، الرياكت، الإشعارات، الدخول، البوتات، الدردشة\n"
+    f"{BULLET} <b>الأوضاع:</b> <code>قفل الصور</code> (مسح) ، <code>قفل الصور بالتحذير</code> ، "
+    "<code>بالكتم</code> ، <code>بالتقييد</code> ، <code>بالطرد</code>\n"
+    f"{BULLET} السب: <code>قفل السب</code> ، <code>قفل السب بالكتم</code> ، <code>قفل السب بالحظر</code>"
+)
+
+# ── الميزات (تفعيل / تعطيل) ──────────────────────────
+FEATURE_ON = f"{BULLET} تم تفعيل <b>{{what}}</b> ✅"
+FEATURE_OFF_DONE = f"{BULLET} تم تعطيل <b>{{what}}</b> ▫️"
+FEATURE_ALREADY_ON = f"{BULLET} <b>{{what}}</b> مفعّلة من قبل ✅"
+FEATURE_ALREADY_OFF = f"{BULLET} <b>{{what}}</b> معطّلة من قبل ▫️"
+FEATURE_DISABLED = f"{BULLET} هذا الأمر معطّل بهاي المجموعة 🌸"
+FEATURES_PANEL = (
+    title("الـمِـيـزَات", "🎛") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} اضغط على أي ميزة حتى تشغّلها أو تطفيها ✨\n"
+    f"{BULLET} أو بالأوامر: <code>تفعيل الكت</code> ، <code>تعطيل المنشن</code>\n"
+    f"{LINE}\n"
+    f"{BULLET} الميزات المعطّلة تبقى شغّالة للمالك وفوگ 👑"
+)
+FEATURES_HINT = f"{BULLET} اكتب اسم الميزة بعد الأمر 🌸 أو افتح <code>الميزات</code> حتى تشوفها كلها"
+
+# ── ضافني وافتاري واطردني ────────────────────────────
+WHO_ADDED = f"{BULLET} {{mention}} ضافه: {{adder}} 🤍"
+WHO_ADDED_SELF = f"{BULLET} {{mention}} دخل بنفسه (بالرابط) 🔗"
+WHO_ADDED_UNKNOWN = f"{BULLET} ما أعرف منو ضاف {{mention}} 🌸 (دخل قبل ما أصير بالمجموعة)"
+AVATAR_CAPTION = f"{BULLET} صورة {{mention}} 📸 ⋅ عنده <b>{{count}}</b> صورة"
+AVATAR_NONE = f"{BULLET} {{mention}} ما عنده صورة، أو مخفيها 🌸"
+KICKME_ASK = f"{BULLET} {{mention}} متأكد تريد تطلع من المجموعة؟ 🥺"
+KICKME_ADMIN = f"{BULLET} انت من الإدارة، ما أگدر أطلعك 🌸"
+KICKME_DONE = f"{BULLET} طلّعت {{mention}} مثل ما طلب 👋 الله وياه"
+KICKME_STAY = f"{BULLET} زين سويت 🤍 خلّيك ويانه"
+KICKME_NOT_YOURS = "هذا الزر لصاحب الطلب بس 🌸"
+BTN_KICKME_YES = "👋 إي، طلعني"
+BTN_KICKME_NO = "🤍 لا، أبقى"
+
+# ── المنشن للكل ─────────────────────────────────────
+MENTION_HEADER = title("نِـدَاء لِـلـكُـلّ", "📣") + "\n{text}\n" + f"{LINE}\n"
+MENTION_RUNNING = f"{BULLET} اكو منشن شغّال هسه 🌸 انتظره يخلص أو اكتب <code>ايقاف المنشن</code>"
+MENTION_STOPPED = f"{BULLET} وگفت المنشن 🌸"
+MENTION_NONE = f"{BULLET} ماكو منشن شغّال 🌸"
+MENTION_EMPTY = f"{BULLET} ماكو أعضاء نشطين أنادي عليهم 🌸"
+MENTION_DONE = f"{BULLET} خلص النداء ✅ ناديت <b>{{n}}</b> عضو"
+
+# ── التسلية والكت ───────────────────────────────────
+FUN_RATIO = f"{BULLET} {{what}} {{who}}: <b>{{pct}}%</b> {{emoji}}\n{BULLET} {{bar}}"
+FUN_LOVE = f"{BULLET} نسبة الحب بين {{a}} و {{b}}: <b>{{pct}}%</b> 💞\n{BULLET} {{bar}}"
+FUN_LOVE_NEED = f"{BULLET} رد على رسالة الشخص حتى أحسب نسبة الحب 💞"
+FUN_LUCK = f"{BULLET} حظ {{mention}} اليوم: <b>{{luck}}</b>"
+FUN_CHOICE = f"{BULLET} زهو تختار: <b>{{choice}}</b> ✨"
+FUN_CHOICE_BAD = f"{BULLET} اكتب الخيارات بينهن «او» 🌸 مثال: <code>زهو اختاري شاي او قهوة</code>"
+KT_TITLE = title("كَـت", "💭")
+
+# ── الخدمية ─────────────────────────────────────────
+TIME_TEXT = f"{BULLET} الساعة هسه ببغداد: <b>{{time}}</b> 🕰"
+DATE_TEXT = f"{BULLET} اليوم: <b>{{weekday}}</b> ⋅ <b>{{day}} {{month}} {{year}}</b> 📅"
+CALC_RESULT = f"{BULLET} <code>{{expr}}</code> = <b>{{result}}</b> 🧮"
+CALC_BAD = f"{BULLET} ما فهمت العملية 🌸 مثال: <code>احسب (5 + 3) × 2</code>"
+
+# ── الأذكار ────────────────────────────────────────
+AZKAR_TITLE = title("ذِكْـر", "📿")
 
 # ── الترحيب والتوديع ───────────────────────────────
 DEFAULT_WELCOME = (

@@ -32,6 +32,7 @@ class Command:
     order: int = 0
     args: str = "none"          # none | target | punish (هدف + مدة/سبب) | text
     helpers: bool = False       # يسمح لمساعدين المطور (مع إن الرتبة مطور)
+    accept: Callable[[str], bool] | None = None  # مدقق مخصص للإضافات (مثل: قفل <نوع> [بالوضع])
 
     @property
     def display_name(self) -> str:
@@ -66,14 +67,14 @@ class CommandRegistry:
     def command(self, key: str, names: tuple[str, ...] | list[str] | str, *, section: str,
                 description: str, min_rank: Rank = Rank.MEMBER, usage: str = "",
                 where: str = "group", show_in_help: bool = True, order: int = 0,
-                args: str = "none", helpers: bool = False):
+                args: str = "none", helpers: bool = False, accept: Callable[[str], bool] | None = None):
         """مزخرف لتسجيل أمر."""
         if isinstance(names, str):
             names = (names,)
 
         def deco(func: Handler) -> Handler:
             self.add(Command(key, tuple(names), section, min_rank, description, func,
-                             usage, where, show_in_help, order, args, helpers))
+                             usage, where, show_in_help, order, args, helpers, accept))
             return func
         return deco
 
@@ -96,7 +97,10 @@ class CommandRegistry:
             if cmd is None:
                 continue
             rest = text[tokens[n - 1][2]:].strip() if n < len(tokens) else ""
-            if rest and not _accepts(cmd.args, rest, has_text_mention, has_reply):
+            if rest and cmd.accept is not None:
+                if not cmd.accept(rest):
+                    return None
+            elif rest and not _accepts(cmd.args, rest, has_text_mention, has_reply):
                 return None
             return ParsedCommand(cmd, rest.split(), rest)
         return None

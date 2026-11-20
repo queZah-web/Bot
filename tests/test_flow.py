@@ -36,6 +36,7 @@ class FakeBot:
     async def send_message(self, chat_id, text, **kw):
         self.sent.append(text)
         self.dm.append((chat_id, text))
+        self.last_kw = kw
         return SimpleNamespace(message_id=1)
 
     async def send_photo(self, chat_id, photo, caption=None, **kw):

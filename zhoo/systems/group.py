@@ -359,10 +359,7 @@ async def on_settings_button(q, msg: Message, svc: Services, bot, uid_raw: str, 
     if action == "home":
         text, kb = await settings_view(svc, chat, uid)
     elif action == "locks":
-        from zhoo.systems import swear
-        state = await locks.lock_state(svc, chat.id)
-        mode = await swear.get_mode(svc, chat.id)
-        text, kb = T.LOCK_PANEL, locks.panel_keyboard(uid, state, back=True, swear_mode=mode)
+        text, kb = await locks.panel_view(svc, chat.id, uid, back=True)
     elif action == "guard":
         state = await protect.guards_state(svc, chat.id)
         text, kb = protect.panel_text(state), protect.panel_keyboard(uid, state, back=True)
