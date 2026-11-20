@@ -81,10 +81,10 @@ async def test_welcome_on_join_and_custom_template(env):
     msg = Message(next(_mid), None, CHAT, from_user=newbie, new_chat_members=[newbie])
     msg.set_bot(bot)
     await protect.on_new_members(Update(next(_mid), message=msg), ctx)
-    assert "أهلاً وسهلاً" in bot.sent[-1] and "Noor" in bot.sent[-1]
+    assert "نوّرت" in bot.sent[-1] and "Noor" in bot.sent[-1]
 
     out = await say(env, CREATOR, "تعيين الترحيب نورتنا يا {الاسم} 🌸\nاقرأ القوانين")
-    assert "تم حفظ" in out
+    assert "انحفظ" in out
     await protect.on_new_members(Update(next(_mid), message=msg), ctx)
     assert "نورتنا يا" in bot.sent[-1] and "اقرأ القوانين" in bot.sent[-1]
 
@@ -103,7 +103,7 @@ async def test_goodbye(env):
     msg.set_bot(bot)
     bot.sent.clear()
     await group.on_left_member(Update(next(_mid), message=msg), ctx)
-    assert "وداعاً" in bot.sent[-1]
+    assert "مع السلامة" in bot.sent[-1]
     # المطرود ما ينودّع
     msg = Message(next(_mid), None, CHAT, from_user=User(CREATOR, "C", False), left_chat_member=leaver)
     msg.set_bot(bot)
@@ -114,8 +114,8 @@ async def test_goodbye(env):
 
 # ── القوانين والرابط والإحصائيات ──
 async def test_rules(env):
-    assert "لم تُضف" in await say(env, ALI, "القوانين")
-    assert "تم حفظ" in await say(env, CREATOR, "تعيين القوانين 1- الاحترام\n2- لا سبام")
+    assert "ما عدها قوانين" in await say(env, ALI, "القوانين")
+    assert "انحفظت" in await say(env, CREATOR, "تعيين القوانين 1- الاحترام\n2- لا سبام")
     out = await say(env, ALI, "القوانين")
     assert "الاحترام" in out and "لا سبام" in out
 
@@ -123,7 +123,7 @@ async def test_rules(env):
 async def test_link(env):
     out = await say(env, ALI, "الرابط")
     assert "https://t.me/+abcdef" in out
-    assert "غير صحيح" in await say(env, CREATOR, "تعيين الرابط google.com")
+    assert "مو صحيح" in await say(env, CREATOR, "تعيين الرابط google.com")
     await say(env, CREATOR, "تعيين الرابط https://t.me/+custom")
     assert "+custom" in await say(env, ALI, "الرابط")
 

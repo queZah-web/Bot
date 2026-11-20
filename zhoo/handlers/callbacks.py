@@ -19,7 +19,7 @@ from zhoo.keyboards.menus import (SECTION_MAP, back_to_start_keyboard, help_main
 
 log = logging.getLogger(__name__)
 
-STALE = "هذه القائمة قديمة، اطلب قائمة جديدة 🌸"
+STALE = T.STALE
 
 
 async def _edit(msg: Message, text: str, markup: InlineKeyboardMarkup | None) -> None:

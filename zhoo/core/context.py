@@ -21,6 +21,7 @@ from zhoo.repositories.group_settings import GroupSettingsRepo
 from zhoo.repositories.groups import GroupsRepo
 from zhoo.repositories.members import MembersRepo
 from zhoo.repositories.punishments import PunishmentsRepo
+from zhoo.repositories.swear_logs import SwearLogsRepo
 from zhoo.repositories.users import UsersRepo
 
 
@@ -38,6 +39,7 @@ class Services:
     punishments: PunishmentsRepo
     group_settings: GroupSettingsRepo
     captcha: CaptchaRepo
+    swear_logs: SwearLogsRepo
     flood: FloodTracker = field(default_factory=FloodTracker)
     repeats: RepeatTracker = field(default_factory=RepeatTracker)
     strikes: StrikeTracker = field(default_factory=StrikeTracker)
@@ -56,7 +58,7 @@ class Services:
             perms=PermissionService(members, settings.owner_id),
             tracker=Tracker(users, groups, members),
             punishments=PunishmentsRepo(db), group_settings=GroupSettingsRepo(db),
-            captcha=CaptchaRepo(db),
+            captcha=CaptchaRepo(db), swear_logs=SwearLogsRepo(db),
         )
 
     @property

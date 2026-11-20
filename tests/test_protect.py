@@ -142,7 +142,7 @@ async def test_panel_buttons(env):
     assert (await protect.guards_state(svc, GROUP))["links"] is True
     assert "مخصص" in edits[-1]
     await protect.on_panel_button(q, msg, svc, bot, str(ALI), "p", "strict")
-    assert "ليست لك" in answers[-1]
+    assert "مو إلك" in answers[-1]
 
 
 async def test_captcha_flow(env):
@@ -173,7 +173,7 @@ async def test_captcha_flow(env):
                                     cmsg, svc, bot, str(newbie.id))
     assert "تم التحقق" in answers[-1]
     assert await svc.captcha.pop(GROUP, newbie.id) is None
-    assert "أهلاً وسهلاً" in bot.sent[-1]  # الترحيب بعد التحقق
+    assert "نوّرت" in bot.sent[-1]  # الترحيب بعد التحقق
 
 
 async def test_captcha_expiry_kicks(env):

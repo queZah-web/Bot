@@ -10,7 +10,7 @@ from zhoo.core import texts as T
 from zhoo.core.commands import registry
 from zhoo.core.context import CommandContext, get_services
 from zhoo.core.ranks import RANK_NAMES, Rank
-from zhoo.systems import locks, protect
+from zhoo.systems import locks, protect, swear
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +33,8 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             svc.tracker.count_message(chat.id, user.id)
             # الحماية تفحص قبل أي شي؛ إذا انحذفت الرسالة نوقف
             if await protect.inspect(update, context, svc, msg, chat, user):
+                return
+            if await swear.check(context, svc, msg, chat, user):
                 return
             if await locks.check(context, svc, msg, chat, user):
                 return

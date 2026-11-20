@@ -115,7 +115,7 @@ async def _status(cx: CommandContext, kind: str) -> None:
     custom = bool(await svc.group_settings.get(cx.chat.id, key))
     preview = render(await template_of(svc, cx.chat.id, kind), cx.user, cx.chat, await _member_count(cx.bot, cx.chat.id))
     await cx.reply(T.WELCOME_STATUS.format(
-        kind=name, state="مفعّل ✅" if on else "معطّل ▫️", custom="مخصص ✏️" if custom else "افتراضي 🌸",
+        kind=name, state=T.STATE_ON if on else T.STATE_OFF, custom=T.TEMPLATE_CUSTOM if custom else T.TEMPLATE_DEFAULT,
         preview=preview) + "\n\n" + T.TEMPLATE_VARS)
 
 
@@ -192,7 +192,7 @@ async def cmd_rules(cx: CommandContext) -> None:
 async def cmd_rules_set(cx: CommandContext) -> None:
     text = cx.raw_args.strip()
     if not text:
-        await cx.reply(f"{T.BULLET} اكتب القوانين بعد الأمر من فضلك 🌸")
+        await cx.reply(T.RULES_NEED_TEXT)
         return
     await cx.services.group_settings.set(cx.chat.id, "rules", text[:MAX_RULES], cx.user.id)
     await cx.services.audit.log("setting", chat_id=cx.chat.id, actor_id=cx.user.id, details={"key": "rules"})
@@ -279,7 +279,8 @@ async def cmd_stats(cx: CommandContext) -> None:
         "AND action NOT LIKE 'guard_captcha_ok' AND created_at > ?", (chat_id, now() - 86400), default=0)
     state = await protect.guards_state(svc, chat_id)
     lvl = protect.current_level(state)
-    lock_count = sum((await locks.lock_state(svc, chat_id)).values())
+    lock_count = await locks.active_count(svc, chat_id)
+    swear24 = await svc.swear_logs.count_since(chat_id, 86400)
     top_rows = await svc.members.top_active(chat_id, 3)
     medals = ("🥇", "🥈", "🥉")
     top = "\n".join(
@@ -287,7 +288,7 @@ async def cmd_stats(cx: CommandContext) -> None:
         f" ⋅ {r['msg_count']}" for i, r in enumerate(top_rows)) or "    —"
     await cx.reply(T.STATS_TEXT.format(
         title=esc(cx.chat.title or ""), members=members or "—", staff=staff, messages=messages,
-        banned=banned, muted=muted, guard24=guard24,
+        banned=banned, muted=muted, guard24=guard24, swear24=swear24,
         level=T.GUARD_LEVELS[lvl] if lvl else T.GUARD_CUSTOM, locks=lock_count, top=top))
 
 
@@ -304,10 +305,13 @@ async def settings_view(svc: Services, chat: Chat, uid: int) -> tuple[str, Inlin
     limit = await g.get(chat.id, "warn_limit")
     action = await g.get(chat.id, "warn_action")
     lvl = protect.current_level(await protect.guards_state(svc, chat.id))
-    lock_count = sum((await locks.lock_state(svc, chat.id)).values())
+    from zhoo.systems import swear
+    lock_count = await locks.active_count(svc, chat.id)
+    swear_mode = await swear.get_mode(svc, chat.id)
     text = T.SETTINGS_PANEL.format(
         title=esc(chat.title or ""), limit=limit, action=WARN_ACTIONS.get(action, "كتم"),
-        level=T.GUARD_LEVELS[lvl] if lvl else T.GUARD_CUSTOM, locks=lock_count)
+        level=T.GUARD_LEVELS[lvl] if lvl else T.GUARD_CUSTOM, locks=lock_count,
+        swear=T.SWEAR_MODES[swear_mode])
 
     def b(label, action_, arg="-"):
         return InlineKeyboardButton(label, callback_data=f"st:{uid}:{action_}:{arg}")
@@ -317,6 +321,7 @@ async def settings_view(svc: Services, chat: Chat, uid: int) -> tuple[str, Inlin
          b(f"{'✅' if goodbye_on else '▫️'} {T.BTN_GOODBYE}", "tg")],
         [b(T.BTN_WARN_LIMIT.format(n=limit), "wl"),
          b(T.BTN_WARN_ACTION.format(a=WARN_ACTIONS.get(action, "كتم")), "wa")],
+        [b(f"{T.SWEAR_LABEL}: {T.SWEAR_MODES[swear_mode]}", "sw")],
         [b(T.BTN_LOCKS, "locks"), b(T.BTN_PROTECT, "guard")],
         [b(T.BTN_CLOSE, "x")],
     ])
@@ -350,8 +355,10 @@ async def on_settings_button(q, msg: Message, svc: Services, bot, uid_raw: str, 
     if action == "home":
         text, kb = await settings_view(svc, chat, uid)
     elif action == "locks":
+        from zhoo.systems import swear
         state = await locks.lock_state(svc, chat.id)
-        text, kb = T.LOCK_PANEL, locks.panel_keyboard(uid, state, back=True)
+        mode = await swear.get_mode(svc, chat.id)
+        text, kb = T.LOCK_PANEL, locks.panel_keyboard(uid, state, back=True, swear_mode=mode)
     elif action == "guard":
         state = await protect.guards_state(svc, chat.id)
         text, kb = protect.panel_text(state), protect.panel_keyboard(uid, state, back=True)
@@ -369,6 +376,10 @@ async def on_settings_button(q, msg: Message, svc: Services, bot, uid_raw: str, 
             new = _next(WARN_LIMIT_CYCLE, await g.get(chat.id, "warn_limit"))
             await g.set(chat.id, "warn_limit", new, uid)
             await svc.audit.log("setting", chat_id=chat.id, actor_id=uid, details={"key": "warn_limit", "to": new})
+        elif action == "sw":
+            from zhoo.systems import swear
+            new = swear.next_mode(await swear.get_mode(svc, chat.id))
+            await swear.set_mode(svc, chat.id, new, uid)
         elif action == "wa":
             new = _next(WARN_ACTION_CYCLE, await g.get(chat.id, "warn_action"))
             await g.set(chat.id, "warn_action", new, uid)

@@ -154,13 +154,13 @@ async def cmd_staff(cx: CommandContext) -> None:
         any_rank = True
         text += f"\n{rank_label(rank)}\n" + "\n".join(f"   ▫️ {_row_mention(r)}" for r in group[:30])
         if len(group) > 30:
-            text += f"\n   … و {len(group) - 30} غيرهم"
+            text += "\n   " + T.STAFF_MORE.format(n=len(group) - 30)
         text += "\n"
 
     tg_admins = [m for m in admins.values()
                  if m.status == "administrator" and not m.user.is_bot and not m.is_anonymous]
     if tg_admins:
-        text += f"\n🔰 مشرفين تيليجرام\n" + "\n".join(
+        text += f"\n{T.TG_ADMINS_LABEL}\n" + "\n".join(
             f"   ▫️ {mention(m.user.id, m.user.full_name)}" for m in tg_admins[:30]) + "\n"
 
     if not any_rank and not tg_admins and creator is None:

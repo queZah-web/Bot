@@ -1,9 +1,9 @@
 """كل نصوص زهو في مكان واحد حتى يسهل تعديلها.
 
-شخصية زهو: بنت راقية، مهذبة، هادئة وواثقة 🤍
-- كلام مرتب ومحترم، بلهجة عراقية ناعمة وخفيفة.
-- العناوين المهمة مزخرفة بالتشكيل والتطويل (مثل: تَـمَّ الكَـتْـم).
-- أسماء الأوامر والأقسام بالفصحى.
+شخصية زهو: بنت عراقية راقية، مهذبة، هادئة وواثقة 🤍
+- الردود والكلام: لهجة عراقية خالصة + فصحى (بدون أي لهجة ثانية).
+- الأوامر، أسماء الأقسام، الأزرار، والخيارات: فصحى.
+- العناوين المهمة مزخرفة بالتشكيل والتطويل (مثل: تَـمَّ الـكَـتْـم).
 """
 from __future__ import annotations
 
@@ -22,16 +22,16 @@ def title(text: str, emoji: str = "") -> str:
 
 # ── عام ───────────────────────────────────────────
 START_PRIVATE = (
-    title("أهلاً وسهلاً {name}", "🤍") + "\n"
+    title("هلا بيك {name}", "🤍") + "\n"
     f"{LINE}\n"
-    f"{BULLET} أنا <b>{BOT_NAME} | {BOT_NAME_EN}</b> 🎀\n"
-    f"{BULLET} مُساعِدتكم لإدارة وحِمايَة المجموعات بكل أناقة وأمان 🛡\n"
+    f"{BULLET} آني <b>{BOT_NAME} | {BOT_NAME_EN}</b> 🎀\n"
+    f"{BULLET} أساعدكم بإدارة وحماية مجموعاتكم بكل ذوق وأمان 🛡\n"
     f"{LINE}\n"
-    f"{BULLET} أضفني لمجموعتك، وارفعني <b>مشرفة</b> بكامل الصلاحيات\n"
-    f"{BULLET} وبعدها اكتب <code>الاوامر</code> داخل المجموعة 🌸"
+    f"{BULLET} ضيفني لمجموعتك، وارفعني <b>مشرفة</b> بكل الصلاحيات\n"
+    f"{BULLET} وبعدها اكتب <code>الاوامر</code> بالمجموعة 🌸"
 )
 
-START_GROUP = f"{BULLET} أهلاً بك 🤍 أنا زهو، اكتب <code>الاوامر</code> وراح أعرض لك كل شي بترتيب ✨"
+START_GROUP = f"{BULLET} هلا بيك 🤍 آني زهو، اكتب <code>الاوامر</code> وأطلعلك كلشي مرتب ✨"
 
 ABOUT = (
     title(f"عن {BOT_NAME}", "🎀") + "\n"
@@ -39,62 +39,66 @@ ABOUT = (
     f"{BULLET} الإصدار: <code>{{version}}</code>\n"
     f"{BULLET} المجموعات: <b>{{groups}}</b>\n"
     f"{BULLET} المستخدمين: <b>{{users}}</b>\n"
-    f"{BULLET} أعمل منذ: <b>{{uptime}}</b>\n"
+    f"{BULLET} شغّالة من: <b>{{uptime}}</b>\n"
     f"{LINE}\n"
-    f"{BULLET} كل عملية إدارية تُسجَّل بأمان، والصلاحيات دقيقة ومنظمة 🔐"
+    f"{BULLET} كل عملية إدارية تنحفظ بأمان، والصلاحيات مضبوطة ومرتبة 🔐"
 )
 
 ADDED_TO_GROUP = (
-    title("أهلاً بكم، أنا زهو", "🤍") + "\n"
+    title("هلا بيكم، آني زهو", "🤍") + "\n"
     f"{LINE}\n"
-    f"{BULLET} سعيدة جداً بانضمامي إلى <b>{{title}}</b> 🌸\n"
-    f"{BULLET} حتى أقدر أخدمكم صح، ارفعوني <b>مشرفة</b> مع صلاحيات:\n"
+    f"{BULLET} فرحانة هوايه بوجودي ويا <b>{{title}}</b> 🌸\n"
+    f"{BULLET} حتى أگدر أخدمكم صح، ارفعوني <b>مشرفة</b> وانطوني هاي الصلاحيات:\n"
     "    ▫️ حذف الرسائل\n"
     "    ▫️ حظر المستخدمين\n"
     "    ▫️ دعوة المستخدمين وتثبيت الرسائل\n"
     f"{LINE}\n"
-    f"{BULLET} بعدها اكتبوا <code>الاوامر</code> ✨"
+    f"{BULLET} وبعدها اكتبوا <code>الاوامر</code> ✨"
 )
 
-PROMOTED_BOT = f"{BULLET} شكراً على الثقة 🤍 صرت جاهزة أخدمكم بكامل صلاحياتي ✨"
+PROMOTED_BOT = f"{BULLET} تسلمون على الثقة 🤍 هسه صرت جاهزة أخدمكم بكل صلاحياتي ✨"
 
 ZHOO_REPLIES = (
-    "نعم؟ أنا هنا 🤍",
-    "زهو بالخدمة دائماً 🎀",
-    "تفضّل، شلون أقدر أساعدك؟ 🌸",
+    "عيوني، آني هنا 🤍",
+    "زهو بالخدمة دايماً 🎀",
+    "تفضّل، شلون أگدر أساعدك؟ 🌸",
     "حاضرة ✨",
-    "موجودة، اطمئن 🛡",
-    "يا هلا، أسمعك 🤍",
+    "موجودة، لا تشيل هم 🛡",
+    "هلا بيك، أسمعك 🤍",
 )
+
+STALE = "هاي القائمة قديمة، اطلب وحدة جديدة 🌸"
+NO_COMMANDS_FOR_RANK = f"{BULLET} ماكو أوامر متاحة لرتبتك بهذا القسم 🌸"
+NONE_VALUE = "ماكو"
 
 # ── الأخطاء والرفض ──────────────────────────────────
-NO_PERMISSION = f"{BULLET} عذراً، هذا الأمر يحتاج رتبة <b>{{rank}}</b> أو أعلى 🔐"
-GROUP_ONLY = f"{BULLET} هذا الأمر يعمل داخل المجموعات فقط 🌸"
-PRIVATE_ONLY = f"{BULLET} هذا الأمر يعمل في الخاص فقط 🔒"
-MAINTENANCE = f"{BULLET} زهو حالياً في وضع الصيانة 🛠 أرجع لكم قريباً إن شاء الله 🤍"
-ANON_ADMIN = f"{BULLET} حضرتك مشرف مخفي 🥷 أوقف خيار «البقاء مجهولاً» حتى أتعرف على رتبتك"
-SLOW_DOWN = "على مهلك شوي 🌸"
-GENERIC_ERROR = f"{BULLET} صار خلل بسيط، ممكن تعيد المحاولة؟ 🤍"
+NO_PERMISSION = f"{BULLET} اعذرني، هذا الأمر يحتاج رتبة <b>{{rank}}</b> أو أعلى 🔐"
+GROUP_ONLY = f"{BULLET} هذا الأمر يشتغل بالمجموعات بس 🌸"
+PRIVATE_ONLY = f"{BULLET} هذا الأمر يشتغل بالخاص بس 🔒"
+MAINTENANCE = f"{BULLET} زهو هسه بالصيانة 🛠 راجعتلكم قريب إن شاء الله 🤍"
+ANON_ADMIN = f"{BULLET} انت مشرف مخفي 🥷 طفّي خيار «البقاء مجهولاً» حتى أعرف رتبتك"
+SLOW_DOWN = "على مهلك شوية 🌸"
+GENERIC_ERROR = f"{BULLET} صار خلل بسيط، ممكن تعيدها مرة ثانية؟ 🤍"
 
 NEED_TARGET = (
-    f"{BULLET} حدّد الشخص من فضلك: بالرد على رسالته، أو بكتابة يوزره أو الايدي 🌸\n"
+    f"{BULLET} حدّدلي الشخص رجاءً: رد على رسالته، أو اكتب يوزره أو الايدي مالته 🌸\n"
     f"{BULLET} مثال: <code>{{example}}</code>"
 )
-TARGET_NOT_FOUND = f"{BULLET} ما لقيت هذا الشخص 🤍 تأكد من اليوزر أو الايدي"
-TARGET_IS_CHANNEL = f"{BULLET} هذه رسالة قناة وليست شخصاً 📢"
+TARGET_NOT_FOUND = f"{BULLET} ما لگيت هذا الشخص 🤍 تأكد من اليوزر أو الايدي"
+TARGET_IS_CHANNEL = f"{BULLET} هاي رسالة قناة، مو شخص 📢"
 
 # ── الرتب ──────────────────────────────────────────
 RANK_SELF = f"{BULLET} ما يصير تغيّر رتبتك بنفسك 🌸"
-RANK_BOT = f"{BULLET} البوتات ما تُرفع ولا تُنزَّل 🤖"
-RANK_PROTECTED = f"{BULLET} {{mention}} رتبته محمية ({{rank}}) ولا يمكن تغييرها 🛡"
-RANK_TARGET_HIGHER = f"{BULLET} عذراً، رتبة {{mention}} ({{rank}}) أعلى منك أو تساويك 🤍"
-RANK_CANT_GRANT = f"{BULLET} ما تقدر ترفع لرتبة <b>{{rank}}</b>، لازم تكون رتبتك أعلى منها 🔐"
-RANK_SAME = f"{BULLET} {{mention}} رتبته <b>{{rank}}</b> من قبل ✨"
+RANK_BOT = f"{BULLET} البوتات ما تنرفع ولا تنزل 🤖"
+RANK_PROTECTED = f"{BULLET} {{mention}} رتبته محمية ({{rank}}) وما تتغير 🛡"
+RANK_TARGET_HIGHER = f"{BULLET} اعذرني، رتبة {{mention}} ({{rank}}) أعلى منك أو بقدّك 🤍"
+RANK_CANT_GRANT = f"{BULLET} ما تگدر ترفع لرتبة <b>{{rank}}</b>، لازم رتبتك تكون أعلى منها 🔐"
+RANK_SAME = f"{BULLET} {{mention}} هو أصلاً <b>{{rank}}</b> ✨"
 RANK_BELOW_FLOOR = (
-    f"{BULLET} {{mention}} مشرف في تيليجرام، فرتبته لا تنزل عن <b>{{rank}}</b>\n"
-    f"{BULLET} يمكنك إزالة إشرافه من إعدادات تيليجرام أولاً"
+    f"{BULLET} {{mention}} مشرف بتيليجرام، فرتبته ما تنزل عن <b>{{rank}}</b>\n"
+    f"{BULLET} نزّله من إشراف تيليجرام أول"
 )
-RANK_NOT_THAT = f"{BULLET} {{mention}} ليس <b>{{rank}}</b> أصلاً 🌸"
+RANK_NOT_THAT = f"{BULLET} {{mention}} مو <b>{{rank}}</b> أصلاً 🌸"
 
 RANK_PROMOTED = (
     title("تَـمَّ الـرَّفْـع بِـنَـجَـاح", "🎀") + "\n"
@@ -107,12 +111,14 @@ RANK_DEMOTED = (
     title("تَـمَّ الـتَّـنْـزِيـل بِـنَـجَـاح", "🤍") + "\n"
     f"{LINE}\n"
     f"{BULLET} العضو: {{mention}}\n"
-    f"{BULLET} كان: {{old}} ← أصبح: {{rank}}\n"
+    f"{BULLET} كان: {{old}} ← صار: {{rank}}\n"
     f"{BULLET} بواسطة: {{actor}}"
 )
 
 STAFF_HEADER = title("طاقم إدارة {title}", "👑") + f"\n{LINE}"
-STAFF_EMPTY = f"{BULLET} لا يوجد أحد بهذه الرتبة حالياً 🌸"
+STAFF_EMPTY = f"{BULLET} ماكو أحد بهاي الرتبة هسه 🌸"
+STAFF_MORE = "… و {n} غيرهم"
+TG_ADMINS_LABEL = "🔰 مشرفين تيليجرام"
 RANK_LIST_HEADER = title("{plural}", "✨") + f"\n{LINE}"
 
 # ── معلومات ────────────────────────────────────────
@@ -126,26 +132,26 @@ ID_TEXT = (
 )
 MY_RANK = f"{BULLET} رتبتك هنا: {{rank}} 🤍"
 THEIR_RANK = f"{BULLET} رتبة {{mention}}: {{rank}}"
-ACTIVITY = f"{BULLET} رسائل {{mention}} في المجموعة: <b>{{count}}</b> 💌\n{BULLET} التفاعل: {{level}}"
+ACTIVITY = f"{BULLET} رسائل {{mention}} بالمجموعة: <b>{{count}}</b> 💌\n{BULLET} التفاعل: {{level}}"
 TOP_ACTIVE_HEADER = title("الأكثر تفاعلاً", "🔥") + f"\n{LINE}"
-NO_ACTIVITY = f"{BULLET} لا يوجد تفاعل مسجل حتى الآن 🌸"
+NO_ACTIVITY = f"{BULLET} ماكو تفاعل مسجل لحد هسه 🌸"
 
 # ── القوائم ────────────────────────────────────────
 HELP_MAIN = (
     title(f"قائمة أوامر {BOT_NAME}", "🎀") + "\n"
     f"{LINE}\n"
     f"{BULLET} رتبتك: {{rank}}\n"
-    f"{BULLET} اختر القسم الذي تريده 🌸"
+    f"{BULLET} اختار القسم اللي تريده 🌸"
 )
-HELP_NOT_YOURS = "هذه القائمة ليست لك 🤍 اكتب «الاوامر» لتظهر لك قائمتك الخاصة"
+HELP_NOT_YOURS = "هاي القائمة مو إلك 🤍 اكتب «الاوامر» حتى تطلعلك قائمتك"
 HELP_SOON = (
-    f"{BULLET} هذا القسم قادم في المرحلة <b>{{phase}}</b> 🔜\n"
-    f"{BULLET} الأوامر المخطط لها:\n{{planned}}"
+    f"{BULLET} هذا القسم جاي بالمرحلة <b>{{phase}}</b> 🔜\n"
+    f"{BULLET} الأوامر المخطط إلها:\n{{planned}}"
 )
 HELP_LOCKED_HINT = f"\n{LINE}\n🔒 أوامر تحتاج رتبة أعلى: <b>{{count}}</b>"
-HELP_USAGE_HINT = f"\n{LINE}\n{BULLET} تُكتب الأوامر بدون / ، والاستهداف بالرد أو اليوزر أو الايدي"
+HELP_USAGE_HINT = f"\n{LINE}\n{BULLET} الأوامر تنكتب بدون / ، والاستهداف بالرد أو اليوزر أو الايدي"
 HELP_DURATION_HINT = (
-    f"\n{BULLET} المدة اختيارية بعد الشخص: <code>10د</code> دقائق، <code>2س</code> ساعات، "
+    f"\n{BULLET} المدة اختيارية بعد الشخص: <code>10د</code> دقايق، <code>2س</code> ساعات، "
     f"<code>3ي</code> أيام، <code>1ا</code> أسابيع\n"
     f"{BULLET} مثال: <code>كتم @user 30د سبام</code>"
 )
@@ -176,36 +182,39 @@ WARN_LIMIT_REACHED = (
     "\n" + title("وصل للحد الأقصى من التحذيرات", "⛔") + "\n"
     f"{BULLET} العقوبة التلقائية: <b>{{action}}</b>"
 )
+WARN_AUTO_REASON = "تجاوز حد التحذيرات"
 
 PUNISH_SELF = f"{BULLET} ما يصير تعاقب نفسك 🌸"
-PUNISH_BOT_SELF = f"{BULLET} ما أقدر أعاقب نفسي 🤍"
-PUNISH_PROTECTED = f"{BULLET} {{mention}} محمي ({{rank}}) ولا يمكن معاقبته 🛡"
-PUNISH_HIGHER = f"{BULLET} عذراً، رتبة {{mention}} ({{rank}}) أعلى منك أو تساويك، فلا يمكنك معاقبته 🤍"
-PUNISH_TG_ADMIN = f"{BULLET} {{mention}} مشرف في تيليجرام، وتيليجرام لا يسمح لي بمعاقبة المشرفين 🌸"
-PUNISH_OTHER_BOT = f"{BULLET} {{mention}} بوت، يمكن طرده أو حظره فقط 🤖"
-BOT_NOT_ADMIN = f"{BULLET} لازم ترفعوني <b>مشرفة</b> أولاً حتى أقدر أنفذ هذا 🤍"
-BOT_MISSING_RIGHT = f"{BULLET} أحتاج صلاحية «<b>{{right}}</b>» حتى أقدر أنفذ هذا 🔐"
-PUNISH_FAILED = f"{BULLET} ما قدرت أنفذ العقوبة 🤍 تأكد من صلاحياتي وجرب مرة ثانية"
-NOT_PUNISHED = f"{BULLET} {{mention}} غير {{state}} أصلاً 🌸"
-NO_WARNINGS = f"{BULLET} {{mention}} ليس عليه أي تحذير ✨"
+PUNISH_BOT_SELF = f"{BULLET} ما أگدر أعاقب نفسي 🤍"
+PUNISH_PROTECTED = f"{BULLET} {{mention}} محمي ({{rank}}) وما تنطبق عليه عقوبة 🛡"
+PUNISH_HIGHER = f"{BULLET} اعذرني، رتبة {{mention}} ({{rank}}) أعلى منك أو بقدّك، فما تگدر تعاقبه 🤍"
+PUNISH_TG_ADMIN = f"{BULLET} {{mention}} مشرف بتيليجرام، وتيليجرام ما يسمحلي أعاقب المشرفين 🌸"
+PUNISH_OTHER_BOT = f"{BULLET} {{mention}} بوت، يا ينطرد يا ينحظر بس 🤖"
+BOT_NOT_ADMIN = f"{BULLET} لازم ترفعوني <b>مشرفة</b> أول حتى أگدر أسويها 🤍"
+BOT_MISSING_RIGHT = f"{BULLET} أحتاج صلاحية «<b>{{right}}</b>» حتى أگدر أسويها 🔐"
+RIGHT_RESTRICT = "حظر المستخدمين"
+PUNISH_FAILED = f"{BULLET} ما گدرت أنفذ العقوبة 🤍 تأكد من صلاحياتي وجرب مرة ثانية"
+NOT_PUNISHED = f"{BULLET} {{mention}} مو {{state}} أصلاً 🌸"
+NO_WARNINGS = f"{BULLET} {{mention}} ما عليه ولا تحذير ✨"
 WARNINGS_OF = f"{BULLET} تحذيرات {{mention}}: <b>{{count}}/{{limit}}</b>"
-BAD_DURATION = f"{BULLET} المدة غير صحيحة 🌸 أمثلة: <code>10د</code> ، <code>2س</code> ، <code>3ي</code>"
+BAD_DURATION = f"{BULLET} المدة مو صحيحة 🌸 أمثلة: <code>10د</code> ، <code>2س</code> ، <code>3ي</code>"
 
 PUNISHED_LIST_HEADER = title("{name}", "📋") + f"\n{LINE}"
-PUNISHED_LIST_EMPTY = f"{BULLET} القائمة فارغة، الجميع بخير 🤍"
+PUNISHED_LIST_EMPTY = f"{BULLET} القائمة فارغة، والكل بخير 🤍"
 PUNISH_LOG_HEADER = title("سجل العقوبات", "📜") + f"\n{LINE}"
-PUNISH_LOG_EMPTY = f"{BULLET} لا توجد عقوبات مسجلة 🌸"
+PUNISH_LOG_EMPTY = f"{BULLET} ماكو عقوبات مسجلة 🌸"
+PUNISH_LOG_FOOTER = "<i>🟢 فعّالة ⋅ ⚪ منتهية ⋅ الوقت UTC</i>"
 
-WARN_SETTINGS_SET = f"{BULLET} تم الحفظ ✨ الحد الأقصى: <b>{{limit}}</b> تحذيرات ، والعقوبة: <b>{{action}}</b>"
-WARN_SETTINGS_BAD_LIMIT = f"{BULLET} اكتب رقماً بين 2 و 10 من فضلك 🌸 مثال: <code>عدد التحذيرات 3</code>"
-WARN_SETTINGS_BAD_ACTION = f"{BULLET} اختر عقوبة من: <code>كتم</code> ، <code>طرد</code> ، <code>حظر</code> 🌸"
+WARN_SETTINGS_SET = f"{BULLET} انحفظت ✨ الحد الأقصى: <b>{{limit}}</b> تحذيرات ، والعقوبة: <b>{{action}}</b>"
+WARN_SETTINGS_BAD_LIMIT = f"{BULLET} اكتب رقم بين 2 و 10 رجاءً 🌸 مثال: <code>عدد التحذيرات 3</code>"
+WARN_SETTINGS_BAD_ACTION = f"{BULLET} اختار عقوبة من: <code>كتم</code> ، <code>طرد</code> ، <code>حظر</code> 🌸"
 
 BTN_UNDO_BAN = "🕊 رفع الحظر"
 BTN_UNDO_MUTE = "🔊 فك الكتم"
 BTN_UNDO_RESTRICT = "✨ فك التقييد"
 BTN_UNDO_WARN = "🤍 مسح التحذيرات"
-UNDO_DONE = "تم التراجع بنجاح ✨"
-UNDO_NOT_ALLOWED = "عذراً، رتبتك لا تسمح بالتراجع عن هذه العقوبة 🔐"
+UNDO_DONE = "تم التراجع ✨"
+UNDO_NOT_ALLOWED = "اعذرني، رتبتك ما تسمح تتراجع عن هاي العقوبة 🔐"
 UNDO_FOOTER = f"\n{LINE}\n{BULLET} تراجع بواسطة: {{actor}} ✨"
 
 # ── الحماية ────────────────────────────────────────
@@ -224,19 +233,19 @@ GUARD_PANEL = (
     title("إعدادات الحماية", "🛡") + "\n"
     f"{LINE}\n"
     f"{BULLET} المستوى الحالي: <b>{{level}}</b>\n"
-    f"{BULLET} اضغط على أي خيار لتفعيله أو إيقافه ✨\n"
+    f"{BULLET} اضغط على أي خيار حتى تشغّله أو تطفيه ✨\n"
     f"{LINE}\n"
     "{rows}\n"
     f"{LINE}\n"
-    f"{BULLET} المميزون فما فوق مُستثنَون من الحماية 🤍"
+    f"{BULLET} المميزين وفوگ ما تشملهم الحماية 🤍"
 )
 GUARD_CUSTOM = "✏️ مخصص"
 GUARD_NEED_MANAGER = "تعديل الحماية يحتاج رتبة مدير أو أعلى 🔐"
-GUARD_LEVEL_SET = f"{BULLET} تم ضبط مستوى الحماية على <b>{{level}}</b> ✨"
-GUARD_LEVEL_BAD = f"{BULLET} اختر مستوى من: <code>خفيف</code> ، <code>متوسط</code> ، <code>صارم</code> 🌸"
-GUARD_NO_DELETE_RIGHT = f"{BULLET} تنبيه: أحتاج صلاحية «<b>حذف الرسائل</b>» حتى تعمل الحماية 🔐"
+GUARD_LEVEL_SET = f"{BULLET} ضبطت مستوى الحماية على <b>{{level}}</b> ✨"
+GUARD_LEVEL_BAD = f"{BULLET} اختار مستوى من: <code>خفيف</code> ، <code>متوسط</code> ، <code>صارم</code> 🌸"
+GUARD_NO_DELETE_RIGHT = f"{BULLET} تنبيه: أحتاج صلاحية «<b>حذف الرسائل</b>» حتى تشتغل الحماية 🔐"
 
-GUARD_NOTICE = f"{BULLET} {{mention}} عذراً، {{what}} غير مسموح هنا 🌸 <i>({{strike}}/{{max}})</i>"
+GUARD_NOTICE = f"{BULLET} {{mention}} عيني، {{what}} ممنوع هنا 🌸 <i>({{strike}}/{{max}})</i>"
 GUARD_MUTED = (
     title("تَـمَّ الـكَـتْـم تِـلْـقَـائِـيًّـا", "🛡") + "\n"
     f"{BULLET} العضو: {{mention}}\n"
@@ -256,62 +265,107 @@ GUARD_WHAT = {
     "forward": "التوجيه",
     "mentions": "المنشن الجماعي",
 }
-GUARD_BOT_KICKED = f"{BULLET} تم طرد البوت {{bot}} 🤖 لأن إضافة البوتات تحتاج رتبة أدمن أو أعلى"
+GUARD_BOT_KICKED = f"{BULLET} طردت البوت {{bot}} 🤖 لأن إضافة البوتات تحتاج رتبة أدمن أو أعلى"
 
 WHITELIST_ADDED = f"{BULLET} تم السماح بروابط <code>{{domain}}</code> ✨"
 WHITELIST_REMOVED = f"{BULLET} تم منع روابط <code>{{domain}}</code> 🌸"
-WHITELIST_BAD = f"{BULLET} اكتب النطاق بشكل صحيح من فضلك 🌸 مثال: <code>سماح رابط youtube.com</code>"
-WHITELIST_NOT_FOUND = f"{BULLET} النطاق <code>{{domain}}</code> غير موجود بالقائمة"
+WHITELIST_BAD = f"{BULLET} اكتب النطاق صح رجاءً 🌸 مثال: <code>سماح رابط youtube.com</code>"
+WHITELIST_NOT_FOUND = f"{BULLET} النطاق <code>{{domain}}</code> مو موجود بالقائمة"
 WHITELIST_HEADER = title("الروابط المسموحة", "🔗") + f"\n{LINE}"
-WHITELIST_EMPTY = f"{BULLET} لا توجد روابط مسموحة حالياً (رابط المجموعة نفسها مسموح دائماً) 🌸"
+WHITELIST_EMPTY = f"{BULLET} ماكو روابط مسموحة هسه (رابط المجموعة نفسها مسموح دايماً) 🌸"
 GUARD_LOG_HEADER = title("سجل الحماية", "📜") + f"\n{LINE}"
-GUARD_LOG_EMPTY = f"{BULLET} لا توجد مخالفات مسجلة، المجموعة هادئة 🤍"
+GUARD_LOG_EMPTY = f"{BULLET} ماكو مخالفات مسجلة، المجموعة هادئة 🤍"
 
 CAPTCHA_TEXT = (
-    title("أهلاً بك {mention}", "🌸") + "\n"
+    title("هلا بيك {mention}", "🌸") + "\n"
     f"{LINE}\n"
-    f"{BULLET} للتأكد أنك لست روبوتاً، اضغط الزر بالأسفل\n"
-    f"{BULLET} لديك <b>{{minutes}} دقائق</b> 🤍"
+    f"{BULLET} حتى أتأكد إنك مو روبوت، اضغط الزر الجوه 👇\n"
+    f"{BULLET} عندك <b>{{minutes}} دقايق</b> 🤍"
 )
 CAPTCHA_BUTTON = "🤍 أنا لست روبوتاً"
-CAPTCHA_NOT_YOURS = "هذا الزر مخصص للعضو الجديد فقط 🌸"
-CAPTCHA_DONE = "تم التحقق بنجاح، أهلاً بك 🤍"
-CAPTCHA_EXPIRED = "انتهت صلاحية هذا التحقق 🌸"
+CAPTCHA_NOT_YOURS = "هذا الزر مخصص للعضو الجديد بس 🌸"
+CAPTCHA_DONE = "تم التحقق، هلا بيك 🤍"
+CAPTCHA_EXPIRED = "هذا التحقق خلص وقته 🌸"
+
+# ── السب ───────────────────────────────────────────
+SWEAR_MODES = {
+    "off": "🔓 مفتوح",
+    "delete": "🗑 مسح",
+    "mute": "🤐 مسح + كتم",
+    "ban": "🚫 مسح + حظر",
+}
+SWEAR_LABEL = "🤬 السب"
+SWEAR_REASON = "السب والكلام المسيء"
+SWEAR_NOTICE = f"{BULLET} {{mention}} عيب عيني، هالكلام ما ينگال هنا 🤍 رسالتك انمسحت"
+SWEAR_PUNISHED = (
+    title("{head}", "{emoji}") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} العضو: {{mention}}\n"
+    f"{BULLET} السبب: السب والكلام المسيء\n"
+    f"{BULLET} المدة: <b>دائمة</b>"
+)
+SWEAR_MODE_SET = title("تَـمَّ قَـفْـل الـسَّـب", "🤬") + f"\n{BULLET} الوضع: <b>{{mode}}</b>\n{BULLET} بواسطة: {{actor}}"
+SWEAR_MODE_OFF = title("تَـمَّ فَـتْـح الـسَّـب", "🔓") + f"\n{BULLET} بواسطة: {{actor}}"
+SWEAR_MODE_SAME = f"{BULLET} السب أصلاً على وضع <b>{{mode}}</b> ✨"
+SWEAR_LOG_HEADER = title("الـسَّـب الـمَـحْـذُوف", "🗑") + f"\n{LINE}"
+SWEAR_LOG_EMPTY = f"{BULLET} ماكو سب محذوف، المجموعة محترمة 🤍"
+SWEAR_LOG_ITEM = (
+    "▫️ {mention} ⋅ {action}\n"
+    f"    {BULLET} الكلمة: <tg-spoiler>{{word}}</tg-spoiler>\n"
+    f"    {BULLET} الرسالة: <i>{{text}}</i>\n"
+    "    ⏱ <code>{when}</code>"
+)
+SWEAR_LOG_FOOTER = "<i>اضغط على الكلمة المخفية حتى تشوفها ⋅ الوقت UTC</i>"
+SWEAR_LOG_CLEARED = f"{BULLET} انمسح سجل السب ✨"
+SWEAR_ACTIONS = {"delete": "🗑 مسح", "mute": "🤐 كتم", "ban": "🚫 حظر"}
+SWEAR_WORD_ADDED = f"{BULLET} انضافت <tg-spoiler>{{word}}</tg-spoiler> لقاموس السب ✨"
+SWEAR_WORD_REMOVED = f"{BULLET} انشالت <tg-spoiler>{{word}}</tg-spoiler> من القاموس الخاص 🌸"
+SWEAR_WORD_ALLOWED = f"{BULLET} صارت <code>{{word}}</code> مسموحة بهاي المجموعة ✨"
+SWEAR_WORD_BAD = f"{BULLET} اكتب الكلمة بعد الأمر رجاءً 🌸 (من 2 لـ 40 حرف)"
+SWEAR_WORD_NOT_FOUND = f"{BULLET} هاي الكلمة مو موجودة بالقاموس الخاص 🌸"
+SWEAR_WORDS_HEADER = title("قاموس السب الخاص", "📖") + f"\n{LINE}"
+SWEAR_WORDS_EMPTY = f"{BULLET} ماكو كلمات مضافة، القاموس الأساسي شغّال 🤍"
+SWEAR_ALLOWED_LABEL = f"{BULLET} كلمات مسموحة:"
+SWEAR_NEED_DELETE = f"{BULLET} تنبيه: أحتاج صلاحية «<b>حذف الرسائل</b>» حتى يشتغل قفل السب 🔐"
 
 # ── القفل والفتح ───────────────────────────────────
 LOCK_PANEL = (
     title("الأقفال", "🔒") + "\n"
     f"{LINE}\n"
     f"{BULLET} 🔒 مقفول ⋅ 🔓 مفتوح\n"
-    f"{BULLET} اضغط على أي نوع لقفله أو فتحه ✨\n"
+    f"{BULLET} اضغط على أي نوع حتى تقفله أو تفتحه ✨\n"
+    f"{BULLET} زر السب يتنقل بين: مفتوح ← مسح ← كتم ← حظر\n"
     f"{LINE}\n"
-    f"{BULLET} المميزون فما فوق مُستثنَون من الأقفال 🤍"
+    f"{BULLET} المميزين وفوگ ما تشملهم الأقفال (عدا السب) 🤍"
 )
 LOCKED = title("تَـمَّ الـقَـفْـل", "🔒") + f"\n{BULLET} {{what}}\n{BULLET} بواسطة: {{actor}}"
 UNLOCKED = title("تَـمَّ الـفَـتْـح", "🔓") + f"\n{BULLET} {{what}}\n{BULLET} بواسطة: {{actor}}"
+ALL_TYPES = "✨ جميع الأنواع"
 ALREADY_LOCKED = f"{BULLET} {{what}} مقفولة من قبل 🔒"
 ALREADY_UNLOCKED = f"{BULLET} {{what}} مفتوحة من قبل 🔓"
-LOCK_NOTICE = f"{BULLET} {{mention}} عذراً، <b>{{what}}</b> مقفولة حالياً في المجموعة 🔒"
-LOCK_NEED_RIGHTS = f"{BULLET} أحتاج صلاحية «<b>حذف الرسائل</b>» حتى تعمل الأقفال 🔐"
+LOCK_NOTICE = f"{BULLET} {{mention}} عيني، <b>{{what}}</b> مقفولة هسه بالمجموعة 🔒"
+LOCK_NEED_RIGHTS = f"{BULLET} أحتاج صلاحية «<b>حذف الرسائل</b>» حتى تشتغل الأقفال 🔐"
 LOCK_CHAT_NEED_RIGHTS = f"{BULLET} أحتاج صلاحية «<b>حظر المستخدمين</b>» حتى أقفل الدردشة 🔐"
 LOCK_NEED_RANK = "تعديل الأقفال يحتاج رتبة أدمن أو أعلى 🔐"
 HELP_LOCK_TYPES = (
     f"\n{BULLET} الأنواع: الصور، الفيديو، المتحركات، الملصقات، البصمات، الصوتيات، الملفات، "
     "الجهات، المواقع، الاستفتاءات، الإشعارات، الروابط، التوجيه، الدردشة\n"
-    f"{BULLET} مثال: <code>قفل الصور</code> ، <code>فتح الملصقات</code>"
+    f"{BULLET} مثال: <code>قفل الصور</code> ، <code>فتح الملصقات</code>\n"
+    f"{BULLET} السب: <code>قفل السب</code> ، <code>قفل السب بالكتم</code> ، "
+    "<code>قفل السب بالحظر</code> ، <code>فتح السب</code>"
 )
 
 # ── الترحيب والتوديع ───────────────────────────────
 DEFAULT_WELCOME = (
-    "✿ أهلاً وسهلاً {الاسم} 🌸\n"
+    "✿ هلا وغلا {الاسم} 🌸\n"
     "─── ⋆⋅🤍⋅⋆ ───\n"
-    "◈ سعداء بانضمامك إلى {المجموعة} 🤍\n"
-    "◈ أنت العضو رقم {العدد}\n"
-    "◈ نتمنى لك وقتاً ممتعاً معنا ✨"
+    "◈ نوّرت {المجموعة} 🤍\n"
+    "◈ انت العضو رقم {العدد}\n"
+    "◈ نتمنالك وقت حلو ويانه ✨"
 )
-DEFAULT_GOODBYE = "◈ وداعاً {الاسم} 🤍 نتمنى لك التوفيق دائماً ✨"
+DEFAULT_GOODBYE = "◈ مع السلامة {الاسم} 🤍 الله وياك، ونتمنالك كل الخير ✨"
 TEMPLATE_VARS = (
-    f"{BULLET} المتغيرات المتاحة:\n"
+    f"{BULLET} المتغيرات اللي تگدر تستخدمها:\n"
     "    <code>{الاسم}</code> اسم العضو بمنشن\n"
     "    <code>{اليوزر}</code> يوزر العضو\n"
     "    <code>{الايدي}</code> ايدي العضو\n"
@@ -326,25 +380,33 @@ WELCOME_STATUS = (
     f"{LINE}\n"
     f"{BULLET} معاينة:\n\n{{preview}}"
 )
-WELCOME_SET = f"{BULLET} تم حفظ قالب {{kind}} ✨ وهذه معاينته:\n\n{{preview}}"
-WELCOME_RESET = f"{BULLET} تمت إعادة {{kind}} للقالب الافتراضي 🌸"
+STATE_ON = "مفعّل ✅"
+STATE_OFF = "معطّل ▫️"
+TEMPLATE_CUSTOM = "مخصص ✏️"
+TEMPLATE_DEFAULT = "افتراضي 🌸"
+WELCOME_SET = f"{BULLET} انحفظ قالب {{kind}} ✨ وهاي معاينته:\n\n{{preview}}"
+WELCOME_RESET = f"{BULLET} رجّعت {{kind}} للقالب الافتراضي 🌸"
 WELCOME_ON = f"{BULLET} تم تفعيل {{kind}} ✅"
 WELCOME_OFF = f"{BULLET} تم تعطيل {{kind}} ▫️"
-WELCOME_EMPTY = f"{BULLET} اكتب نص القالب بعد الأمر من فضلك 🌸\n" + "{vars}"
-WELCOME_TOO_LONG = f"{BULLET} القالب طويل جداً، الحد الأقصى 1000 حرف 🌸"
+WELCOME_EMPTY = f"{BULLET} اكتب نص القالب بعد الأمر رجاءً 🌸\n" + "{vars}"
+WELCOME_TOO_LONG = f"{BULLET} القالب كلش طويل، الحد الأقصى 1000 حرف 🌸"
 BTN_RULES = "📜 القوانين"
 
 # ── القوانين والرابط والإحصائيات ─────────────────────
 RULES_TEXT = title("قوانين {title}", "📜") + f"\n{LINE}\n{{rules}}"
-RULES_EMPTY = f"{BULLET} لم تُضف قوانين لهذه المجموعة بعد 🌸\n{BULLET} يمكن للمدير إضافتها بأمر <code>تعيين القوانين</code>"
-RULES_SET = f"{BULLET} تم حفظ القوانين ✨ يمكن لأي عضو عرضها بكتابة <code>القوانين</code>"
-RULES_DELETED = f"{BULLET} تم حذف القوانين 🌸"
-RULES_ALERT_MORE = "\n… اكتب «القوانين» لعرضها كاملة"
+RULES_EMPTY = (
+    f"{BULLET} هاي المجموعة بعدها ما عدها قوانين 🌸\n"
+    f"{BULLET} المدير يگدر يضيفها بأمر <code>تعيين القوانين</code>"
+)
+RULES_NEED_TEXT = f"{BULLET} اكتب القوانين بعد الأمر رجاءً 🌸"
+RULES_SET = f"{BULLET} انحفظت القوانين ✨ أي عضو يگدر يشوفها إذا كتب <code>القوانين</code>"
+RULES_DELETED = f"{BULLET} انمسحت القوانين 🌸"
+RULES_ALERT_MORE = "\n… اكتب «القوانين» حتى تشوفها كاملة"
 LINK_TEXT = title("رابط {title}", "🔗") + f"\n{LINE}\n{{link}}"
-LINK_NONE = f"{BULLET} لا يوجد رابط حالياً، وأحتاج صلاحية «<b>دعوة المستخدمين</b>» لإنشائه 🔐"
-LINK_SET = f"{BULLET} تم حفظ الرابط ✨"
-LINK_BAD = f"{BULLET} الرابط غير صحيح 🌸 لازم يبدأ بـ <code>https://t.me/</code>"
-LINK_DELETED = f"{BULLET} تم حذف الرابط المحفوظ 🌸"
+LINK_NONE = f"{BULLET} ماكو رابط هسه، وأحتاج صلاحية «<b>دعوة المستخدمين</b>» حتى أسوي واحد 🔐"
+LINK_SET = f"{BULLET} انحفظ الرابط ✨"
+LINK_BAD = f"{BULLET} الرابط مو صحيح 🌸 لازم يبدأ بـ <code>https://t.me/</code>"
+LINK_DELETED = f"{BULLET} انمسح الرابط المحفوظ 🌸"
 STATS_TEXT = (
     title("إحصائيات {title}", "📊") + "\n"
     f"{LINE}\n"
@@ -354,6 +416,7 @@ STATS_TEXT = (
     f"{LINE}\n"
     f"{BULLET} المحظورين: <b>{{banned}}</b> ⋅ المكتومين: <b>{{muted}}</b>\n"
     f"{BULLET} مخالفات الحماية (24 ساعة): <b>{{guard24}}</b>\n"
+    f"{BULLET} السب المحذوف (24 ساعة): <b>{{swear24}}</b>\n"
     f"{BULLET} المستوى: {{level}} ⋅ الأقفال الفعالة: <b>{{locks}}</b>\n"
     f"{LINE}\n"
     f"{BULLET} الأكثر تفاعلاً:\n{{top}}"
@@ -363,9 +426,10 @@ STATS_TEXT = (
 SETTINGS_PANEL = (
     title("إعدادات {title}", "⚙️") + "\n"
     f"{LINE}\n"
-    f"{BULLET} اضغط على أي خيار لتعديله ✨\n"
+    f"{BULLET} اضغط على أي خيار حتى تعدّله ✨\n"
     f"{BULLET} التحذيرات: الحد <b>{{limit}}</b> ⋅ العقوبة <b>{{action}}</b>\n"
-    f"{BULLET} الحماية: {{level}} ⋅ الأقفال الفعالة: <b>{{locks}}</b>"
+    f"{BULLET} الحماية: {{level}} ⋅ الأقفال الفعالة: <b>{{locks}}</b>\n"
+    f"{BULLET} السب: <b>{{swear}}</b>"
 )
 SETTINGS_NEED_MANAGER = "تعديل الإعدادات يحتاج رتبة مدير أو أعلى 🔐"
 BTN_WELCOME = "👋 الترحيب"
@@ -386,17 +450,21 @@ OWNER_PANEL = (
     f"{BULLET} وقت التشغيل: <b>{{uptime}}</b>\n"
     f"{BULLET} الإصدار: <code>{{version}}</code>\n"
     f"{BULLET} وضع الصيانة: {{maintenance}}\n"
-    f"{BULLET} الأخطاء منذ التشغيل: <b>{{errors}}</b>"
+    f"{BULLET} الأخطاء من التشغيل: <b>{{errors}}</b>"
 )
-OWNER_ONLY = "هذا القسم خاص بمطور زهو فقط 🔐"
-MAINTENANCE_ON = f"{BULLET} تم تفعيل وضع الصيانة 🛠"
-MAINTENANCE_OFF = f"{BULLET} تم إيقاف وضع الصيانة، عدنا للعمل ✨"
+MAINT_STATE_ON = "مفعّل 🛠"
+MAINT_STATE_OFF = "مطفي ✅"
+OWNER_ONLY = "هذا القسم بس لمطور زهو 🔐"
+MAINTENANCE_ON = f"{BULLET} تفعّل وضع الصيانة 🛠"
+MAINTENANCE_OFF = f"{BULLET} انطفى وضع الصيانة، ورجعنا نشتغل ✨"
 AUDIT_HEADER = title("آخر العمليات", "📋") + f"\n{LINE}"
-AUDIT_EMPTY = f"{BULLET} لا توجد عمليات مسجلة حتى الآن 🌸"
+AUDIT_EMPTY = f"{BULLET} ماكو عمليات مسجلة لحد هسه 🌸"
+AUDIT_FOOTER = "<i>الوقت بتوقيت UTC</i>"
 GROUPS_HEADER = title("آخر المجموعات", "🌸") + f"\n{LINE}"
-GROUPS_EMPTY = f"{BULLET} لا توجد مجموعات حتى الآن"
-NEW_GROUP_NOTICE = title("انضممت لمجموعة جديدة", "🎀") + f"\n{LINE}\n{BULLET} {{title}}\n{BULLET} <code>{{chat_id}}</code>\n{BULLET} بواسطة: {{by}}"
-LEFT_GROUP_NOTICE = title("غادرت مجموعة", "🤍") + f"\n{BULLET} {{title}}\n{BULLET} <code>{{chat_id}}</code>"
+GROUPS_EMPTY = f"{BULLET} ماكو مجموعات لحد هسه"
+NO_TITLE = "بدون اسم"
+NEW_GROUP_NOTICE = title("انضفت لمجموعة جديدة", "🎀") + f"\n{LINE}\n{BULLET} {{title}}\n{BULLET} <code>{{chat_id}}</code>\n{BULLET} بواسطة: {{by}}"
+LEFT_GROUP_NOTICE = title("طلعت من مجموعة", "🤍") + f"\n{BULLET} {{title}}\n{BULLET} <code>{{chat_id}}</code>"
 ERROR_NOTICE = "⚠️ <b>خطأ</b>\n<code>{error}</code>\n" + f"{BULLET} المكان: {{where}}"
 
 # ── الأزرار ────────────────────────────────────────

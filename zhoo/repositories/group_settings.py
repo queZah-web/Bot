@@ -26,6 +26,10 @@ DEFAULTS: dict[str, str] = {
     "goodbye_text": "",
     "rules": "",
     "invite_link": "",
+    # السب: off | delete | mute | ban
+    "swear_mode": "off",
+    "swear_custom": "",   # كلمات مضافة (موحدة، مفصولة بفواصل)
+    "swear_allow": "",    # كلمات مسموحة بهاي المجموعة
 }
 
 

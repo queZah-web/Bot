@@ -105,11 +105,11 @@ async def test_warn_reaches_limit_and_auto_mutes(env):
 async def test_warn_action_setting(env):
     out = await say(env, CREATOR, "عقوبة التحذيرات طرد")
     assert "طرد" in out
-    assert "اختر" in await say(env, CREATOR, "عقوبة التحذيرات شي غريب")
+    assert "اختار" in await say(env, CREATOR, "عقوبة التحذيرات شي غريب")
 
 
 async def test_bad_duration(env):
-    assert "غير صحيحة" in await say(env, CREATOR, "كتم 999ي", reply_to=ALI)
+    assert "مو صحيحة" in await say(env, CREATOR, "كتم 999ي", reply_to=ALI)
 
 
 async def test_bot_without_rights(env):
@@ -149,7 +149,7 @@ async def test_undo_button(env):
     # عضو عادي ما يكدر يتراجع
     q = SimpleNamespace(from_user=SimpleNamespace(id=SARA, full_name="Sara"), answer=answer)
     await on_undo_button(q, msg, svc, bot, "m", str(ALI))
-    assert "لا تسمح" in answers[-1] and not edits
+    assert "ما تسمح" in answers[-1] and not edits
     # المنشئ يكدر
     q = SimpleNamespace(from_user=SimpleNamespace(id=CREATOR, full_name="Creator"), answer=answer)
     await on_undo_button(q, msg, svc, bot, "m", str(ALI))

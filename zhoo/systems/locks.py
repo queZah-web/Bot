@@ -179,25 +179,37 @@ _register()
 
 
 async def _set_all(svc: Services, bot, chat_id: int, on: bool, by: int) -> int:
+    from zhoo.systems import swear
     changed = 0
     for key in ALL_KEYS:
         if await set_lock(svc, bot, chat_id, key, on, by) == "ok":
             changed += 1
+    mode = await swear.get_mode(svc, chat_id)
+    if on and mode == "off":
+        await swear.set_mode(svc, chat_id, "delete", by)
+    elif not on and mode != "off":
+        await swear.set_mode(svc, chat_id, "off", by)
     return changed
+
+
+async def active_count(svc: Services, chat_id: int) -> int:
+    """عدد الأقفال الفعالة (مع السب)."""
+    from zhoo.systems import swear
+    return sum((await lock_state(svc, chat_id)).values()) + (await swear.get_mode(svc, chat_id) != "off")
 
 
 @registry.command("lock_all", ("قفل الكل",), section=S, min_rank=EDIT_RANK,
                   description="يقفل كل الأنواع (عدا الدردشة)", order=2)
 async def cmd_lock_all(cx: CommandContext) -> None:
     await _set_all(cx.services, cx.bot, cx.chat.id, True, cx.user.id)
-    await cx.reply(T.LOCKED.format(what="✨ جميع الأنواع", actor=mention(cx.user.id, cx.user.full_name)))
+    await cx.reply(T.LOCKED.format(what=T.ALL_TYPES, actor=mention(cx.user.id, cx.user.full_name)))
 
 
 @registry.command("unlock_all", ("فتح الكل",), section=S, min_rank=EDIT_RANK,
                   description="يفتح كل الأنواع (عدا الدردشة)", order=3)
 async def cmd_unlock_all(cx: CommandContext) -> None:
     await _set_all(cx.services, cx.bot, cx.chat.id, False, cx.user.id)
-    await cx.reply(T.UNLOCKED.format(what="✨ جميع الأنواع", actor=mention(cx.user.id, cx.user.full_name)))
+    await cx.reply(T.UNLOCKED.format(what=T.ALL_TYPES, actor=mention(cx.user.id, cx.user.full_name)))
 
 
 @registry.command("lock_one", ("قفل",), section=S, min_rank=EDIT_RANK, usage="النوع",
@@ -213,12 +225,15 @@ async def cmd_unlock_hint(cx: CommandContext) -> None:
 
 
 # ── لوحة الأقفال ────────────────────────────────────
-def panel_keyboard(uid: int, state: dict[str, bool], back: bool = False) -> InlineKeyboardMarkup:
+def panel_keyboard(uid: int, state: dict[str, bool], back: bool = False,
+                   swear_mode: str = "off") -> InlineKeyboardMarkup:
     buttons = [
         InlineKeyboardButton(f"{'🔒' if state[l.key] else '🔓'} {l.name}", callback_data=f"l:{uid}:t:{l.key}")
         for l in LOCKS
     ]
     rows = [buttons[i:i + 2] for i in range(0, len(buttons), 2)]
+    rows.append([InlineKeyboardButton(f"{T.SWEAR_LABEL}: {T.SWEAR_MODES[swear_mode]}",
+                                      callback_data=f"l:{uid}:s:-")])
     rows.append([InlineKeyboardButton(T.BTN_LOCK_ALL, callback_data=f"l:{uid}:a:1"),
                  InlineKeyboardButton(T.BTN_UNLOCK_ALL, callback_data=f"l:{uid}:a:0")])
     last = [InlineKeyboardButton(T.BTN_CLOSE, callback_data=f"l:{uid}:x:-")]
@@ -231,8 +246,10 @@ def panel_keyboard(uid: int, state: dict[str, bool], back: bool = False) -> Inli
 @registry.command("locks_panel", ("الاقفال", "الأقفال"), section=S, min_rank=EDIT_RANK,
                   description="لوحة الأقفال بالأزرار", order=1)
 async def cmd_panel(cx: CommandContext) -> None:
+    from zhoo.systems import swear
     state = await lock_state(cx.services, cx.chat.id)
-    await cx.reply(T.LOCK_PANEL, reply_markup=panel_keyboard(cx.user.id, state))
+    mode = await swear.get_mode(cx.services, cx.chat.id)
+    await cx.reply(T.LOCK_PANEL, reply_markup=panel_keyboard(cx.user.id, state, swear_mode=mode))
 
 
 async def on_panel_button(q, msg: Message, svc: Services, bot, uid_raw: str, action: str, arg: str) -> None:
@@ -257,17 +274,26 @@ async def on_panel_button(q, msg: Message, svc: Services, bot, uid_raw: str, act
                            .replace("</b>", ""), show_alert=True)
             return
         await q.answer(f"{'🔒' if on else '🔓'} {LOCK_MAP[arg].name}")
+    elif action == "s":
+        from zhoo.systems import swear
+        new = swear.next_mode(await swear.get_mode(svc, chat_id))
+        if await svc.perms.rank_of(bot, chat_id, q.from_user.id) < swear.SET_RANK[new]:
+            new = "off"  # الكتم والحظر يحتاجون مدير، نرجع للمفتوح
+        await swear.set_mode(svc, chat_id, new, q.from_user.id)
+        await q.answer(f"{T.SWEAR_LABEL}: {T.SWEAR_MODES[new]}")
     elif action == "a" and arg in ("0", "1"):
         await _set_all(svc, bot, chat_id, arg == "1", q.from_user.id)
         await q.answer(T.BTN_LOCK_ALL if arg == "1" else T.BTN_UNLOCK_ALL)
     else:
         await q.answer()
         return
+    from zhoo.systems import swear
     state = await lock_state(svc, chat_id)
+    mode = await swear.get_mode(svc, chat_id)
     back = any(b.callback_data and b.callback_data.startswith("st:")
                for row in (msg.reply_markup.inline_keyboard if getattr(msg, "reply_markup", None) else [])
                for b in row)
     try:
-        await msg.edit_reply_markup(reply_markup=panel_keyboard(q.from_user.id, state, back=back))
+        await msg.edit_reply_markup(reply_markup=panel_keyboard(q.from_user.id, state, back=back, swear_mode=mode))
     except BadRequest:
         pass

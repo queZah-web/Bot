@@ -95,7 +95,7 @@ def section_text(section: Section, registry: CommandRegistry, rank: Rank, *, pri
         locked = [c for c in cmds if rank < c.min_rank]
 
     if not visible:
-        body = f"{T.BULLET} لا توجد أوامر متاحة لرتبتك في هذا القسم 🌸"
+        body = T.NO_COMMANDS_FOR_RANK
     else:
         body = "\n".join(_command_line(c, show_rank=private) for c in visible)
     text = header + body

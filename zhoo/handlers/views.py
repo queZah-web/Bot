@@ -31,7 +31,7 @@ async def owner_panel_text(svc: Services) -> str:
         users=await svc.users.count(),
         uptime=duration(time.time() - svc.started_at),
         version=__version__,
-        maintenance="مفعّل 🛠" if svc.maintenance else "متوقف ✅",
+        maintenance=T.MAINT_STATE_ON if svc.maintenance else T.MAINT_STATE_OFF,
         errors=svc.error_count,
     )
 
@@ -51,7 +51,7 @@ async def audit_text(svc: Services, limit: int = 12) -> str:
             f"{mark} <code>{_ts(r['created_at'])}</code> {esc(r['action'])}"
             f" ⌯ منفذ <code>{r['actor_id'] or '-'}</code> ⌯ هدف <code>{r['target_id'] or '-'}</code>"
         )
-    return f"{T.AUDIT_HEADER}\n" + "\n".join(lines) + "\n<i>الوقت بتوقيت UTC</i>"
+    return f"{T.AUDIT_HEADER}\n" + "\n".join(lines) + "\n" + T.AUDIT_FOOTER
 
 
 async def groups_text(svc: Services, limit: int = 15) -> str:
@@ -61,7 +61,7 @@ async def groups_text(svc: Services, limit: int = 15) -> str:
     lines = []
     for r in rows:
         mark = "🟢" if r["is_active"] else "⚫"
-        title = esc(r["title"] or "بدون اسم")
+        title = esc(r["title"] or T.NO_TITLE)
         if r["username"]:
             title = f'<a href="https://t.me/{esc(r["username"])}">{title}</a>'
         lines.append(f"{mark} {title}\n    <code>{r['chat_id']}</code>")

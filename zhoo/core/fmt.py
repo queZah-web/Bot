@@ -18,7 +18,7 @@ def mention(user_id: int, name: str | None) -> str:
 
 
 def username_text(username: str | None) -> str:
-    return f"@{esc(username)}" if username else "لا يوجد"
+    return f"@{esc(username)}" if username else "ماكو"
 
 
 def duration(seconds: float) -> str:

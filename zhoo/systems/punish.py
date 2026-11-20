@@ -51,7 +51,7 @@ async def _bot_can_restrict(cx: CommandContext) -> bool:
         await cx.reply(T.BOT_NOT_ADMIN)
         return False
     if not rights.can_restrict_members:
-        await cx.reply(T.BOT_MISSING_RIGHT.format(right="حظر المستخدمين"))
+        await cx.reply(T.BOT_MISSING_RIGHT.format(right=T.RIGHT_RESTRICT))
         return False
     return True
 
@@ -177,12 +177,12 @@ async def warn(cx: CommandContext) -> None:
         rights = await svc.perms.bot_rights(cx.bot, cx.chat.id)
         if rights is None or not rights.can_restrict_members:
             text += "\n" + (T.BOT_NOT_ADMIN if rights is None else
-                            T.BOT_MISSING_RIGHT.format(right="حظر المستخدمين"))
+                            T.BOT_MISSING_RIGHT.format(right=T.RIGHT_RESTRICT))
         else:
             try:
                 await mod.apply(cx.bot, cx.chat.id, target.user_id, action, None)
                 await svc.punishments.add(cx.chat.id, target.user_id, action, cx.bot.id,
-                                          "تجاوز حد التحذيرات", None)
+                                          T.WARN_AUTO_REASON, None)
                 await svc.punishments.clear_warnings(cx.chat.id, target.user_id)
                 await svc.audit.log(f"auto_{action}", chat_id=cx.chat.id, actor_id=cx.bot.id,
                                     target_id=target.user_id, details={"warnings": count})
@@ -364,7 +364,7 @@ async def cmd_punish_log(cx: CommandContext) -> None:
         if r["reason"]:
             line += f" ⋅ <i>{esc(r['reason'][:60])}</i>"
         lines.append(line)
-    await cx.reply(text + "\n".join(lines) + "\n<i>🟢 فعّالة ⋅ ⚪ منتهية ⋅ الوقت UTC</i>")
+    await cx.reply(text + "\n".join(lines) + "\n" + T.PUNISH_LOG_FOOTER)
 
 
 @registry.command("warn_limit", ("عدد التحذيرات",), section=S, min_rank=Rank.MANAGER, args="text",
