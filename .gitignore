@@ -4,8 +4,8 @@ env.txt
 /config.py
 
 # بيانات وسجلات
-data/
-logs/
+/data/
+/logs/
 *.db
 *.db-*
 *.sqlite*
