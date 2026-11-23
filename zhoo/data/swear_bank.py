@@ -146,6 +146,10 @@ SAFE_WORDS = """
 ابوك امك اختك اخوك اهلك شرفك عرضك ديني
 الشيطان_اللعين اعوذ_بالله_من_الشيطان_اللعين قندرة_جديدة اشتريت_قندره حليب_البقرة ثور_هائج جبة_صوف
 السطل_مليان الكلب_نايم_بالبيت حمار_الوحش الطلي_والخروف العجل_المشوي
+الحس_الوطني بغي_الظالم الخراج ابو_الحسن الزاني_والزانية حكم_اللواط البزاز محل_البزاز جلاخ_السكاكين
+مصلي_الجمعة الناجي ازبكستان الازبك فرخ_الدجاج فرخ_الحمام خول_له دين_الله ابو_حرام_الدين
+sara sarah ears arsenal art nick nike zina tiz tez eri eric kiss class pass bass mass kus
+ابو_شارع_فلسطين دين_الاسلام سددت_دين_ابوك
 شكرا مرحبا صباح الخير مساء النور حبيبي حبيبتي الله يحفظك تسلم
 انعكاسات تكسير مكاسب كسالى كسوة_العيد
 kiss kissing kids cos cost costs nick nickname dickens bass class pass assess assessment
@@ -157,3 +161,117 @@ ayran kosovo
 def safe_items() -> list[str]:
     """الكلمات السليمة كقائمة (الشرطة السفلية = مسافة: قواد_الجيش ← قواد الجيش)."""
     return [w.replace("_", " ") for w in SAFE_WORDS.split()]
+
+
+# ════════════════════════════════════════════════════════════════════
+# القاموس العراقي الموسع (مرتب من ملف المالكة + إضافات فشار وكفر عراقية)
+# الصيغ ويا البادئات (ب، ف، و، ال) واللواحق (ك، ج، ه، ها، كم، ي، ات، ين) تنكشف تلقائياً،
+# فهنا نكتب الأصل بس. والكلمات اللي إلها معنى سليم بالفصحى تنضاف كعبارات بس.
+# ════════════════════════════════════════════════════════════════════
+_RELATIONS = ("ابن", "بنت", "ولد", "ابو", "ام", "اخت", "اخو", "اولاد", "اخوات", "خوات")
+# «ابن الـ...» ونحوها
+_FAMILY_VULGAR = ("ديوث", "زنا", "شرموطه", "عاهره", "عرص", "قحبه", "كحبه", "قواد", "كواد", "منيوجه",
+                  "منيوكه", "مومسه", "حرام", "متناكه", "داعره", "فرخه")
+_FAMILY_INSULT = ("جلب", "كلب", "حمار", "حيوان", "خنزير", "زباله", "وسخه", "شارع", "شوارع", "زمال", "مطي")
+# أفعال تنقال على الأهل
+_CURSE_VERBS = ("يلعن", "انعل", "نعل", "الله يلعن", "بول على", "بول علي", "خرا على", "خرا علي")
+_SEXUAL_VERBS = ("افشخ", "فشخ", "جلخ", "انيج", "نيج", "نيك", "انيك")
+_FAMILY_OBJECTS = ("ابوك", "امك", "اختك", "اخوك", "اهلك", "بنتك", "خالتك", "عمتك", "زوجتك", "شرفك", "عرضك",
+                   "جدك", "خلفتك", "سلفاك")
+# كفر وتجاوز على المقدسات (عراقي)
+_SACRED = ("ربك", "دينك", "مذهبك", "نبيك", "رسولك", "طايفتك", "الله", "القران", "ربكم", "دينكم")
+_BODY_WORDS = ("كس", "عير", "زب", "طيز")
+_KUFR_VERBS = ("يلعن", "انعل", "نعل", "الله يلعن", "كس", "عير", "زب", "طيز", "نيج", "نيك", "انيج", "افشخ",
+               "فشخ", "جلخ", "بول على", "بول علي", "خرا على", "خرا علي", "خرا ب")
+
+
+def _expanded() -> tuple[dict[int, str], dict[int, str], dict[int, list[str]]]:
+    exact = {
+        SEVERE: """
+            كسم كسي كسهم كسمه كسخت كسختي ازبج اخرا امصلي الحسلي انفشخ فاشخ فشخت فشخك فشخج فشخه
+            جلخت جلخني ناك بعبص بعبوص بعبصك بزازج بزازك بزازها بزازكم بزازهم مفشوخ مفشوخه مصني مصيلي
+            kos koss kosomak kosomk kosomek kosmak kosamk ksomak ksmk kusomak
+            zib zibi zibk zibik zibak zebi zebbi zebk zebik zebak zubi
+            3eer 3eerak 3eerk 3yri 3yrak 3yrk 3ayri eyri
+            neek nayek nayej nayik nayij nayjk nayeg niyak niyej niyik nyak anik anayek anayej
+            manyok mnyok manyuk munyuk menyok minyuk manyoj manyooj manyog manyoog manyoga
+            mnyoj mnyooj mnyoog mnyoga mitnak metnak mtnak mutnak mtnaak metnaka mitnaka mtnaka mtnaaka mutnaka
+            teezi teezk teiz tizi tizk tizak
+            fashkh fshkh fashakh fshakh fashkha fashakhk fashakhet
+            jalakh jlakh jalkh jlkh majlakh mjalakh jalakhni jalakni jalakhet
+        """,
+        MEDIUM: """
+            خراك
+            sharmoota sharmouta shrmota sharmuta sharmoto sharmoots sharmoot sharamit
+            qahbe qahbat qahab kahbi kahbeh kahbe kahbat kahbah kahab
+            qawwad qawwed qawad kawwed kawwad gawwad
+            dayouth dayoos dyuth dyooth dayyuth dayyouth dayuth dayus dayous dayoth dayooth dayoot
+            khanith khnith khaneeth khanees khanis mkhanith mkhanath mkhanas
+            lawat lwat lawati lwati lawaty lwaty lawaati lwaati luti
+            mumis moomis momis mo3ars mu3ars mo3rs
+            3ahera 3ahir 3ahira 3ahrah
+            khara kharaa khra khrah khare khara3 farkh frkh farikh farikha khawal khawl
+        """,
+    }
+    stems = {
+        SEVERE: "نياك نياكه",
+        MEDIUM: """
+            داعر داعره داعرات داعرين ديايث خنيثه مخنوث مخنوثه مومس مومسه مومسات
+            شرموطات عاهرات عاهرين قحابات منيوجين منيوكين متناكين مخنثين خنيثين ديوثين
+        """,
+    }
+    phrases: dict[int, list[str]] = {SEVERE: [], MEDIUM: [], LIGHT: []}
+    # «حرام/شارع» بدون «ال» ممكن تكون أسماء (ابو حرام الدين، ابو شارع) — بس ويا ابن/بنت/ولد/اولاد
+    loose = {"حرام", "شارع", "شوارع"}
+    children = ("ابن", "بنت", "ولد", "اولاد")
+    for rel in _RELATIONS:
+        for t in _FAMILY_VULGAR:
+            phrases[MEDIUM] += [f"{rel} ال{t}"] + ([f"{rel} {t}"] if t not in loose or rel in children else [])
+        for t in _FAMILY_INSULT:
+            phrases[LIGHT] += [f"{rel} ال{t}"] + ([f"{rel} {t}"] if t not in loose or rel in children else [])
+    for v in _CURSE_VERBS:
+        phrases[MEDIUM] += [f"{v} {o}" for o in _FAMILY_OBJECTS]
+    for v in _SEXUAL_VERBS:
+        phrases[SEVERE] += [f"{v} {o}" for o in _FAMILY_OBJECTS]
+    for v in _KUFR_VERBS:
+        # «كس/زب + الله» متلزگة تصير كلمات سليمة (كسالة، زبالة) — وكلمات الجسد لوحدها تنكشف أصلاً
+        objects = _SACRED if v not in _BODY_WORDS else [o for o in _SACRED if o not in ("الله", "القران")]
+        phrases[SEVERE] += [f"{v} {o}" for o in objects]
+    phrases[MEDIUM] += [
+        "يلعن ابو", "انعل ابو", "يلعن اللي خلفك", "يلعن اللي جابك", "يلعن ابو اللي جابك", "يا خول", "يا فرخ",
+        "يا فرخه", "يا داعر", "يا داعره", "يا مومس", "يا ديوث", "يا قحبه", "يا كحبه", "يا شرموطه",
+    ]
+    phrases[LIGHT] += ["كل تبن", "اخرس ولك", "اخرسي ولج", "انجب ولك", "سد حلكك", "سدي حلكج"]
+    # «دين امك» وأمثالها (بدون «دين ابوك/اخوك...» لأن الدَّين كلام عادي: سددت دين ابوك)
+    phrases[MEDIUM] += [f"دين {o}" for o in ("امك", "اختك", "عرضك", "شرفك")]
+    phrases[SEVERE] += ["دين ربك", "دين ربج"]
+    # عربيزي: العائلة + أل التعريف بكل صيغها
+    lat_rel = ("abn", "ibn", "ibin", "ebn", "bint", "bnt", "abo", "abu", "umm", "ukht", "ukhet", "akho",
+               "walad", "wlad")
+    lat_vulgar = ("dayouth", "kahba", "qahba", "kawad", "qawwad", "manyok", "mnyok", "sharmoota", "sharmouta",
+                  "ars", "3ars", "zina", "haram")
+    lat_insult = ("kalb", "jalb", "hayawan", "khanzeer", "wasikha", "zibala")
+    for rel in lat_rel:
+        for art in ("", "al ", "el ", "il ", "l "):
+            phrases[MEDIUM] += [f"{rel} {art}{t}" for t in lat_vulgar]
+            phrases[LIGHT] += [f"{rel} {art}{t}" for t in lat_insult]
+    for v in ("yl3n", "yil3an", "yel3an", "yla3n", "yilaan", "yilan", "yalaan", "yel3n"):
+        phrases[MEDIUM] += [f"{v} {o}" for o in ("abook", "abouk", "abok", "abuk", "omak", "ummak", "ummik",
+                                                 "omik", "ukhtak", "ikhtak", "okhtak", "ahlak")]
+        phrases[SEVERE] += [f"{v} {o}" for o in ("dinak", "rabak", "rabbak", "deenak")]
+    phrases[MEDIUM] += ["khara bik", "khara 3alek", "5ara bik", "5ara 3alek", "kol khara"]
+    return exact, stems, phrases
+
+
+def _merge() -> None:
+    exact, stems, phrases = _expanded()
+    for level, words in exact.items():
+        EXACT[level] = EXACT.get(level, "") + "\n" + words
+    for level, words in stems.items():
+        STEMS[level] = STEMS.get(level, "") + "\n" + words
+    for level, items in phrases.items():
+        PHRASES.setdefault(level, [])
+        PHRASES[level] = PHRASES[level] + [p for p in dict.fromkeys(items)]
+
+
+_merge()

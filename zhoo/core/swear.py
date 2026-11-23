@@ -56,7 +56,7 @@ _LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t
 # بادئات تُزال قبل المقارنة (الأطول أولاً)
 PREFIXES = ("وال", "بال", "فال", "يال", "ولل", "يا", "ال", "لل", "و", "ف", "ب", "ل")
 # لواحق مسموحة بعد الجذر (بدون «ي» و«ات» حتى ما نصيب: نيكي ، عرصات)
-SUFFIXES = ("كم", "كن", "هم", "هن", "ها", "نا", "ك", "ج", "ه")
+SUFFIXES = ("كم", "كن", "هم", "هن", "ها", "نا", "ات", "ين", "ك", "ج", "ه", "ي")
 # لواحق الملكية لتصريف آخر كلمة بالعبارة (ابوك ← ابوج ، ابوكم ...)
 _POSSESSIVE = ("ج", "كم", "كن", "ه", "ها", "هم")
 MAX_SPREAD = 24      # أطول تسلسل حروف مفرّقة نفحص داخله
@@ -247,6 +247,15 @@ def _find_stem(cand: str, layers: tuple[Lexicon, ...]) -> Entry | None:
                 e = lx.stems.get(base[:-1] + "ه")       # قحبه ← قحبتك
             if e is not None:
                 return e
+    # التكرار المضغوط: متناك + كم = متناككم ← انضغطت «متناكم»
+    for suf in SUFFIXES:
+        if len(suf) > 1 and cand.endswith(suf[1:]):
+            base = cand[: len(cand) - len(suf) + 1]
+            if len(base) >= 3 and base.endswith(suf[0]):
+                for lx in layers:
+                    e = lx.stems.get(base)
+                    if e is not None:
+                        return e
     return None
 
 
@@ -256,6 +265,8 @@ def match_word(norm: str, layers: tuple[Lexicon, ...]) -> Entry | None:
     for p in PREFIXES:
         if norm.startswith(p) and len(norm) - len(p) >= 2:
             cands.append((norm[len(p):], p))
+    if norm.startswith("ال") and len(norm) > 4:
+        cands.append((norm[1:], "ال"))   # اللوطي ← انضغطت «الوطي» ← لوطي
     for cand, prefix in cands:
         for lx in layers:
             e = lx.exact.get(cand)

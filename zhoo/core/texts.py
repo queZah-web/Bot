@@ -316,12 +316,20 @@ CAPTCHA_EXPIRED = "هذا التحقق خلص وقته 🌸"
 # ── السب ───────────────────────────────────────────
 SWEAR_MODES = {
     "off": "🔓 مفتوح",
-    "smart": "🧠 تدريجي ذكي",
     "delete": "🗑 مسح",
-    "mute": "🤐 مسح + كتم",
-    "ban": "🚫 مسح + حظر",
+    "warn": "⚠️ إنذار ثم كتم",
+    "mute": "🤐 كتم",
+    "ban": "🚫 حظر",
 }
-SWEAR_LEVELS = {1: "🟢 إهانة (خفيف)", 2: "🟠 مسبة (متوسط)", 3: "🔴 فشار +18 (شديد)"}
+SWEAR_MODE_HINTS = {
+    "delete": "تنمسح الرسالة بس",
+    "warn": "تنمسح الرسالة، وإنذارين، والمرة الثالثة كتم",
+    "mute": "تنمسح الرسالة وينكتم من أول مرة",
+    "ban": "تنمسح الرسالة وينحظر من أول مرة",
+}
+SWEAR_MODES_HELP = (f"{BULLET} الأوضاع: <code>قفل السب بالمسح</code> ⋅ <code>بالانذار</code> ⋅ "
+                    "<code>بالكتم</code> ⋅ <code>بالحظر</code>")
+SWEAR_LEVELS = {1: "🟢 إهانة (خفيف)", 2: "🟠 مسبة (متوسط)", 3: "🔴 فشار وكفر (شديد)"}
 # خيارات أمر الإضافة
 SWEAR_LEVEL_WORDS = {"خفيف": 1, "اهانه": 1, "متوسط": 2, "مسبه": 2, "شديد": 3, "فشار": 3}
 # نوعين قفل مستقلين: الفشار (+18 والمسبات) والإهانات
@@ -333,8 +341,9 @@ SWEAR_SCOPE_COVERS = {
 }
 # كلمات اختيارية بعد «قفل السب»: 18 ← الفشار بس
 SWEAR_SCOPE_WORDS = {"18": "vulgar", "+18": "vulgar", "18+": "vulgar"}
-SWEAR_MODE_WORDS = {"تدريجي": "smart", "التدريجي": "smart", "بالتدريج": "smart",
-                    "بالمسح": "delete", "بالكتم": "mute", "بالحظر": "ban"}
+SWEAR_MODE_WORDS = {"بالمسح": "delete", "بالحذف": "delete", "بالانذار": "warn", "بالإنذار": "warn",
+                    "بالتحذير": "warn", "بالكتم": "mute", "بالحظر": "ban"}
+SWEAR_IGNORE_WORDS = {"18", "+18", "18+"}
 SWEAR_GLOBAL_WORD = "عام"
 SWEAR_PLANS = {
     "gradual": "📈 تدريجي",
@@ -393,15 +402,15 @@ SWEAR_UNLOCK_TITLES = {
     "insult": title("تَـمَّ فَـتْـح الإِهَـانَـات", "🔓"),
 }
 SWEAR_MODE_SET = (
-    "{head}\n"
-    f"{BULLET} يشمل: {{covers}}\n"
-    f"{BULLET} الوضع: <b>{{mode}}</b>\n"
+    title("تَـمَّ قَـفْـل الـسَّـب", "🤬") + f"\n{LINE}\n"
+    f"{BULLET} يشمل: الشتائم والإهانات والفشار والكفر (للذكر والأنثى)\n"
+    f"{BULLET} الوضع: <b>{{mode}}</b> — {{hint}}\n"
     f"{BULLET} بواسطة: {{actor}}"
 )
 SWEAR_OTHER_STATE = f"{BULLET} {{scope}}: <b>{{mode}}</b>"
 SWEAR_MODE_SMART_HINT = f"{BULLET} العقوبة حسب شدة الكلام وعدد المخالفات ⋅ تتغير من: <code>عقوبات السب</code>"
-SWEAR_MODE_OFF = "{head}\n" + f"{BULLET} بواسطة: {{actor}}"
-SWEAR_MODE_SAME = f"{BULLET} {{scope}} أصلاً على وضع <b>{{mode}}</b> ✨"
+SWEAR_MODE_OFF = title("تَـمَّ فَـتْـح الـسَّـب", "🔓") + f"\n{BULLET} بواسطة: {{actor}}"
+SWEAR_MODE_SAME = f"{BULLET} قفل السب أصلاً على وضع <b>{{mode}}</b> ✨"
 SWEAR_LOG_HEADER = title("مُـخَـالَـفَـات الـسَّـب", "🗑") + f"\n{LINE}"
 SWEAR_LOG_EMPTY = f"{BULLET} ماكو مخالفات، المجموعة محترمة 🤍"
 SWEAR_LOG_STRIKES = f"{BULLET} مخالفات {{mention}} آخر 7 أيام: <b>{{n}}</b>"
@@ -460,7 +469,7 @@ SWEAR_TEST_BLOCKED = (
     f"{BULLET} اللي انكشف: <tg-spoiler>{{found}}</tg-spoiler>\n"
     f"{BULLET} يطابق: <tg-spoiler>{{key}}</tg-spoiler>\n"
     f"{BULLET} الفئة: <b>{{level}}</b> ⋅ {{kind}}\n"
-    f"{BULLET} القفل: {{scope}} ⋅ <b>{{scope_mode}}</b>\n"
+    f"{BULLET} قفل السب: <b>{{scope_mode}}</b>\n"
     f"{BULLET} المصدر: {{source}}\n"
     f"{BULLET} الإجراء هنا: <b>{{action}}</b>"
 )
@@ -572,7 +581,7 @@ PROFILE_ECONOMY = f"{BULLET} الرصيد: <b>{{balance}}</b> 🌸\n"
 PROFILE_SHOP_TITLE = f"{BULLET} اللقب الخاص: <b>{{title}}</b>\n"
 PROFILE_RATING = (
     f"{LINE}\n"
-    f"{BULLET} التقييم: {{stars}} <b>{{score}}</b>/10 <i>({{voters}} تقييم)</i>\n"
+    f"{BULLET} التقييم 🌍: {{stars}} <b>{{score}}</b>/10 <i>({{voters}} تقييم بكل المجموعات)</i>\n"
     f"{BULLET} إنسان جميل ✨: <b>{{good}}</b>\n"
     f"{BULLET} إنسان سيئ 👎🏻: <b>{{bad}}</b>\n"
 )
@@ -588,7 +597,7 @@ RATE_SELF = "ما يصير تقيّم نفسك 😄🌸"
 RATE_BOT = "البوتات ما تنقيّم 🤖"
 RATE_CMD_DONE = f"{BULLET} قيّمت {{mention}} بـ <b>{{n}}/10</b> ⭐"
 RATE_CMD_BAD = f"{BULLET} اكتب رقم من 1 لـ 10 ويا الرد رجاءً 🌸 مثال: <code>قيمه 9</code>"
-TOP_RATED_HEADER = title("الأعلى تقييماً", "⭐") + f"\n{LINE}"
+TOP_RATED_HEADER = title("الأعلى تقييماً", "⭐") + f"\n<i>🌍 بكل المجموعات</i>\n{LINE}"
 TOP_RATED_EMPTY = f"{BULLET} ماكو تقييمات كافية لحد هسه 🌸 (يحتاج 3 تقييمات على الأقل)"
 PROFILE_NO_BIO = "<i>ما مكتوبة بعد</i> ✏️"
 BIO_SET = f"{BULLET} انحفظت نبذتك ✨ تطلع بملفك الشخصي"
@@ -599,7 +608,7 @@ THANKS_SELF = f"{BULLET} ما يصير تشكر نفسك 😄🌸"
 THANKS_BOT = f"{BULLET} تسلم 🤍 بس البوتات ما تنحسب بالشكر"
 THANKS_AGAIN = f"{BULLET} شكرت {{mention}} قبل شوية 🌸 تگدر تشكره مرة ثانية بعد {{left}}"
 THANKS_LIMIT = f"{BULLET} وصلت للحد اليومي من الشكر 🌸 ارجع باچر"
-TOP_THANKED_HEADER = title("الأكثر شكراً", "🤍") + f"\n{LINE}"
+TOP_THANKED_HEADER = title("الأكثر شكراً", "🤍") + f"\n<i>🌍 بكل المجموعات</i>\n{LINE}"
 TOP_THANKED_EMPTY = f"{BULLET} ماكو شكر لحد هسه 🌸 اشكر أحد بالرد عليه بكلمة <code>شكر</code>"
 
 # ── الاقتراحات ─────────────────────────────────────
@@ -1655,3 +1664,24 @@ WATCH_ALERT = (
 )
 WATCH_NO_OWNER = "صاحب المجموعة"
 WATCH_LOCKED = f"{BULLET} {{mention}} رتبته موقوفة للتحقيق 🔍 بس صاحب المجموعة يكدر يرفعه"
+
+
+# ── الإعداد السريع ─────────────────────────────────
+QS_PANEL = (
+    title("الإِعْـدَاد الـسَّـرِيـع", "⚡") + f"\n{LINE}\n"
+    "{items}\n" + f"{LINE}\n"
+    f"{BULLET} <i>اضغط الزر حتى أطبّق الموصى به: حماية متوسطة + قفل السب بالإنذار + الترحيب</i>\n"
+    f"{BULLET} <i>القوانين والرابط: <code>ضع قوانين</code> ⋅ <code>انشاء رابط</code></i>"
+)
+QS_BOT = "{mark} صلاحيات زهو: {state}"
+QS_GUARD = "{mark} الحماية: <b>{state}</b>"
+QS_SWEAR = "{mark} قفل السب: <b>{state}</b>"
+QS_WELCOME = "{mark} الترحيب: <b>{state}</b>"
+QS_RULES = "{mark} القوانين: <b>{state}</b>"
+QS_LINK = "{mark} الرابط: <b>{state}</b>"
+QS_ON = "شغّال"
+QS_OFF = "مطفي"
+QS_SET = "موجود"
+QS_UNSET = "ماكو"
+QS_BTN_APPLY = "⚡ طبّق الإعداد الموصى به"
+QS_APPLIED = "تم ✨ صارت الحماية متوسطة، وقفل السب بالإنذار، والترحيب شغّال"

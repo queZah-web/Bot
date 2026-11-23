@@ -147,6 +147,6 @@ async def test_custom_dictionary(env):
 async def test_lock_all_enables_swear(env):
     await _setup(env)
     await say(env, CREATOR, "قفل الكل")
-    assert await swear.get_mode(env[0], GROUP) == "smart"
+    assert await swear.get_mode(env[0], GROUP) == "delete"
     await say(env, CREATOR, "فتح الكل")
     assert await swear.get_mode(env[0], GROUP) == "off"

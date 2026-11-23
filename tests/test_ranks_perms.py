@@ -314,3 +314,38 @@ async def test_inspect_report(env):
     assert "التحذيرات: <b>1/3</b>" in out and "كتم 1" in out and "الحالية: كتم" in out
     assert "حساب شخصي" in out
     assert "يحتاج رتبة" in await say(env, SARA, "كشف", reply_to=ALI)
+
+
+# ── ٩) الشكر والتقييم عام بكل المجموعات ──
+async def test_thanks_and_ratings_are_global(env):
+    svc, bot, _ = env
+    await _setup(env)
+    other = GROUP - 1
+    await svc.groups.upsert(other, "g2", None)
+    await svc.ratings.set_score(GROUP, ALI, SARA, 8)
+    await svc.ratings.set_vibe(GROUP, ALI, SARA, 1)
+    await svc.ratings.set_score(other, ALI, SARA, 6)          # نفس الشخص يغيّر تقييمه من مجموعة ثانية
+    assert await svc.ratings.summary(other, ALI) == (1, 0, 6.0, 1)
+    assert await svc.ratings.summary(GROUP, ALI) == (1, 0, 6.0, 1)
+    await svc.social.add_thanks(GROUP, SARA, ALI)
+    await svc.social.add_thanks(other, CREATOR, ALI)
+    assert await svc.social.thanks_count(other, ALI) == 2
+    out = await say(env, SARA, "ملفه", reply_to=ALI)
+    assert "6.0" in out
+
+
+# ── ١٠) الإعداد السريع ──
+async def test_quick_setup(env):
+    from zhoo.systems import quicksetup, swear
+    svc, bot, _ = env
+    await _setup(env)
+    out = await say(env, CREATOR, "الاعداد السريع")
+    assert "الإِعْـدَاد الـسَّـرِيـع" in out and "قفل السب: <b>🔓 مفتوح" in out
+    q = _Q(ALI)
+    await quicksetup.on_button(q, _msg(), svc, bot, str(CREATOR), "a")
+    assert await swear.get_mode(svc, GROUP) == "off"                 # مو صاحب اللوحة
+    q = _Q(CREATOR)
+    await quicksetup.on_button(q, _msg(), svc, bot, str(CREATOR), "a")
+    assert await swear.get_mode(svc, GROUP) == "warn"
+    assert await svc.group_settings.get(GROUP, "welcome_on") == "1"
+    assert "يحتاج رتبة" in await say(env, ALI, "الاعداد السريع")

@@ -93,7 +93,12 @@ SWEAR_PLANS: dict[str, tuple[tuple[str, int | None], ...]] = {
 }
 SWEAR_PLAN_ORDER = ("gradual", "mute", "ban", "delete", "off")
 # الوضع العام للقفل ← الخطة لكل مستوى (smart = حسب إعداد كل مستوى)
-SWEAR_FIXED_MODES = {"delete": (("delete", None),), "mute": (("mute", None),), "ban": (("ban", None),)}
+SWEAR_FIXED_MODES = {
+    "delete": (("delete", None),),
+    "warn": (("warn", None), ("warn", None), ("mute", None)),   # إنذارين، والثالثة كتم
+    "mute": (("mute", None),),
+    "ban": (("ban", None),),
+}
 
 
 def swear_step(plan: tuple[tuple[str, int | None], ...], strike: int) -> tuple[str, int | None] | None:

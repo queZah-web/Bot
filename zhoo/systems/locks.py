@@ -174,7 +174,7 @@ async def lock_state(svc: Services, chat_id: int) -> dict[str, str | None]:
 async def active_count(svc: Services, chat_id: int) -> int:
     from zhoo.systems import swear
     state = await lock_state(svc, chat_id)
-    return sum(1 for v in state.values() if v) + await swear.active_scopes(svc, chat_id)
+    return sum(1 for v in state.values() if v) + (await swear.get_mode(svc, chat_id) != "off")
 
 
 # ── الكشف والتنفيذ ──────────────────────────────────
@@ -430,11 +430,11 @@ async def _set_all(svc: Services, bot, chat_id: int, on: bool, by: int) -> int:
     for key in ALL_KEYS:
         if await set_lock(svc, bot, chat_id, key, on, by) == "ok":
             changed += 1
-    for scope, mode in (await swear.get_modes(svc, chat_id)).items():
-        if on and mode == "off":
-            await swear.set_mode(svc, chat_id, "smart", by, scope)
-        elif not on and mode != "off":
-            await swear.set_mode(svc, chat_id, "off", by, scope)
+    mode = await swear.get_mode(svc, chat_id)
+    if on and mode == "off":
+        await swear.set_mode(svc, chat_id, "delete", by)
+    elif not on and mode != "off":
+        await swear.set_mode(svc, chat_id, "off", by)
     return changed
 
 
@@ -473,9 +473,8 @@ async def panel_view(svc: Services, chat_id: int, uid: int, page: str = "media",
         buttons.append(B(f"{icon} {l.name}", callback_data=f"l:{uid}:t:{l.key}"))
     rows = [tabs] + [buttons[i:i + 2] for i in range(0, len(buttons), 2)]
     if page == "content":
-        modes = await swear.get_modes(svc, chat_id)
-        rows.append([B(T.SWEAR_BTN_SCOPE[sc].format(mode=T.SWEAR_MODES[modes[sc]]),
-                       callback_data=f"l:{uid}:s:{sc[0]}") for sc in swear.SCOPES])
+        rows.append([B(f"{T.SWEAR_LABEL}: {T.SWEAR_MODES[await swear.get_mode(svc, chat_id)]}",
+                       callback_data=f"l:{uid}:s:-")])
     rows.append([B(T.BTN_LOCK_ALL, callback_data=f"l:{uid}:a:1"), B(T.BTN_UNLOCK_ALL, callback_data=f"l:{uid}:a:0")])
     last = [B(T.BTN_CLOSE, callback_data=f"l:{uid}:x:-")]
     if back:
@@ -505,13 +504,12 @@ async def cmd_status(cx: CommandContext) -> None:
                     vip=T.LOCK_STATUS_VIP_MARK if l.key in VIP_EXEMPT else ""))
             else:
                 opened.append(f"{l.emoji} {l.name}")
-    modes = await swear.get_modes(svc, chat_id)
+    swear_mode = await swear.get_mode(svc, chat_id)
     off = [f.name for f in features.FEATURES if not await features.enabled(svc, chat_id, f.key)]
     out = [T.LOCK_STATUS_HEADER, T.LOCK_STATUS_LOCKED_HEAD, *(locked or [T.LOCK_STATUS_NONE_LOCKED])]
     if opened:
         out += ["", T.LOCK_STATUS_OPEN_HEAD, "  " + " ⋅ ".join(opened)]
-    out += ["", T.LOCK_STATUS_SWEAR.format(summary=T.SWEAR_SUMMARY.format(
-        vulgar=T.SWEAR_MODES[modes["vulgar"]], insult=T.SWEAR_MODES[modes["insult"]]))]
+    out += ["", T.LOCK_STATUS_SWEAR.format(summary=T.SWEAR_MODES[swear_mode])]
     if off:
         out.append(T.LOCK_STATUS_FEATURES_OFF.format(names=" ⋅ ".join(off)))
     out += [T.LINE, T.LOCK_STATUS_FOOTER]
@@ -568,12 +566,11 @@ async def on_panel_button(q, msg: Message, svc: Services, bot, uid_raw: str, act
         await q.answer(f"{lock.name}: {_mode_name(new) if new else '🔓'}")
     elif action == "s":
         from zhoo.systems import swear
-        scope = "insult" if arg == "i" else "vulgar"
-        new = swear.next_mode(await swear.get_mode(svc, chat_id, scope))
+        new = swear.next_mode(await swear.get_mode(svc, chat_id))
         if await svc.perms.rank_of(bot, chat_id, uid) < swear.SET_RANK[new]:
             new = "off"
-        await swear.set_mode(svc, chat_id, new, uid, scope)
-        await q.answer(T.SWEAR_BTN_SCOPE[scope].format(mode=T.SWEAR_MODES[new]))
+        await swear.set_mode(svc, chat_id, new, uid)
+        await q.answer(f"{T.SWEAR_LABEL}: {T.SWEAR_MODES[new]}")
     elif action == "a" and arg in ("0", "1"):
         await _set_all(svc, bot, chat_id, arg == "1", uid)
         await q.answer(T.BTN_LOCK_ALL if arg == "1" else T.BTN_UNLOCK_ALL)

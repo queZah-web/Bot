@@ -15,11 +15,10 @@ class SocialRepo:
     async def set_bio(self, user_id: int, bio: str | None) -> None:
         await self.db.execute("UPDATE users SET bio = ? WHERE user_id = ?", (bio, user_id))
 
-    # ── الشكر ──
+    # ── الشكر (عام: ينحسب من كل المجموعات وينحفظ بملف الشخص) ──
     async def last_thanks(self, chat_id: int, from_id: int, to_id: int) -> int | None:
         return await self.db.fetchval(
-            "SELECT MAX(created_at) FROM thanks WHERE chat_id = ? AND from_id = ? AND to_id = ?",
-            (chat_id, from_id, to_id))
+            "SELECT MAX(created_at) FROM thanks WHERE from_id = ? AND to_id = ?", (from_id, to_id))
 
     async def thanks_given_since(self, chat_id: int, from_id: int, seconds: int) -> int:
         return await self.db.fetchval(
@@ -30,18 +29,17 @@ class SocialRepo:
         async with self.db.transaction() as conn:
             await conn.execute("INSERT INTO thanks (chat_id, from_id, to_id, created_at) VALUES (?, ?, ?, ?)",
                                (chat_id, from_id, to_id, now()))
-            cur = await conn.execute("SELECT COUNT(*) FROM thanks WHERE chat_id = ? AND to_id = ?", (chat_id, to_id))
+            cur = await conn.execute("SELECT COUNT(*) FROM thanks WHERE to_id = ?", (to_id,))
             return (await cur.fetchone())[0]
 
     async def thanks_count(self, chat_id: int, user_id: int) -> int:
-        return await self.db.fetchval("SELECT COUNT(*) FROM thanks WHERE chat_id = ? AND to_id = ?",
-                                      (chat_id, user_id), default=0)
+        return await self.db.fetchval("SELECT COUNT(*) FROM thanks WHERE to_id = ?", (user_id,), default=0)
 
     async def top_thanked(self, chat_id: int, limit: int = 10):
         return await self.db.fetchall(
             "SELECT t.to_id AS user_id, COUNT(*) AS n, u.first_name, u.last_name FROM thanks t "
-            "LEFT JOIN users u ON u.user_id = t.to_id WHERE t.chat_id = ? "
-            "GROUP BY t.to_id ORDER BY n DESC LIMIT ?", (chat_id, limit))
+            "LEFT JOIN users u ON u.user_id = t.to_id "
+            "GROUP BY t.to_id ORDER BY n DESC LIMIT ?", (limit,))
 
     # ── الاقتراحات ──
     async def add_suggestion(self, chat_id: int, user_id: int, text: str) -> int:
@@ -165,8 +163,14 @@ class SocialRepo:
             (chat_id, limit))
 
 
+GLOBAL = 0   # التقييم عام: ينحفظ بملف الشخص ويطلع بكل المجموعات
+
+
 class RatingsRepo:
-    """كل شخص يقيّم الثاني مرة وحدة (ويگدر يغيّر تقييمه)."""
+    """كل شخص يقيّم الثاني مرة وحدة بكل المجموعات (ويگدر يغيّر تقييمه).
+
+    باراميتر chat_id باقي للتوافق، بس التخزين دائماً عام.
+    """
 
     def __init__(self, db: Database):
         self.db = db
@@ -176,26 +180,26 @@ class RatingsRepo:
         async with self.db.transaction() as conn:
             cur = await conn.execute(
                 "SELECT vibe FROM ratings WHERE chat_id = ? AND target_id = ? AND rater_id = ?",
-                (chat_id, target_id, rater_id))
+                (GLOBAL, target_id, rater_id))
             row = await cur.fetchone()
             new = 0 if row is not None and row[0] == vibe else vibe
             await conn.execute(
                 "INSERT INTO ratings (chat_id, target_id, rater_id, vibe, updated_at) VALUES (?, ?, ?, ?, ?) "
                 "ON CONFLICT (chat_id, target_id, rater_id) DO UPDATE SET vibe = excluded.vibe, "
-                "updated_at = excluded.updated_at", (chat_id, target_id, rater_id, new or None, now()))
+                "updated_at = excluded.updated_at", (GLOBAL, target_id, rater_id, new or None, now()))
             return new
 
     async def set_score(self, chat_id: int, target_id: int, rater_id: int, score: int) -> None:
         await self.db.execute(
             "INSERT INTO ratings (chat_id, target_id, rater_id, score, updated_at) VALUES (?, ?, ?, ?, ?) "
             "ON CONFLICT (chat_id, target_id, rater_id) DO UPDATE SET score = excluded.score, "
-            "updated_at = excluded.updated_at", (chat_id, target_id, rater_id, score, now()))
+            "updated_at = excluded.updated_at", (GLOBAL, target_id, rater_id, score, now()))
 
     async def summary(self, chat_id: int, target_id: int) -> tuple[int, int, float | None, int]:
         """(جميل، سيئ، معدل الدرجة، عدد اللي أعطوا درجة)"""
         row = await self.db.fetchone(
             "SELECT COALESCE(SUM(vibe = 1), 0), COALESCE(SUM(vibe = -1), 0), AVG(score), COUNT(score) "
-            "FROM ratings WHERE chat_id = ? AND target_id = ?", (chat_id, target_id))
+            "FROM ratings WHERE chat_id = ? AND target_id = ?", (GLOBAL, target_id))
         return int(row[0]), int(row[1]), (float(row[2]) if row[2] is not None else None), int(row[3])
 
     async def top(self, chat_id: int, min_votes: int = 3, limit: int = 10):
@@ -204,4 +208,4 @@ class RatingsRepo:
             "SUM(r.vibe = 1) AS good, u.first_name, u.last_name FROM ratings r "
             "LEFT JOIN users u ON u.user_id = r.target_id WHERE r.chat_id = ? AND r.score IS NOT NULL "
             "GROUP BY r.target_id HAVING COUNT(r.score) >= ? ORDER BY avg DESC, n DESC LIMIT ?",
-            (chat_id, min_votes, limit))
+            (GLOBAL, min_votes, limit))
