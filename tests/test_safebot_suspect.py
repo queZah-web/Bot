@@ -102,7 +102,7 @@ async def test_suspect_vip_media_deleted_after_delay(env, monkeypatch):
     await _setup(env)
     monkeypatch.setattr(suspect, "DELAY", 0.05)
     out = await say(env, CREATOR, "رفع مميز م", reply_to=SARA)
-    assert "مُـمَـيَّـز مَـشْـكُـوك فِـيـه" in out
+    assert "تم رفع" in out and "مميز م" in out and "مشكوك" not in out and len(bot.sent) == 1
     assert await svc.members.get_rank(GROUP, SARA) == Rank.VIP and await suspect.is_suspect(svc, GROUP, SARA)
     await say(env, CREATOR, "قفل الصور")
     mid = await _send(env, SARA, photo=[PhotoSize("f", "u", 1, 1)])

@@ -83,12 +83,11 @@ async def cmd_promote_suspect(cx: CommandContext) -> None:
         return
     svc = cx.services
     if await svc.perms.rank_of(cx.bot, cx.chat.id, target.user_id) != Rank.VIP:
-        await change_rank(cx, Rank.VIP)
-        if await svc.perms.rank_of(cx.bot, cx.chat.id, target.user_id) != Rank.VIP:
+        if not await change_rank(cx, Rank.VIP, silent=True):
             return   # ما انرفع (رتبته أعلى، أو محمي...) والسبب انكتب
     await svc.group_settings.set(cx.chat.id, _key(target.user_id), "1", cx.user.id)
     await svc.audit.log("suspect_on", chat_id=cx.chat.id, actor_id=cx.user.id, target_id=target.user_id)
-    await cx.reply(T.SUSPECT_ON.format(mention=mention(target.user_id, target.name), n=DELAY))
+    await cx.reply(T.SUSPECT_ON.format(mention=mention(target.user_id, target.name)))
 
 
 @registry.command("demote_suspect", ("تنزيل مشكوك", "تنزيل مميز م", "الغاء مشكوك", "الغاء الشك"), section=S,

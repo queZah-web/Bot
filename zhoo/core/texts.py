@@ -322,9 +322,9 @@ SWEAR_MODES = {
     "ban": "🚫 حظر",
 }
 SWEAR_MODE_HINTS = {
-    "delete": "تنمسح الرسالة بس",
+    "delete": "تنمسح الرسالة بس، وتطلع رسالة بالسبب",
     "warn": "تنمسح الرسالة، وإنذارين، والمرة الثالثة كتم",
-    "mute": "تنمسح الرسالة وينكتم من أول مرة",
+    "mute": "تنمسح الرسالة وينكتم فوراً، ويطلع السبب: سب أو فشار أو كفر",
     "ban": "تنمسح الرسالة وينحظر من أول مرة",
 }
 SWEAR_MODES_HELP = (f"{BULLET} الأوضاع: <code>قفل السب بالمسح</code> ⋅ <code>بالانذار</code> ⋅ "
@@ -376,10 +376,14 @@ SWEAR_LABEL = "🤬 السب"
 SWEAR_BTN_SCOPE = {"vulgar": "🔞 الفشار: {mode}", "insult": "🙊 الإهانات: {mode}"}
 SWEAR_SUMMARY = "🔞 {vulgar} ⋅ 🙊 {insult}"
 SWEAR_REASON = "السب والكلام المسيء"
-SWEAR_NOTICE = f"{BULLET} {{mention}} عيب عيني، هالكلام ما ينگال هنا 🤍 رسالتك انمسحت"
+SWEAR_NOTICE = f"{BULLET} {{mention}} رسالتك انمسحت 🤍 السبب: <b>{{reason}}</b>"
+# سبب العقوبة حسب نوع الكلام
+SWEAR_REASONS = {"insult": "سب 🤬", "vulgar": "فشار 🔞", "kufr": "كفر ⛔"}
+SWEAR_REASON_PLAIN = {"insult": "سب", "vulgar": "فشار", "kufr": "كفر"}
 SWEAR_WARNED = (
     title("تَـحْـذِيـر", "⚠️") + "\n"
-    f"{BULLET} {{mention}} رسالتك انمسحت لأن بيها كلام مسيء 🤍\n"
+    f"{BULLET} {{mention}} رسالتك انمسحت 🤍\n"
+    f"{BULLET} السبب: <b>{{reason}}</b>\n"
     f"{BULLET} هذا التحذير رقم <b>{{n}}</b>\n"
     f"{BULLET} المرة الجاية: <b>{{next}}</b>"
 )
@@ -387,7 +391,7 @@ SWEAR_PUNISHED = (
     title("{head}", "{emoji}") + "\n"
     f"{LINE}\n"
     f"{BULLET} العضو: {{mention}}\n"
-    f"{BULLET} السبب: السب والكلام المسيء ({{level}})\n"
+    f"{BULLET} السبب: <b>{{reason}}</b>\n"
     f"{BULLET} المخالفة رقم: <b>{{n}}</b>\n"
     f"{BULLET} المدة: <b>{{duration}}</b>"
 )
@@ -460,7 +464,7 @@ SWEAR_WORDS_MORE = "▫️ … و{n} غيرها"
 SWEAR_ALLOWED_LABEL = f"{BULLET} كلمات مسموحة (استثناءات):"
 SWEAR_NEED_DELETE = f"{BULLET} تنبيه: أحتاج صلاحية «<b>حذف الرسائل</b>» حتى يشتغل قفل السب 🔐"
 SWEAR_TEST_HEADER = title("فَـحْـص الـسَّـب", "🔎") + f"\n{LINE}"
-SWEAR_TEST_NEED = f"{BULLET} اكتب النص بعد الأمر رجاءً 🌸 مثال: <code>فحص سب ك.ل.ب</code>"
+SWEAR_TEST_NEED = f"{BULLET} اكتب النص بعد الأمر رجاءً 🌸 مثال: <code>فحص سب مرحبا</code>"
 SWEAR_TEST_NORM = f"{BULLET} بعد التطبيع: <tg-spoiler>{{norm}}</tg-spoiler>"
 SWEAR_TEST_CLEAN = f"{BULLET} النتيجة: <b>سليمة</b> ✅"
 SWEAR_TEST_ALLOWED = f"{BULLET} النتيجة: <b>مسموحة بهاي المجموعة</b> ✨ (استثناء)"
@@ -1688,12 +1692,7 @@ QS_APPLIED = "تم ✨ صارت الحماية متوسطة، وقفل السب 
 
 
 # ── المميز المشكوك فيه ─────────────────────────────
-SUSPECT_ON = (
-    title("مُـمَـيَّـز مَـشْـكُـوك فِـيـه", "🔍") + f"\n{LINE}\n"
-    f"{BULLET} العضو: {{mention}}\n"
-    f"{BULLET} صوره وملصقاته ومتحركاته تنمسح بعد <b>{{n}}</b> ثانية من ما يرسلها\n"
-    f"{BULLET} حتى ترفع الشك: <code>تنزيل مشكوك</code> بالرد عليه"
-)
+SUSPECT_ON = f"{BULLET} تم رفع {{mention}} مميز م ⭐"
 SUSPECT_OFF = f"{BULLET} انشال الشك عن {{mention}} وبقى مميز عادي ✨"
 SUSPECT_NOT = f"{BULLET} {{mention}} مو مشكوك فيه أصلاً 🌸"
 SUSPECT_LIST_HEADER = title("الـمَـشْـكُـوك فِـيـهِـم", "🔍") + f"\n{LINE}"

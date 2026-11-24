@@ -40,7 +40,8 @@ RANK_WORDS: dict[Rank, tuple[str, ...]] = {
 }
 
 
-async def change_rank(cx: CommandContext, new_rank: Rank, *, only_from: Rank | None = None) -> None:
+async def change_rank(cx: CommandContext, new_rank: Rank, *, only_from: Rank | None = None,
+                      silent: bool = False) -> bool:
     """التنفيذ المشترك لكل أوامر الرفع والتنزيل.
 
     only_from: لأوامر «تنزيل مدير» مثلاً — ينفذ فقط إذا كانت رتبته المخزنة مدير.
@@ -51,12 +52,12 @@ async def change_rank(cx: CommandContext, new_rank: Rank, *, only_from: Rank | N
         target = await resolve_target(cx)
     except TargetError as e:
         await reply_target_error(cx, e, example)
-        return
+        return False
 
     who = mention(target.user_id, target.name)
     if target.is_bot:
         await cx.reply(T.RANK_BOT)
-        return
+        return False
 
     info = await svc.perms.rank_info(cx.bot, cx.chat.id, target.user_id)
     tg_note = ""
@@ -71,12 +72,12 @@ async def change_rank(cx: CommandContext, new_rank: Rank, *, only_from: Rank | N
     if new_rank > Rank.MEMBER and await watchdog.is_locked(svc, cx.chat.id, target.user_id):
         if cx.rank < Rank.CREATOR:   # رتبته موقوفة للتحقيق: بس صاحب المجموعة يرجعها
             await cx.reply(T.WATCH_LOCKED.format(mention=who))
-            return
+            return False
         await watchdog.unlock(svc, cx.chat.id, target.user_id, cx.user.id)
 
     if only_from is not None and info.stored != only_from:
         await cx.reply(T.RANK_NOT_THAT.format(mention=who, rank=RANK_NAMES[only_from]))
-        return
+        return False
 
     decision = check_rank_change(cx.rank, info.effective, info.floor, new_rank,
                                  is_self=target.user_id == cx.user.id)
@@ -93,7 +94,7 @@ async def change_rank(cx: CommandContext, new_rank: Rank, *, only_from: Rank | N
                             target_id=target.user_id, result="denied",
                             details={"reason": decision, "to": int(new_rank)})
         await cx.reply(replies[decision])
-        return
+        return False
 
     # إذا انطلبت رتبة أقل من حد تيليجرام، نخزن عضو (الحد يتكفل بالباقي)
     stored_value = new_rank if new_rank > info.floor else Rank.MEMBER
@@ -104,6 +105,8 @@ async def change_rank(cx: CommandContext, new_rank: Rank, *, only_from: Rank | N
                         details={"from": int(previous), "to": int(new_effective)})
 
     actor = mention(cx.user.id, cx.user.full_name)
+    if silent:
+        return True   # الأمر اللي نادانا يرد بنفسه (مثل «رفع مميز م»)
     if new_effective > info.effective:
         text = T.RANK_PROMOTED.format(mention=who, rank=rank_label(new_effective), actor=actor)
         if new_effective == Rank.SUPERVISOR:   # المشرف = مشرف حقيقي بتيليجرام
@@ -120,6 +123,7 @@ async def change_rank(cx: CommandContext, new_rank: Rank, *, only_from: Rank | N
             tg_note += "\n" + T.RANK_ALL_REVOKED
         await cx.reply(T.RANK_DEMOTED.format(mention=who, old=rank_label(info.effective),
                                              rank=rank_label(new_effective), actor=actor) + tg_note)
+    return True
 
 
 def _register_rank_commands() -> None:

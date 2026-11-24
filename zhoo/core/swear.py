@@ -146,9 +146,41 @@ def views(text: str) -> list[list[Token]]:
         if len(pieces) > 1:
             split_more = True
         second_parts += [(x, _REPEAT.sub(r"\1", x)) for x in pieces]
-    if not split_more:
-        return [first]
-    return [first, _merge_runs(second_parts)]
+    out = [first, _merge_runs(second_parts)] if split_more else [first]
+    joined = _merge_fragments(first)
+    if joined is not None:
+        out.append(joined)
+    return out
+
+
+# كلمات قصيرة شائعة ما نلزگها بالكلمة اللي وراها (حتى «ان يجي» ما تصير «انيجي»)
+_COMMON_SHORT = frozenset("""
+في من عن لا ما يا هو هي او ام ان اي لو بس هم مع قد لم لن كم شو اش ها هه يم ال اذ ذا تا هاي وي اه اي له لي لك
+بي بك به بها كي حت شي يه ني نا تو اب اخ و ف ب ل
+""".split())
+
+
+def _merge_fragments(tokens: list[Token]) -> list[Token] | None:
+    """قراءة ثالثة: الكلمة المقطوعة بمسافة (ا نيج ، ابن ج لب ، اف شخ) تنلزگ بجارتها."""
+    if len(tokens) < 2 or not any(len(t.norm) <= 2 and t.norm not in _COMMON_SHORT for t in tokens):
+        return None
+    out: list[Token] = []
+    i = 0
+    while i < len(tokens):
+        t = tokens[i]
+        frag = len(t.norm) <= 2 and t.norm not in _COMMON_SHORT
+        if frag and i + 1 < len(tokens):
+            nxt = tokens[i + 1]
+            out.append(Token(f"{t.orig} {nxt.orig}", _REPEAT.sub(r"\1", t.norm + nxt.norm), True))
+            i += 2
+        elif frag and out:
+            prev = out.pop()
+            out.append(Token(f"{prev.orig} {t.orig}", _REPEAT.sub(r"\1", prev.norm + t.norm), True))
+            i += 1
+        else:
+            out.append(t)
+            i += 1
+    return out
 
 
 def tokenize(text: str) -> list[tuple[str, str]]:
@@ -190,6 +222,8 @@ class Lexicon:
         self.exact: dict[str, Entry] = {}
         self.stems: dict[str, Entry] = {}
         self.phrases: dict[str, list[tuple[tuple[str, ...], Entry]]] = {}
+        self.roots: dict[str, Entry] = {}    # جذر قوي: أي كلمة تبدي بيه (انيج ← انيجمك ، انيجابوق)
+        self.bare: dict[str, Entry] = {}     # كلمة لوحدها بالضبط، بدون أي بادئة (ازبك ≠ الازبك)
         self.entries: dict[str, Entry] = {}
         self.version = 0      # يتغير كل ما ينبني القاموس من جديد (مفتاح الذاكرة المؤقتة)
 
@@ -215,11 +249,20 @@ class Lexicon:
                 self.exact.setdefault(glue(" ".join(words)), entry)   # متلزگة: انعلابوك
         elif kind == "stem":
             self.stems[norm] = entry
+        elif kind == "root":
+            self.roots[norm] = entry
+        elif kind == "bare":
+            self.bare[norm] = entry
         else:
             self.exact[norm] = entry
         return entry
 
-    def load(self, exact: dict[int, str], stems: dict[int, str], phrases: dict[int, list[str]]) -> Lexicon:
+    def load(self, exact: dict[int, str], stems: dict[int, str], phrases: dict[int, list[str]],
+             roots: dict[int, str] | None = None, bare: dict[int, str] | None = None) -> Lexicon:
+        for kind, table in (("root", roots or {}), ("bare", bare or {})):
+            for level, words in table.items():
+                for w in words.split():
+                    self.add(w, level, kind)
         for level, words in exact.items():
             for w in words.split():
                 self.add(w, level, "exact")
@@ -261,6 +304,10 @@ def _find_stem(cand: str, layers: tuple[Lexicon, ...]) -> Entry | None:
 
 def match_word(norm: str, layers: tuple[Lexicon, ...]) -> Entry | None:
     """يطابق كلمة موحدة وحدة: كاملة، أو بعد بادئة معروفة، أو جذر + لاحقة معروفة."""
+    for lx in layers:
+        e = lx.bare.get(norm)
+        if e is not None:
+            return e
     cands = [(norm, "")]
     for p in PREFIXES:
         if norm.startswith(p) and len(norm) - len(p) >= 2:
@@ -272,6 +319,10 @@ def match_word(norm: str, layers: tuple[Lexicon, ...]) -> Entry | None:
             e = lx.exact.get(cand)
             if e is not None and (not prefix or len(cand) > 3 or prefix == "يا"):
                 return e
+        for lx in layers:
+            for root, e in lx.roots.items():
+                if cand.startswith(root):
+                    return e
         if prefix and len(cand) < 3:
             continue
         e = _find_stem(cand, layers)
@@ -296,6 +347,7 @@ def _scan_view(tokens: list[Token], layers: tuple[Lexicon, ...], allowed: frozen
         return best.entry.level == top
 
     norms = [t.norm for t in tokens]
+    excused: set[int] = set()   # كلمات داخل عبارة مسموحة (سماح «يا كلب» يشمل «كلب» اللي بيها)
     # ١) العبارات (الكلمة الأولى ممكن تجي بواو/فاء: وانعل ، فيلعن)
     for i, first in enumerate(norms):
         firsts = [first]
@@ -307,10 +359,16 @@ def _scan_view(tokens: list[Token], layers: tuple[Lexicon, ...], allowed: frozen
                     n = len(words)
                     if tuple(norms[i + 1:i + n]) == words[1:] and i + n <= len(norms):
                         found = " ".join(t.orig for t in tokens[i:i + n])
-                        if consider(found, entry, glue(" ".join(norms[i:i + n]))):
+                        glued = glue(" ".join(norms[i:i + n]))
+                        if entry.key in allowed or glue(entry.key) in allowed or glued in allowed:
+                            excused.update(range(i, i + n))
+                            continue
+                        if consider(found, entry, glued):
                             return best
     # ٢) الكلمات
-    for t in tokens:
+    for idx, t in enumerate(tokens):
+        if idx in excused:
+            continue
         e = match_word(t.norm, layers)
         if e is not None and consider(t.orig, e, t.norm):
             return best
@@ -325,6 +383,21 @@ def _scan_view(tokens: list[Token], layers: tuple[Lexicon, ...], allowed: frozen
                         if e2 is not None and consider(t.orig, e2, sub):
                             return best
     return best
+
+
+_RAW_CHALB = re.compile(r"(?<![\u0621-\u06ff])(?:يا\s*)?(?:ال)?چ+ل+ا?ب+[هة]?(?![\u0621-\u06ff])")
+# كلمات المقدسات (للتمييز: كفر ≠ فشار ≠ سب)
+_SACRED_KEYS = ("ربك", "ربج", "ربكم", "دينك", "دينج", "دينكم", "مذهبك", "مذهبج", "نبيك", "نبيج", "رسولك",
+                "طايفتك", "الله", "القران", "rabak", "rabbak", "dinak", "deenak")
+
+
+def category(entry: Entry) -> str:
+    """نوع الإساءة للسبب: kufr (كفر) ، vulgar (فشار) ، insult (سب وإهانة)."""
+    words = entry.key.split()
+    if any(w in _SACRED_KEYS for w in words[1:]) or (len(words) == 1 and words[0].endswith(_SACRED_KEYS[:10])
+                                                     and len(words[0]) > 4):
+        return "kufr"
+    return "vulgar" if entry.level == SEVERE else "insult"
 
 
 MASK_CHAR = "•"
@@ -351,7 +424,7 @@ class SwearDetector:
 
     def __init__(self) -> None:
         from zhoo.data import swear_bank as bank
-        self.base = Lexicon("base").load(bank.EXACT, bank.STEMS, bank.PHRASES)
+        self.base = Lexicon("base").load(bank.EXACT, bank.STEMS, bank.PHRASES, bank.ROOTS, bank.BARE)
         self._cache: OrderedDict = OrderedDict()
         self._extra_cache: dict[frozenset, Lexicon] = {}
         self.global_layer: Lexicon | None = None   # القاموس العام (من المطور) — يستخدمه فلتر الرسائل الطالعة
@@ -379,11 +452,22 @@ class SwearDetector:
                 best = hit
                 if best.entry.level == (max(levels) if levels else SEVERE):
                     break
+        if best is None and (levels is None or LIGHT in levels):
+            raw = self.raw_insult(text)
+            if raw is not None and raw.entry.key not in allowed:
+                best = raw
         if key is not None:
             self._cache[key] = best
             if len(self._cache) > self.CACHE_SIZE:
                 self._cache.popitem(last=False)
         return best
+
+    def raw_insult(self, text: str) -> Hit | None:
+        """«چلب» بالچيم العراقية (قبل التوحيد، لأن «جلب» بالفصحى = يجيب)."""
+        m = _RAW_CHALB.search(_TASHKEEL.sub("", text or "").replace("ـ", ""))
+        if m is None:
+            return None
+        return Hit(m.group(0), Entry("چلب", "چلب", LIGHT, "bare", "base"))
 
     def reply_insult(self, text: str) -> Hit | None:
         """رد على شخص بإهانة مفردة: «قذر» ، «يا حمار وسخ» ، «انتي هايشه» ← إهانة (خفيفة).
@@ -474,13 +558,14 @@ class SwearDetector:
         hit = self.scan(text, layers, frozenset(allowed))
         return hit.found if hit else None
 
-    def collisions(self, entry_text: str, level: int, safe_items: list[str] | None = None) -> list[str]:
+    def collisions(self, entry_text: str, level: int, safe_items: list[str] | None = None,
+                   kind: str | None = None) -> list[str]:
         """الكلمات السليمة اللي راح تنحظر لو انضافت هاي الكلمة (فحص قبل الاعتماد)."""
         if safe_items is None:
             from zhoo.data.swear_bank import safe_items as _items
             safe_items = _items()
         probe = Lexicon("probe")
-        if probe.add(entry_text, level) is None:
+        if probe.add(entry_text, level, kind) is None:
             return []
         bad: list[str] = []
         for item in safe_items:

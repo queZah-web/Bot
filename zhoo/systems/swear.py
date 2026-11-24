@@ -28,7 +28,8 @@ from zhoo.core.durations import format_duration
 from zhoo.core.fmt import esc, mention
 from zhoo.core.normalize import normalize
 from zhoo.core.ranks import RANK_NAMES, Rank
-from zhoo.core.swear import LEVELS, LIGHT, MEDIUM, SEVERE, Hit, Lexicon, detector, glue, normalize_phrase, views
+from zhoo.core.swear import (LEVELS, LIGHT, MEDIUM, SEVERE, Hit, Lexicon, category, detector, glue,
+                              normalize_phrase, views)
 from zhoo.core.targets import TargetError, resolve_target
 from zhoo.repositories.swear_words import GLOBAL
 from zhoo.systems.general import reply_target_error
@@ -39,7 +40,7 @@ S = "locks"
 MODES = ("off", "delete", "warn", "mute", "ban")
 NO_PUNISH_RANK = Rank.ADMIN          # الأدمن فما فوق: مسح بدون عقوبة
 SET_RANK = {"off": Rank.ADMIN, "delete": Rank.ADMIN, "warn": Rank.ADMIN,
-            "mute": Rank.MANAGER, "ban": Rank.MANAGER}
+            "mute": Rank.ADMIN, "ban": Rank.MANAGER}
 VIEW_RANK = Rank.ADMIN
 DICT_RANK = Rank.MANAGER
 MAX_GROUP_WORDS = 1000
@@ -236,25 +237,28 @@ async def check(context, svc: Services, msg: Message, chat, user) -> bool:
                         details={"level": level, "strike": strike})
 
     from zhoo.systems.protect import send_notice  # تجنب الاستيراد الدائري
+    reason = T.SWEAR_REASONS[category(hit.entry)]
     if at_zhoo:   # أحد غلط على زهو نفسها
         import random
         await send_notice(context, chat.id, random.choice(T.ZHOO_INSULTED).format(mention=who), ttl=60)
     if kind == "delete":
         if svc.notice_limiter.hit((chat.id, user.id)):
-            await send_notice(context, chat.id, T.SWEAR_NOTICE.format(mention=who), ttl=15)
+            await send_notice(context, chat.id, T.SWEAR_NOTICE.format(mention=who, reason=reason), ttl=15)
         return True
     if kind == "warn":
         nxt = step_label(mod.swear_step(plan, strike + 1))
-        await send_notice(context, chat.id, T.SWEAR_WARNED.format(mention=who, n=strike, next=nxt), ttl=60)
+        await send_notice(context, chat.id, T.SWEAR_WARNED.format(mention=who, n=strike, next=nxt, reason=reason),
+                          ttl=60)
         return True
 
-    await svc.punishments.add(chat.id, user.id, kind, context.bot.id, T.SWEAR_REASON, until)
+    await svc.punishments.add(chat.id, user.id, kind, context.bot.id, T.SWEAR_REASON_PLAIN[category(hit.entry)],
+                              until)
     head, emoji = T.PUNISH_TITLES[kind]
     code = "m" if kind == "mute" else "b"
     undo = T.BTN_UNDO_MUTE if kind == "mute" else T.BTN_UNDO_BAN
     kb = InlineKeyboardMarkup([[InlineKeyboardButton(undo, callback_data=f"p:{code}:{user.id}")]])
     await send_notice(context, chat.id, T.SWEAR_PUNISHED.format(
-        head=head, emoji=emoji, mention=who, level=T.SWEAR_LEVELS[level], n=strike,
+        head=head, emoji=emoji, mention=who, reason=reason, n=strike,
         duration=format_duration(secs) if secs else T.SWEAR_PERMANENT), ttl=0, reply_markup=kb)
     return True
 
@@ -273,8 +277,8 @@ def _mode_words() -> dict[str, str]:
 
 
 def _parse_lock_rest(rest: str) -> str | None:
-    """«بالكتم» ← mute. بدون كلمة = مسح. (كلمات مثل 18 تنتجاهل)"""
-    mode = "delete"
+    """«بالكتم» ← mute. بدون كلمة = كتم فوري. (كلمات مثل 18 تنتجاهل)"""
+    mode = "mute"
     words = _mode_words()
     for word in rest.split():
         w = normalize(word)
@@ -307,7 +311,7 @@ async def _cmd_set(cx: CommandContext, mode: str) -> None:
 
 
 async def _lock(cx: CommandContext) -> None:
-    await _cmd_set(cx, _parse_lock_rest(cx.raw_args) or "delete")
+    await _cmd_set(cx, _parse_lock_rest(cx.raw_args) or "mute")
 
 
 async def _unlock(cx: CommandContext) -> None:

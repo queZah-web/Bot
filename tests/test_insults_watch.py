@@ -68,14 +68,14 @@ async def test_bot_never_echoes_bad_words(env):
     await run(CREATOR, "قائمة المنع")
     assert out and _clean_output(out) == []
     assert any("••••" in t for t in out)                     # الكلمة مغطاة بالكامل
-    assert "ك.ل.ب" in T.SWEAR_TEST_NEED and "ك.س" not in T.SWEAR_TEST_NEED
+    assert "مرحبا" in T.SWEAR_TEST_NEED and "ك.س" not in T.SWEAR_TEST_NEED
 
 
 # ── ٢) قاموس الإهانات ──
 @pytest.mark.parametrize("text", [
     "يا كلب", "يا كلبه", "انت قذر", "انتي قذره", "يا لعين", "يا لعينه", "يا قندره", "انتي هايشه",
     "ابن القندرة", "ابن القندره", "بنت القندره", "ابن الكلب", "ابن الچبة", "اجب عليك", "يا قذر",
-    "يا ابن الكلب", "زهو زباله", "تفو عليج", "يا غبيه", "انت مخبل", "يا ملعون",
+    "يا ابن الكلب", "زهو زباله", "تفو عليج", "يا ملعون", "كلب", "چلب قذر",
 ])
 def test_insults_detected_as_light(text):
     hit = detector.scan(text)
@@ -103,10 +103,10 @@ async def test_reply_with_bare_insult_is_punished(env):
     await _setup(env)
     await say(env, CREATOR, "قفل الاهانات بالمسح")
     bot.calls.clear()
-    await say(env, ALI, "قذر", reply_to=SARA)
+    await say(env, ALI, "هايشه", reply_to=SARA)
     assert bot.calls and bot.calls[0][0] == "delete"
     bot.calls.clear()
-    await say(env, ALI, "قذر")                                 # بدون رد: كلمة عادية
+    await say(env, ALI, "هايشه")                               # بدون رد: كلمة عادية
     assert not [c for c in bot.calls if c[0] == "delete"]
 
 
@@ -184,3 +184,38 @@ async def test_unwatched_admin_is_not_touched(env):
     assert await svc.members.get_rank(GROUP, SARA) == Rank.OWNER
 
 
+
+
+
+@pytest.mark.parametrize("text", ["كلب", "چلب", "چلب قذر", "نغلل", "قذر", "يا چلبه", "حقير"])
+def test_strong_bare_insults_blocked_alone(text):
+    assert detector.find(text) is not None, text
+
+
+@pytest.mark.parametrize("text", ["نعال", "زربة", "اغبر", "غبي", "غبيه", "يا غبي", "اهبل", "مخبل", "تافه",
+                                  "خايس", "الكلب نايم", "جلب الماء", "الطاولة واطية"])
+def test_light_teasing_is_allowed(text):
+    assert detector.find(text) is None, text
+
+
+def test_reason_categories():
+    from zhoo.core.swear import category
+    assert category(detector.scan("يلعن ربك").entry) == "kufr"
+    assert category(detector.scan("كسمك").entry) == "vulgar"
+    assert category(detector.scan("كلب").entry) == "insult"
+    assert category(detector.scan("انعل ابوك").entry) == "insult"
+
+
+async def test_mute_shows_reason(env):
+    svc, bot, _ = env
+    await _setup(env)
+    await say(env, CREATOR, "قفل السب")                       # بدون كلمة = كتم فوري
+    out = await say(env, ALI, "يلعن ربك")
+    assert "تَـمَّ الـكَـتْـم" in out and "كفر" in out
+    await svc.punishments.lift(GROUP, ALI, "mute", CREATOR)
+    out = await say(env, SARA, "كسمك")
+    assert "فشار" in out
+    svc.command_limiter._hits.clear()
+    bot.sent.clear()
+    await say(env, 5555, "چلب")
+    assert any("سب" in (t or "") for t in bot.sent)

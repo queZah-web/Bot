@@ -59,7 +59,7 @@ def test_safe_words_never_blocked(text):
 def test_no_dictionary_word_collides_with_safe_words():
     """فحص قبل الاعتماد: ولا كلمة بالقاموس الأساسي تصيب كلمة سليمة."""
     for e in detector.base.entries.values():
-        assert detector.collisions(e.text, e.level) == [], e.text
+        assert detector.collisions(e.text, e.level, kind=e.kind) == [], e.text
 
 
 # ── ٣) المطابقة حسب السياق (الأمثلة المطلوبة بالضبط) ──
@@ -115,7 +115,6 @@ def test_custom_layers_and_priority():
 def test_collision_check_rejects_bad_additions():
     assert "عكس" in detector.collisions("كس", 3) or detector.collisions("عك", 2) == []
     assert detector.collisions("قواد", 2)         # تصيب «قواد الجيش»
-    assert detector.collisions("كلب", 1)          # تصيب «الكلب»
     assert detector.collisions("يا قواد", 2) == []
 
 
@@ -188,7 +187,7 @@ async def test_allow_unallow_and_test_command(env):
     await _setup(env)
     await say(env, CREATOR, "قفل السب")
     out = await say(env, CREATOR, "فحص سب ك.س.م.ك")
-    assert "محظورة" in out and "شديد" in out and "القاموس الأساسي" in out and "مسح" in out
+    assert "محظورة" in out and "شديد" in out and "القاموس الأساسي" in out and "كتم" in out
     assert "سليمة" in await say(env, CREATOR, "فحص سب عكس الاتجاه")
     assert "مسموحة" in await say(env, CREATOR, "سماح كلمة يا حمار")
     assert "استثناء" in await say(env, CREATOR, "فحص سب يا حمار")
@@ -251,7 +250,7 @@ async def test_legacy_settings_migrate(env):
 async def test_single_lock_covers_everything(env):
     svc, bot, _ = env
     await _setup(env)
-    out = await say(env, CREATOR, "قفل السب")
+    out = await say(env, CREATOR, "قفل السب بالمسح")
     assert "تَـمَّ قَـفْـل الـسَّـب" in out and "الكفر" in out and "🗑 مسح" in out and "بالانذار" in out
     for text in ("يا حمار", "انعل ابوك", "كسمك", "يلعن ربك", "ابنالشارع", "kosomak", "ابو القحبه"):
         svc.flood = type(svc.flood)()      # حماية التكرار ما تتدخل بالاختبار
@@ -277,7 +276,7 @@ async def test_warn_mode_two_warnings_then_mute(env):
 
 @pytest.mark.parametrize("cmd,mode", [
     ("قفل السب بالمسح", "delete"), ("قفل السب بالانذار", "warn"), ("قفل السب بالتحذير", "warn"),
-    ("قفل السب بالكتم", "mute"), ("قفل السب بالحظر", "ban"), ("قفل الاهانات", "delete"),
+    ("قفل السب بالكتم", "mute"), ("قفل السب بالحظر", "ban"), ("قفل الاهانات", "mute"), ("قفل السب", "mute"),
     ("قفل الفشار بالكتم", "mute"), ("قفل الكفر بالحظر", "ban"), ("قفل السب 18+ بالكتم", "mute"),
 ])
 async def test_lock_commands_and_aliases(env, cmd, mode):

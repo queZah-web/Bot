@@ -54,7 +54,7 @@ async def test_delete_mode(env):
     assert "قَـفْـل الـسَّـب" in await say(env, CREATOR, "قفل السب بالمسح")
     bot.calls.clear()
     out = await say(env, ALI, LONG.format(x="كسمك"))
-    assert bot.calls[0][0] == "delete" and "عيب" in out
+    assert bot.calls[0][0] == "delete" and "انمسحت" in out
     assert not await svc.punishments.is_active(GROUP, ALI, "mute")
     rows = await svc.swear_logs.recent(GROUP)
     assert rows[0]["word"] == "كسمك" and "السفر" in rows[0]["text"] and rows[0]["action"] == "delete"
