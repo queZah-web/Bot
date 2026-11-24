@@ -67,7 +67,7 @@ async def test_bot_never_echoes_bad_words(env):
     await run(CREATOR, "منع كلمة قحبه")
     await run(CREATOR, "قائمة المنع")
     assert out and _clean_output(out) == []
-    assert any("ك•••" in t for t in out)                     # الكلمة مغطاة
+    assert any("••••" in t for t in out)                     # الكلمة مغطاة بالكامل
     assert "ك.ل.ب" in T.SWEAR_TEST_NEED and "ك.س" not in T.SWEAR_TEST_NEED
 
 

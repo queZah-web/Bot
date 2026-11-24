@@ -47,6 +47,7 @@ for _r in ("primary_owner", "owner", "general_manager", "manager", "supervisor",
     COMMAND_CAP[f"promote_{_r}"] = "promote"
     COMMAND_CAP[f"demote_{_r}"] = "promote"
 COMMAND_CAP["demote"] = "promote"
+COMMAND_CAP["promote_suspect"] = COMMAND_CAP["demote_suspect"] = "promote"
 
 # القفل ← الصلاحية اللي تتجاوزه (الأقفال الباقية للمشرفين بس)
 LOCK_CAP: dict[str, str] = {

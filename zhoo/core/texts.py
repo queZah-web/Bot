@@ -420,7 +420,7 @@ SWEAR_LOG_ITEM = (
     f"    {BULLET} الرسالة: <i>{{text}}</i>\n"
     "    ⏱ <code>{when}</code>"
 )
-SWEAR_LOG_FOOTER = "<i>اضغط على الكلمة المخفية حتى تشوفها ⋅ الوقت UTC</i>"
+SWEAR_LOG_FOOTER = "<i>الكلام المسيء مخفي •••• حتى ما يطلع من زهو ⋅ الوقت UTC</i>"
 SWEAR_LOG_CLEARED = f"{BULLET} انمسح سجل السب ✨"
 SWEAR_LOG_USER_CLEARED = f"{BULLET} انمسحت مخالفات {{mention}} ورجعت صفحته بيضة 🤍"
 SWEAR_ACTIONS = {"delete": "🗑 مسح", "warn": "⚠️ تحذير", "mute": "🤐 كتم", "ban": "🚫 حظر"}
@@ -1685,3 +1685,28 @@ QS_SET = "موجود"
 QS_UNSET = "ماكو"
 QS_BTN_APPLY = "⚡ طبّق الإعداد الموصى به"
 QS_APPLIED = "تم ✨ صارت الحماية متوسطة، وقفل السب بالإنذار، والترحيب شغّال"
+
+
+# ── المميز المشكوك فيه ─────────────────────────────
+SUSPECT_ON = (
+    title("مُـمَـيَّـز مَـشْـكُـوك فِـيـه", "🔍") + f"\n{LINE}\n"
+    f"{BULLET} العضو: {{mention}}\n"
+    f"{BULLET} صوره وملصقاته ومتحركاته تنمسح بعد <b>{{n}}</b> ثانية من ما يرسلها\n"
+    f"{BULLET} حتى ترفع الشك: <code>تنزيل مشكوك</code> بالرد عليه"
+)
+SUSPECT_OFF = f"{BULLET} انشال الشك عن {{mention}} وبقى مميز عادي ✨"
+SUSPECT_NOT = f"{BULLET} {{mention}} مو مشكوك فيه أصلاً 🌸"
+SUSPECT_LIST_HEADER = title("الـمَـشْـكُـوك فِـيـهِـم", "🔍") + f"\n{LINE}"
+SUSPECT_LIST_EMPTY = f"{BULLET} ماكو أحد مشكوك فيه 🌸"
+
+
+# ── قاموس المطور العام ─────────────────────────────
+DEV_SWEAR_ADDED = (
+    title("تَـمَّـت الإِضَـافَـة", "🌍") + f"\n{LINE}\n"
+    f"{BULLET} الكلمة انضافت للقاموس العام وصارت تنحظر فوراً بكل المجموعات ✅\n"
+    f"{BULLET} الفئة: <b>{{level}}</b> ⋅ {{kind}}\n"
+    f"{BULLET} <i>الكلمة نفسها ما تنكتب هنا حتى ما يطلع سب من زهو</i>"
+)
+DEV_SWEAR_REENABLED = f"{BULLET} الكلمة جانت موقوفة، ورجعت تنحظر بكل المجموعات ✅"
+DEV_SWEAR_REMOVED = f"{BULLET} انشالت الكلمة من القاموس العام، وما عادت تنحظر ✨"
+DEV_SWEAR_DISABLED = f"{BULLET} توقفت الكلمة، وما عادت تنحظر بأي مجموعة ✨ (ترجعها بـ <code>اضف كلمة سب جديدة</code>)"

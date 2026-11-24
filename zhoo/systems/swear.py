@@ -11,6 +11,7 @@
 """
 from __future__ import annotations
 
+import asyncio
 import itertools
 import logging
 import time
@@ -45,7 +46,8 @@ MAX_GROUP_WORDS = 1000
 MAX_WORD_LEN = 60
 MAX_PHRASE_WORDS = 6
 # أوامر نصها لازم يحتوي الكلمة نفسها: ما نمسحها إذا رتبة الكاتب تكفي للأمر
-DICT_COMMANDS = {"swear_add", "swear_remove", "swear_allow", "swear_unallow", "swear_test"}
+DICT_COMMANDS = {"swear_add", "swear_remove", "swear_allow", "swear_unallow", "swear_test",
+                 "dev_swear_add", "dev_swear_remove"}
 
 _versions = itertools.count(1)
 
@@ -115,7 +117,18 @@ async def _global_layer(svc: Services) -> Lexicon:
     if lx is None:
         lx = _build(await svc.swear_words.words(GLOBAL), "global")
         svc.swear_cache[GLOBAL] = lx
+        detector.global_layer = lx   # فلتر الرسائل الطالعة يغطي كلمات المطور كمان
     return lx
+
+
+async def _global_allowed(svc: Services) -> frozenset[str]:
+    """كلمات أوقفها المطور من القاموس الأساسي (تنطبق على كل المجموعات)."""
+    cached = svc.swear_cache.get("global_allow")
+    if cached is None:
+        rows = await svc.swear_words.allowed(GLOBAL)
+        cached = frozenset({r["norm"] for r in rows} | {glue(r["norm"]) for r in rows})
+        svc.swear_cache["global_allow"] = cached
+    return cached
 
 
 async def _group_layer(svc: Services, chat_id: int) -> tuple[Lexicon, frozenset[str]]:
@@ -127,7 +140,7 @@ async def _group_layer(svc: Services, chat_id: int) -> tuple[Lexicon, frozenset[
         for r in await svc.swear_words.allowed(chat_id):
             allowed.add(r["norm"])
             allowed.add(glue(r["norm"]))
-        cached = (lx, frozenset(allowed))
+        cached = (lx, frozenset(allowed) | await _global_allowed(svc))
         if len(svc.swear_cache) > 5000:
             svc.swear_cache.clear()
         svc.swear_cache[chat_id] = cached
@@ -197,26 +210,26 @@ async def check(context, svc: Services, msg: Message, chat, user) -> bool:
     rights = await svc.perms.bot_rights(context.bot, chat.id)
     if rights is None or not rights.can_delete_messages:
         return False
-    try:
-        await msg.delete()
-    except TelegramError:
-        return False
 
+    # نقرر العقوبة أولاً، وبعدين المسح والكتم/الحظر ينطلقون سوا بنفس اللحظة
     strike = await svc.swear_logs.strikes(chat.id, user.id, mod.SWEAR_WINDOW) + 1
     kind, secs = mod.swear_step(plan, strike)
     if rank >= NO_PUNISH_RANK or await botstate.is_quiet(svc, chat.id):
         kind, secs = "delete", None   # المشرفين، أو زهو موقوفة: مسح بس
     if kind in ("mute", "ban") and not rights.can_restrict_members:
         kind, secs = "delete", None
+    until = int(time.time()) + secs if secs else None
+    jobs = [msg.delete()]
+    if kind in ("mute", "ban"):
+        jobs.append(mod.apply(context.bot, chat.id, user.id, kind, until))
+    results = await asyncio.gather(*jobs, return_exceptions=True)
+    if isinstance(results[0], TelegramError) and len(results) == 1:
+        return False   # ما انمسحت وماكو عقوبة
+    if len(results) > 1 and isinstance(results[1], Exception):
+        log.info("فشلت عقوبة السب: %s", results[1])
+        kind, secs, until = "delete", None, None
 
     who = mention(user.id, user.full_name)
-    until = int(time.time()) + secs if secs else None
-    if kind in ("mute", "ban"):
-        try:
-            await mod.apply(context.bot, chat.id, user.id, kind, until)
-        except (BadRequest, Forbidden) as e:
-            log.info("فشلت عقوبة السب: %s", e)
-            kind, secs, until = "delete", None, None
 
     await svc.swear_logs.add(chat.id, user.id, hit.found, text, kind, level, secs)
     await svc.audit.log(f"swear_{kind}", chat_id=chat.id, actor_id=context.bot.id, target_id=user.id,
@@ -555,3 +568,61 @@ async def cmd_swear_words(cx: CommandContext) -> None:
         out.append(T.SWEAR_ALLOWED_LABEL)
         out += [f"▫️ <tg-spoiler>{esc(_cover(r['word']))}</tg-spoiler>" for r in allowed[:40]]
     await cx.reply("\n".join(out))
+
+
+
+# ── أوامر المطور: قاموس عام لكل المجموعات (من المجموعة أو من الخاص) ──
+@registry.command("dev_swear_add", ("اضف كلمة سب جديدة", "اضف كلمه سب جديده", "اضف كلمة سب", "اضف كلمه سب"),
+                  section="dev", min_rank=Rank.DEVELOPER, args="text", where="any", order=60,
+                  usage="[خفيف/متوسط/شديد] الكلمة", description="كلمة سب جديدة تنحظر فوراً بكل المجموعات")
+async def cmd_dev_swear_add(cx: CommandContext) -> None:
+    svc = cx.services
+    word, level, _ = _parse_options(cx, levels=True)
+    norm = _valid(word)
+    if norm is None:
+        await cx.reply(T.SWEAR_WORD_BAD)
+        return
+    if await svc.swear_words.unallow(GLOBAL, norm) | await svc.swear_words.unallow(GLOBAL, glue(norm)):
+        invalidate(svc, GLOBAL)   # كانت موقوفة: ترجع تشتغل
+        await svc.audit.log("dev_swear_enable", actor_id=cx.user.id)
+        await cx.reply(T.DEV_SWEAR_REENABLED)
+        return
+    if norm in detector.base.entries:   # موجودة بالقاموس الأساسي وشغّالة
+        await cx.reply(T.SWEAR_WORD_IN_BASE.format(level=T.SWEAR_LEVELS[detector.base.entries[norm].level]))
+        return
+    bad = detector.collisions(word, level)
+    if bad:
+        await cx.reply(T.SWEAR_WORD_COLLIDES.format(words="، ".join(f"<code>{esc(b)}</code>" for b in bad[:5])))
+        return
+    await svc.swear_words.add(GLOBAL, word, norm, level, cx.user.id)
+    invalidate(svc, GLOBAL)
+    await svc.audit.log("dev_swear_add", actor_id=cx.user.id, details={"level": level})
+    await cx.reply(T.DEV_SWEAR_ADDED.format(level=T.SWEAR_LEVELS[level],
+                                            kind=T.SWEAR_KINDS[Lexicon.auto_kind(norm)]))
+
+
+@registry.command("dev_swear_remove", ("ازل كلمة سب قديمة", "ازل كلمه سب قديمه", "ازل كلمة سب", "ازل كلمه سب",
+                                      "ازالة كلمة سب"),
+                  section="dev", min_rank=Rank.DEVELOPER, args="text", where="any", order=61,
+                  usage="الكلمة", description="يوقف كلمة سب كانت تنحظر (بكل المجموعات)")
+async def cmd_dev_swear_remove(cx: CommandContext) -> None:
+    svc = cx.services
+    word = cx.raw_args.strip()
+    norm = _valid(word)
+    if norm is None:
+        await cx.reply(T.SWEAR_WORD_BAD)
+        return
+    if await svc.swear_words.remove(GLOBAL, norm):
+        invalidate(svc, GLOBAL)
+        await svc.audit.log("dev_swear_remove", actor_id=cx.user.id)
+        await cx.reply(T.DEV_SWEAR_REMOVED)
+        return
+    hit = await scan(svc, cx.chat.id, word, use_allowed=False) if cx.chat.id < 0 else None
+    hit = hit or detector.scan(word, (await _global_layer(svc),))
+    if hit is None:
+        await cx.reply(T.SWEAR_WORD_NOT_SWEAR)
+        return
+    await svc.swear_words.allow(GLOBAL, word, hit.entry.key, cx.user.id)
+    invalidate(svc, GLOBAL)
+    await svc.audit.log("dev_swear_disable", actor_id=cx.user.id)
+    await cx.reply(T.DEV_SWEAR_DISABLED)

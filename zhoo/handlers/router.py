@@ -13,7 +13,7 @@ from zhoo.core.context import CommandContext, get_services
 from zhoo.core.ranks import RANK_NAMES, Rank
 from zhoo.core import conversation
 from zhoo.core.normalize import normalize
-from zhoo.systems import (ai, aliases, channels, cleanup, botstate, extras, features, games, levels, locks, protect, replies,
+from zhoo.systems import (ai, aliases, channels, cleanup, suspect, botstate, extras, features, games, levels, locks, protect, replies,
                           swear)
 
 log = logging.getLogger(__name__)
@@ -67,6 +67,7 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
                 return
             if await cleanup.check(context, svc, msg, chat, user):    # قائمة المنع
                 return
+            await suspect.check(context, svc, msg, chat, user)         # مميز مشكوك فيه: صوره تنمسح بعد شوية
 
     # ٢) التحليل
     text = msg.text

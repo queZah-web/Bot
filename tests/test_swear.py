@@ -124,7 +124,7 @@ async def test_swear_log_command(env):
     await say(env, CREATOR, "قفل السب بالمسح")
     await say(env, ALI, "كلام عادي وبعدين انعل ابوك وخلص")
     out = await say(env, CREATOR, "السب المحذوف")
-    assert "ا••• ابوك" in out and "انعل" not in out and "U3000003" in out and "كلام عادي" in out
+    assert "•••• ابوك" in out and "انعل" not in out and "U3000003" in out and "كلام عادي" in out
     assert "يحتاج رتبة" in await say(env, ALI, "السب المحذوف")
     assert "انمسح" in await say(env, CREATOR, "مسح سجل السب")
     assert "ماكو مخالفات" in await say(env, CREATOR, "السب المحذوف")

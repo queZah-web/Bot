@@ -336,13 +336,12 @@ _PLAIN = frozenset(_clean(w) for w in (
 
 
 def _mask_word(word: str) -> str:
-    """كلمة مسيئة ← أول حرف + نقاط (كسمك ← ك•••). الرموز والإيموجي تنشال."""
+    """كلمة مسيئة ← نقاط بس (ولا حرف منها يطلع). الطول تقريبي حتى ما ينعرف شنو."""
     letters = [c for c in word if c.isalpha()]
-    if len(letters) <= 1:
-        return MASK_CHAR
-    if "".join(letters[:2]) == "ال" and len(letters) > 3:   # الكلب ← الك•••
-        return "ال" + letters[2] + MASK_CHAR * max(2, min(len(letters) - 3, 6))
-    return letters[0] + MASK_CHAR * max(2, min(len(letters) - 1, 6))
+    return MASK_CHAR * (3 if len(letters) <= 3 else 4)
+
+
+_HTML_PART = re.compile(r"(<[^>]+>|&[#a-zA-Z0-9]+;)")
 
 
 class SwearDetector:
@@ -355,6 +354,7 @@ class SwearDetector:
         self.base = Lexicon("base").load(bank.EXACT, bank.STEMS, bank.PHRASES)
         self._cache: OrderedDict = OrderedDict()
         self._extra_cache: dict[frozenset, Lexicon] = {}
+        self.global_layer: Lexicon | None = None   # القاموس العام (من المطور) — يستخدمه فلتر الرسائل الطالعة
         # أسماء الإهانة المفردة (تنحسب بس إذا انكتبت كرد على شخص)
         self.insult_nouns = frozenset(_clean(prepare(w)) for w in bank.INSULTS_ANIMALS + bank.INSULTS_PEOPLE)
 
@@ -444,6 +444,17 @@ class SwearDetector:
             return text
         for k in bad:
             parts[idx[k]] = _mask_word(parts[idx[k]])
+        return "".join(parts)
+
+    def mask_html(self, text: str) -> str:
+        """نفس mask بس لنص HTML: الوسوم (<b> ، <a href>) ما تنلمس، والكلام بينها ينفحص."""
+        if not text:
+            return text
+        layers = (self.global_layer,) if self.global_layer is not None else ()
+        parts = _HTML_PART.split(text)
+        for i in range(0, len(parts), 2):   # الأجزاء الزوجية = كلام، الفردية = وسوم
+            if parts[i].strip():
+                parts[i] = self.mask(parts[i], layers)
         return "".join(parts)
 
     def find(self, text: str, extra=frozenset(), allowed=frozenset()) -> str | None:

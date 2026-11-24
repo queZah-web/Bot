@@ -11,14 +11,17 @@ from telegram.ext import (Application, ApplicationBuilder, CallbackQueryHandler,
                           CommandHandler, ContextTypes, Defaults, MessageHandler,
                           MessageReactionHandler, filters)
 
+from telegram.request import HTTPXRequest
+
 from zhoo import __version__
 from zhoo.config import Settings
+from zhoo.core.safebot import SafeBot
 from zhoo.core.context import Services
 from zhoo.database.db import Database
 from zhoo.handlers import callbacks, errors, membership, router, start
 
 # استيراد الأنظمة يسجل أوامرها بالسجل المركزي
-from zhoo.systems import (aliases, backup, channels, chatinfo, cleanup, inspect, media, quicksetup, watchdog, botstate, general, group, locks, owner, protect, punish,  # noqa: F401
+from zhoo.systems import (aliases, backup, channels, chatinfo, cleanup, inspect, media, quicksetup, suspect, watchdog, botstate, general, group, locks, owner, protect, punish,  # noqa: F401
                           ranks, reports, features, extras, youtube, ai,
                           economy, feedback, games, levels, replies, social, swear)
 
@@ -71,20 +74,20 @@ async def _post_shutdown(app: Application) -> None:
 def build_application(settings: Settings) -> Application:
     defaults = Defaults(parse_mode=ParseMode.HTML,
                         link_preview_options=LinkPreviewOptions(is_disabled=True))
-    builder = (
+    # مهل أطول حتى يتحمل نت الموبايل البطيء
+    request = HTTPXRequest(connection_pool_size=256, connect_timeout=20, read_timeout=30, write_timeout=30,
+                           pool_timeout=10, proxy=settings.proxy_url)
+    updates_request = HTTPXRequest(connect_timeout=20, read_timeout=40, proxy=settings.proxy_url)
+    # SafeBot: كل نص طالع من زهو ينفحص ويتغطى أي سب بيه
+    bot = SafeBot(settings.token, defaults=defaults, request=request, get_updates_request=updates_request)
+    app = (
         ApplicationBuilder()
-        .token(settings.token)
-        .defaults(defaults)
-        .concurrent_updates(16)
-        # مهل أطول حتى يتحمل نت الموبايل البطيء
-        .connect_timeout(20).read_timeout(30).write_timeout(30).pool_timeout(10)
-        .get_updates_connect_timeout(20).get_updates_read_timeout(40)
+        .bot(bot)
+        .concurrent_updates(32)
         .post_init(_post_init)
         .post_shutdown(_post_shutdown)
+        .build()
     )
-    if settings.proxy_url:
-        builder = builder.proxy(settings.proxy_url).get_updates_proxy(settings.proxy_url)
-    app = builder.build()
     app.bot_data["services"] = Services.build(settings, Database(settings.db_path))
 
     chats = filters.ChatType.PRIVATE | filters.ChatType.GROUPS

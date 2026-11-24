@@ -113,8 +113,10 @@ async def change_rank(cx: CommandContext, new_rank: Rank, *, only_from: Rank | N
         _, kb = await perm_panel(svc, cx.chat.id, target.user_id, new_effective)
         await cx.reply(text, reply_markup=kb)
     else:
-        if new_effective == Rank.MEMBER:   # تنزيل كامل: تنسحب كل الصلاحيات المخصصة
+        if new_effective == Rank.MEMBER:   # تنزيل كامل: تنسحب كل الصلاحيات المخصصة (والشك)
             await svc.member_perms.clear(cx.chat.id, target.user_id)
+            from zhoo.systems import suspect
+            await suspect.clear(svc, cx.chat.id, target.user_id, cx.user.id)
             tg_note += "\n" + T.RANK_ALL_REVOKED
         await cx.reply(T.RANK_DEMOTED.format(mention=who, old=rank_label(info.effective),
                                              rank=rank_label(new_effective), actor=actor) + tg_note)
