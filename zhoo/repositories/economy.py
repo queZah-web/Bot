@@ -26,7 +26,7 @@ class EconomyRepo:
         new = balance + amount
         if new < 0:
             raise InsufficientFunds(balance)
-        earned = amount if amount > 0 and kind not in ("transfer_in", "admin_give", "withdraw", "rob_in") else 0
+        earned = amount if amount > 0 and kind not in ("transfer_in", "admin_give", "withdraw", "rob_in", "barter_in", "dim_sell", "planet_sell", "asset_sell") else 0
         await conn.execute(
             "INSERT INTO wallets (chat_id, user_id, balance, total_earned) VALUES (?, ?, ?, ?) "
             "ON CONFLICT (chat_id, user_id) DO UPDATE SET balance = ?, total_earned = total_earned + ?",

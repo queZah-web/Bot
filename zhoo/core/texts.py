@@ -737,7 +737,7 @@ GAMES_MENU = (
     f"{BULLET} اختار لعبة 👇 لعبة وحدة بكل مرة، والأجوبة تنكتب بالمجموعة عادي\n"
     f"{BULLET} اللي بدأ اللعبة يكتب «ماعرف» حتى ينكشف الجواب\n"
     f"{LINE}\n"
-    f"🌌 <b>وغيرها:</b> <code>الكون</code> ⋅ <code>البنك</code> ⋅ <code>السوق</code> ⋅ <code>معلومة</code> ⋅ <code>معلومة كونية</code>"
+    f"🌌 <b>وغيرها:</b> <code>الكون</code> ⋅ <code>الابعاد</code> ⋅ <code>البنك</code> ⋅ <code>السوق</code> ⋅ <code>معلومة</code> ⋅ <code>معلومة كونية</code>"
 )
 GAMES_OFF = f"{BULLET} الألعاب معطّلة بهاي المجموعة 🌸"
 GAME_RUNNING = f"{BULLET} اكو لعبة شغّالة هسه 🎮 جاوبوا عليها أول، أو اكتبوا <code>ايقاف اللعبة</code>"
@@ -917,6 +917,8 @@ TX_KINDS = {
     "luck": "🎲 حظ", "invest": "📊 استثمار", "speculate": "📉 مضاربة", "shield": "🛡 حماية",
     "planet_buy": "🪐 شراء كوكب", "planet_sell": "🪐 بيع كوكب", "asset_buy": "🛍 شراء من السوق",
     "asset_sell": "💸 بيع للسوق", "passive": "💰 أرباح يومية",
+    "dim_buy": "🌀 شراء مورد", "dim_sell": "🌀 بيع مورد", "dim_travel": "🚀 رسوم سفر", "dim_upgrade": "📦 توسيع المخزن",
+    "dim_event": "🎁 حدث بالطريق", "barter_in": "🤝 مقايضة (وارد)", "barter_out": "🤝 مقايضة (صادر)",
     "rob_in": "🥷 زرف ناجح", "rob_out": "🥷 انزرف منه", "rob_fine": "🚓 غرامة زرف", "rob_comp": "🚓 تعويض زرف",
 }
 RICH_HEADER = title("الأَغْـنَـى", "💰")
@@ -1860,6 +1862,13 @@ BANK_MENU = (
     f"{BULLET} <code>حماية</code> ⋅ درع 6 ساعات ضد الزرف 🛡\n"
     f"{LINE}\n"
     f"🏆 <code>الأغنى</code> ⋅ <code>توب الحرامية</code> ⋅ <code>حركاتي</code> ⋅ <code>تحويل</code>\n"
+    f"{LINE}\n"
+    f"🌍 <b>عوالم ثانية</b>\n"
+    f"{BULLET} <code>السوق</code> ⋅ سيارات وعقارات ومجوهرات وشركات 🏙\n"
+    f"{BULLET} <code>الكون</code> ⋅ 30 ألف كوكب للبيع والشراء 🌌\n"
+    f"{BULLET} <code>الابعاد</code> ⋅ تجارة بين 7 أبعاد 🌀\n"
+    f"{BULLET} <code>مقايضة</code> بالرد ⋅ بدّل أي شي بأي شي 🤝\n"
+    f"{BULLET} <code>ارباحي</code> ⋅ <code>ثروتي</code> ⋅ <code>وصف</code> أي شي 📖\n"
     f"<i>كلها فلوس افتراضية للمتعة بس 🌸</i>"
 )
 BANK_NAMES = {
@@ -2305,3 +2314,88 @@ WORTH = (
     f"{LINE}\n"
     f"💎 المجموع: <b>{{total}}</b> 🌸"
 )
+
+# ── تجارة الأبعاد 🌀 ─────────────────────────────────
+DM_HOME_HEAD = title("تِـجَـارَة الأَبْـعَـاد", "🌀")
+DM_HERE = f"📍 {{who}} هسه بـ <b>{{dim}}</b>\n<i>{{about}}</i>"
+DM_TRAVELLING = f"🚀 {{who}} مسافر لـ <b>{{dest}}</b> ⋅ يوصل بعد <b>{{left}}</b>"
+DM_CARGO_LINE = f"📦 المخزن: <b>{{load}}</b> / {{cap}}"
+DM_HOME_TIP = ("💡 <i>اشتري الموارد بالبعد اللي ينتجها (رخيصة)، سافر، وبيعها بالبعد اللي يطلبها (غالية). "
+               "انتبه من قراصنة الأبعاد 🏴‍☠️</i>")
+DM_BTN_MARKET = "🏪 سوق البعد"
+DM_BTN_CARGO = "📦 مخزني"
+DM_BTN_HOME = "🌀 الأبعاد"
+DM_BTN_BUY = "🛒 {res} ⋅ {price}"
+DM_BTN_SELL = "💸 بيع {res} ⋅ {price}"
+DM_MK_SELLS = "🛒 <b>يبيع (رخيص):</b>"
+DM_MK_WANTS = "🔥 <b>يطلب (يشتري غالي):</b>"
+DM_MK_YOURS = "📦 <b>حمولتك (سعرها هنا):</b>"
+DM_MK_LINE = "   {res} ⋅ <b>{price}</b> 🌸"
+DM_MK_LINE_HOT = "   {res} ⋅ يشتريه بـ <b>{price}</b> 🌸"
+DM_MK_LINE_MINE = "   {res} × {qty} ⋅ <b>{price}</b> 🌸 للوحدة"
+DM_MK_TIP = "💡 <i>بعدد: <code>شراء رمل الزمن 5</code> ⋅ <code>بيع رمل الزمن 5</code> ⋅ الأسعار تتبدل كل ساعة</i>"
+DM_CARGO_HEAD = title("الـمَـخْـزَن", "📦") + "\n{who}"
+DM_CARGO_EMPTY = f"{BULLET} المخزن فارغ 🌸 روح لـ <code>سوق البعد</code> واشتري"
+DM_UPGRADE_HINT = "⬆️ <code>توسيع المخزن</code> (+{step}) بـ <b>{cost}</b> 🌸"
+DM_UPGRADED = f"{BULLET} توسع مخزنك ✨ السعة هسه <b>{{cap}}</b> وحدة 📦"
+DM_UPGRADE_MAX = f"{BULLET} مخزنك بأعلى سعة (<b>{{cap}}</b>) 📦"
+DM_DIM_BAD = f"{BULLET} ما لگيت هالبعد 🌸 الأبعاد: {{names}}"
+DM_DEPARTED = (title("انْـطِـلَاق", "🚀") + f"\n{BULLET} {{who}} سافر لـ <b>{{dim}}</b>\n"
+               f"{BULLET} الرحلة: <b>{{minutes}}</b> دقيقة ⋅ الرسوم: <b>{{fee}}</b> 🌸\n{BULLET} أخبرك من توصل 🌌")
+DM_BOUGHT = f"🛒 اشتريت <b>{{qty}}</b> × {{res}} بـ <b>{{total}}</b> 🌸 ⋅ الكاش: {{cash}}"
+DM_SOLD = f"💸 بعت <b>{{qty}}</b> × {{res}} بـ <b>{{total}}</b> 🌸 ⋅ {{icon}} الربح: <b>{{profit}}</b> ⋅ الكاش: {{cash}}"
+DM_ERR_TRAVELLING = f"{BULLET} انت بالطريق 🚀 توصل بعد <b>{{left}}</b>"
+DM_ERR_FUNDS = f"{BULLET} الكاش ما يكفي 🌸 عندك <b>{{have}}</b>"
+DM_ERR_NOT_HERE = f"{BULLET} {{res}} ما ينباع بـ {{dim}} 🌸 شوف <code>وصف</code> المورد حتى تعرف وين ينباع"
+DM_ERR_CAP = f"{BULLET} مخزنك ما يكفي 📦 المكان الفارغ: <b>{{free}}</b> ⋅ <code>توسيع المخزن</code>"
+DM_ERR_NONE = f"{BULLET} ما عندك عدد كافي من {{res}} 🌸 (عندك {{have}})"
+DM_ERR_HERE = f"{BULLET} انت أصلاً بـ {{dim}} 😄"
+DM_EV_CALM = f"🌌 وصلت <b>{{dim}}</b> بسلام ✨"
+DM_EV_STORM = f"🌪 عاصفة أبعاد أخّرت الرحلة شوية، بس وصلت <b>{{dim}}</b> سالم"
+DM_EV_PIRATES = f"🏴‍☠️ <b>قراصنة الأبعاد</b> هاجموك بالطريق لـ {{dim}} وأخذوا <b>{{pct}}%</b> من حمولتك: {{lost}}"
+DM_EV_TREASURE = f"🎁 لگيت صندوق طايف بين الأبعاد بيه {{res}} × <b>{{qty}}</b>، ووصلت {{dim}}"
+DM_EV_MERCHANT = f"🧙 تاجر غريب بالطريق لـ {{dim}} انطاك <b>{{n}}</b> 🌸 هدية وگال «التجارة أمانة»"
+
+# ── المقايضة 🤝 ────────────────────────────────────
+TR_HEAD = title("عَـرْض مُـقَـايَـضَـة", "🤝")
+TR_FROM = "📤 {who} ينطي:"
+TR_TO = "📥 {who} ينطي:"
+TR_WAITING = f"{BULLET} بانتظار رد {{who}} ⏳ (العرض ينتهي بعد {{minutes}} دقايق)"
+TR_BTN_ACCEPT = "✅ قبول"
+TR_BTN_DECLINE = "❌ رفض"
+TR_BTN_CANCEL = "🗑 الغاء العرض"
+TR_HOW = (
+    f"{BULLET} اكتب المقايضة بالرد على الشخص 🌸\n"
+    f"{BULLET} <code>مقايضة خاتم 2 مقابل 5000</code>\n"
+    f"{BULLET} <code>مقايضة كوكب 2-1250 + 1000 مقابل لامبورغيني</code>\n"
+    f"{BULLET} <code>مقايضة رماد العنقاء 3 مقابل ألماسة</code>\n"
+    f"{BULLET} <i>تگدر تبدل: كاش، أملاك السوق، كواكب، موارد الأبعاد (لحد 4 أشياء بكل طرف)</i>"
+)
+TR_SELF = f"{BULLET} المقايضة تكون ويه عضو ثاني 🌸"
+TR_BAD_GOODS = f"{BULLET} ما فهمت بعض الأشياء 🌸 اكتب الاسم مثل ما هو بالسوق، والكوكب بكوده، والكاش رقم"
+TR_YOU_MISSING = f"{BULLET} ما عندك: {{good}} 🌸"
+TR_YOU_MISSING_ALERT = "ما عندك كل اللي بالطلب 🌸"
+TR_EXPIRED = "هذا العرض انتهى ⏳"
+TR_ONLY_OWNER = "بس صاحب العرض يگدر يلغيه 🌸"
+TR_ONLY_TARGET = "هذا العرض مو إلك 🌸"
+TR_CANCELLED = "🗑 <b>انلغى العرض</b>"
+TR_DECLINED = "❌ <b>{who} رفض العرض</b>"
+TR_DONE = "✅ <b>تمت المقايضة</b> 🎉 كل واحد استلم حقه"
+TR_FAIL = "⚠️ <b>ما تمت</b>: {good} ما موجود هسه"
+TR_FAIL_FROM = "⚠️ <b>ما تمت</b>: {who} ما عنده {good} هسه"
+
+# ── الوصف 📖 ────────────────────────────────────────
+DESC_ITEM = (title("{name}", "{emoji}") + f"\n{LINE}\n<i>{{desc}}</i>\n{LINE}\n"
+             f"{BULLET} القسم: {{cat}}\n{BULLET} سعر اليوم: <b>{{price}}</b> 🌸 ⋅ يتباع بـ <b>{{sell}}</b>{{extra}}")
+DESC_INCOME = "\n" + f"{BULLET} الدخل اليومي: <b>{{n}}</b> 🌸"
+DESC_RES = (title("{label}", "🌀") + f"\n{LINE}\n<i>{{desc}}</i>\n{LINE}\n"
+            f"{BULLET} السعر الأساسي: <b>{{base}}</b> 🌸\n{BULLET} ينباع رخيص بـ: {{made}}\n{BULLET} ينطلب غالي بـ: {{wanted}}")
+DESC_DIM = (title("{label}", "🌀") + f"\n{LINE}\n<i>{{desc}}</i>\n{LINE}\n"
+            f"{BULLET} السفر: <b>{{minutes}}</b> دقيقة ⋅ الرسوم: <b>{{fee}}</b> 🌸\n{BULLET} الخطر: {{risk}}\n"
+            f"{BULLET} ينتج: {{made}}\n{BULLET} يطلب: {{wanted}}")
+DESC_RISK = ("🟢 آمن", "🟡 متوسط", "🔴 خطير (قراصنة)")
+DESC_GALAXY = (title("مَـجَـرَّة {name}", "{emoji}") + f"\n{LINE}\n<i>{{desc}}</i>\n{LINE}\n"
+               f"{BULLET} الكواكب: <b>{{n}}</b> ⋅ مستوى الأسعار: <b>×{{mult}}</b>")
+DESC_PLANET = (title("{name}", "🪐") + f"\n{LINE}\n{BULLET} الكود: <code>{{code}}</code> ⋅ {{g}}\n"
+               f"{BULLET} النوع: {{kind}} ⋅ {{rarity}}\n{BULLET} قيمته: <b>{{price}}</b> 🌸 ⋅ الدخل: <b>{{income}}</b> 🌸/يوم")
+DESC_NONE = f"{BULLET} ما عندي وصف لـ «{{q}}» 🌸 جرب اسم شي من <code>السوق</code> أو <code>الابعاد</code> أو <code>الكون</code>"

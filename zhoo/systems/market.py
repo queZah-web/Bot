@@ -68,6 +68,28 @@ ITEMS: tuple[Item, ...] = (
     Item("mall", "مول", "🛍", "biz", 500_000, .06, .015, ("مول تجاري",)),
 )
 ITEM_MAP = {i.key: i for i in ITEMS}
+DESCS = {
+    "camry": "سيارة عائلية موثوقة، ما تخذلك بالطريق ولا بالبيع.",
+    "landcruiser": "ملكة الطرق الوعرة، والجكسارة اللي يحلم بيها كل عراقي.",
+    "gclass": "مربعة وفخمة، تدخل المكان وكلشي يسكت.",
+    "lambo": "صوت محركها يكفي يعرّف الكل إنك وصلت.",
+    "bugatti": "أسرع من الإشاعة، وأغلى من الحلم.",
+    "flat": "شقة حلوة بقلب بغداد، إيجارها يجيك كل يوم.",
+    "house": "بيت واسع بالمنصور، بحديقة ونخلة.",
+    "villa": "فيلا بمسبح وحديقة، والهدوء مالها ما ينشرى.",
+    "palace": "قصر بأعمدة رخام وثريات، يليق بالملوك.",
+    "tower": "ناطحة سحاب تلمس الغيوم، وإيجارها ثروة.",
+    "boat": "زورق سريع لسفرات دجلة والصيد.",
+    "yacht": "يخت فخم بحفلات على سطحه تحت النجوم.",
+    "jet": "طائرة خاصة: لا طوابير ولا انتظار.",
+    "ring": "خاتم ذهب عيار 21، هدية ما تبور.",
+    "rolex": "ساعة سويسرية، قيمتها تزيد ويه السنين.",
+    "diamond": "ألماسة صافية، سعرها يطير وينزل بسرعة: فرصة للتجار.",
+    "crown": "تاج ملكي مرصع بالجواهر، أغلى قطعة بالسوق.",
+    "cafe": "كوفي شوب صغير ودافي، يعطيك دخل كل يوم.",
+    "restaurant": "مطعم مشهور بالمسگوف والدولمة، زبائنه ما يخلصون.",
+    "mall": "مول تجاري ضخم، دخله اليومي يغنيك.",
+}
 _NAMES = {normalize(n): i for i in ITEMS for n in (i.name,) + i.aliases}
 
 
@@ -188,6 +210,14 @@ async def _trade(cx: CommandContext, buying: bool) -> None:
         return
     item, qty = find_item(cx.raw_args)
     if item is None:
+        from zhoo.systems import dims
+        words = cx.raw_args.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")).split()
+        if words and words[-1].isdigit():
+            words.pop()
+        res = dims.find_res(" ".join(words))
+        if res is not None:                       # مورد من تجارة الأبعاد
+            await dims.trade_command(cx, buying, res, qty)
+            return
         await cx.reply(T.MK_ITEM_BAD.format(cmd="شراء" if buying else "بيع"))
         return
     who = mention(cx.user.id, cx.user.full_name)

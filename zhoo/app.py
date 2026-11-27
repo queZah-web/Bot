@@ -23,7 +23,7 @@ from zhoo.handlers import callbacks, errors, membership, router, start
 # استيراد الأنظمة يسجل أوامرها بالسجل المركزي
 from zhoo.systems import (aliases, backup, channels, chatinfo, cleanup, inspect, media, quicksetup, suspect, watchdog, botstate, general, group, locks, owner, protect, punish, punish_lists, guardian, logchannel,  # noqa: F401
                           ranks, reports, features, extras, youtube, ai,
-                          bank, economy, feedback, game_pics, games, market, space, levels, replies, social, swear)
+                          bank, economy, feedback, game_pics, games, market, space, dims, trade, levels, replies, social, swear)
 
 log = logging.getLogger(__name__)
 
