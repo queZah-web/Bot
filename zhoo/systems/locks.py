@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from telegram import ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup, Message, MessageEntity, Update
 from telegram.error import BadRequest, Forbidden, TelegramError
@@ -41,6 +41,19 @@ EXEMPT_RANK = Rank.ADMIN   # الافتراضي: المشرفين بس يتجا�
 VIP_EXEMPT = frozenset({"photos", "videos", "gifs", "stickers", "animated_stickers", "premium_stickers",
                         "premium_emoji", "text", "long", "edit", "edit_media", "reactions"})
 MODES_ALL = ("delete", "warn", "mute", "restrict", "kick")
+# «منع تيليجرام»: زر الإرفاق نفسه ينطفي عند الأعضاء ويطلعلهم «لا يُسمح بإرسال …»
+NATIVE_PERMS: dict[str, tuple[str, ...]] = {
+    "photos": ("can_send_photos",),
+    "videos": ("can_send_videos", "can_send_video_notes"),
+    "voice": ("can_send_voice_notes",),
+    "audio": ("can_send_audios",),
+    "files": ("can_send_documents",),
+    "polls": ("can_send_polls",),
+    "gifs": ("can_send_other_messages",),        # تيليجرام يجمع المتحركات والملصقات والانلاين بصلاحية وحدة
+    "stickers": ("can_send_other_messages",),
+}
+NATIVE_DEFAULT = frozenset({"photos", "videos", "voice", "audio", "files", "polls"})   # «قفل الصور» = منع مباشر
+MEDIA_KEYS = ("photos", "videos", "gifs", "stickers", "voice", "audio", "files", "polls")
 MAX_STRIKES = 3
 LOCK_MUTE = 3600
 
@@ -98,13 +111,17 @@ LOCKS: tuple[Lock, ...] = (
     Lock("bots", "البوتات", "🤖", ("البوت",), "guard_bots", "behavior", ("delete", "kick"), False),
     Lock("chat", "الدردشة", "💬", ("الشات", "المجموعه"), "lock_chat", "behavior", ("delete",), False),
 )
+LOCKS = tuple(
+    replace(l, modes=(("native",) + MODES_ALL) if l.key in NATIVE_DEFAULT else MODES_ALL + ("native",))
+    if l.key in NATIVE_PERMS else l for l in LOCKS)
 LOCK_MAP = {l.key: l for l in LOCKS}
 ALL_KEYS = tuple(l.key for l in LOCKS if l.in_all)
 MEDIA_ORDER = ("photos", "gifs", "videos", "stickers", "animated_stickers", "premium_stickers", "voice", "audio", "files", "contacts", "locations", "polls")
 
 _MODE_WORDS = {normalize(w): m for w, m in (
     ("بالمسح", "delete"), ("بالحذف", "delete"), ("بالتحذير", "warn"), ("بالانذار", "warn"),
-    ("بالكتم", "mute"), ("بالتقييد", "restrict"), ("بالطرد", "kick"))}
+    ("بالكتم", "mute"), ("بالتقييد", "restrict"), ("بالطرد", "kick"), ("بالمنع", "native"),
+    ("بالقفل", "native"))}
 _NAME_INDEX: dict[str, Lock] = {}
 for _l in LOCKS:
     for _n in (_l.name,) + _l.aliases:
@@ -269,7 +286,7 @@ async def enforce(context, svc: Services, msg: Message, chat, user, lock: Lock, 
     await svc.audit.log(f"guard_lock_{lock.key}", chat_id=chat.id, actor_id=context.bot.id, target_id=user.id,
                         details={"mode": mode})
     who = mention(user.id, user.full_name)
-    if mode != "delete" and not rights.can_restrict_members:
+    if mode == "native" or (mode != "delete" and not rights.can_restrict_members):
         mode = "delete"
 
     if mode == "delete":
@@ -347,14 +364,16 @@ async def set_mode(svc: Services, bot, chat_id: int, key: str, mode: str | None,
     lock = LOCK_MAP[key]
     if mode is not None and mode not in lock.modes:
         return "bad_mode"
-    if await get_mode(svc, chat_id, key) == mode:
+    old_mode = await get_mode(svc, chat_id, key)
+    if old_mode == mode:
         return "same"
-    if key == "chat":
+    if key == "chat" or (key in NATIVE_PERMS and "native" in (mode, old_mode)):
         rights = await svc.perms.bot_rights(bot, chat_id)
         if rights is None or not rights.can_restrict_members:
             return "no_rights"
         try:
-            await bot.set_chat_permissions(chat_id, ChatPermissions.no_permissions() if mode else _OPEN_CHAT)
+            await bot.set_chat_permissions(chat_id, await _permissions_after(svc, bot, chat_id, key, mode),
+                                           use_independent_chat_permissions=True)
         except TelegramError as e:
             log.info("فشل تغيير صلاحيات الدردشة: %s", e)
             return "no_rights"
@@ -367,9 +386,38 @@ async def set_mode(svc: Services, bot, chat_id: int, key: str, mode: str | None,
     return "ok"
 
 
+async def _permissions_after(svc: Services, bot, chat_id: int, key: str, mode: str | None) -> ChatPermissions:
+    """صلاحيات المجموعة بعد التغيير: نغيّر بس الصلاحية الخاصة بهذا القفل، والباقي يبقى مثل ما هو."""
+    if key == "chat":
+        if mode:
+            return ChatPermissions.no_permissions()
+        perms = _OPEN_CHAT.to_dict()
+        for other, fields in NATIVE_PERMS.items():           # الوسائط المقفولة بالمنع تبقى مقفولة
+            if await get_mode(svc, chat_id, other) == "native":
+                perms.update({f: False for f in fields})
+        return ChatPermissions(**perms)
+    try:
+        current = (await bot.get_chat(chat_id)).permissions or _OPEN_CHAT
+    except TelegramError:
+        current = _OPEN_CHAT
+    perms = {f: getattr(current, f, None) for f in _OPEN_CHAT.to_dict()}
+    if await get_mode(svc, chat_id, "chat"):
+        return ChatPermissions(**perms)                      # الدردشة مقفولة كلها: نخليها
+    for field in NATIVE_PERMS[key]:
+        if mode == "native":
+            perms[field] = False
+        else:   # نفتحها، إلا إذا قفل ثاني يشاركها (المتحركات والملصقات) بعده بالمنع
+            shared = [o for o, f in NATIVE_PERMS.items() if o != key and field in f]
+            perms[field] = not any([await get_mode(svc, chat_id, o) == "native" for o in shared])
+    return ChatPermissions(**perms)
+
+
 async def set_lock(svc: Services, bot, chat_id: int, key: str, on: bool, by: int) -> str:
-    """توافق مع الكود القديم: تشغيل = أول وضع."""
-    return await set_mode(svc, bot, chat_id, key, LOCK_MAP[key].modes[0] if on else None, by)
+    """توافق مع الكود القديم: تشغيل = أول وضع (وإذا المنع يحتاج صلاحية ماكو، نقفل بالمسح)."""
+    result = await set_mode(svc, bot, chat_id, key, LOCK_MAP[key].modes[0] if on else None, by)
+    if on and result == "no_rights" and LOCK_MAP[key].modes[0] == "native":
+        result = await set_mode(svc, bot, chat_id, key, "delete", by)
+    return result
 
 
 def _mode_name(mode: str) -> str:
@@ -389,9 +437,14 @@ async def cmd_lock(cx: CommandContext) -> None:
         await cx.reply(T.HELP_LOCK_TYPES.strip())
         return
     lock, mode = parsed
+    explicit = mode is not None
     mode = mode or lock.modes[0]
     what = f"{lock.emoji} {lock.name}"
     result = await set_mode(cx.services, cx.bot, cx.chat.id, lock.key, mode, cx.user.id)
+    fallback = False
+    if result == "no_rights" and mode == "native" and not explicit:   # ماكو صلاحية تقييد: نقفل بالمسح
+        mode, fallback = "delete", True
+        result = await set_mode(cx.services, cx.bot, cx.chat.id, lock.key, mode, cx.user.id)
     if result == "bad_mode":
         await cx.reply(T.LOCK_MODE_NOT_ALLOWED.format(modes=" ، ".join(_mode_name(m) for m in lock.modes)))
     elif result == "same":
@@ -401,9 +454,40 @@ async def cmd_lock(cx: CommandContext) -> None:
     else:
         text = T.LOCKED_MODE.format(what=what, mode=_mode_name(mode), actor=mention(cx.user.id, cx.user.full_name))
         rights = await cx.services.perms.bot_rights(cx.bot, cx.chat.id)
-        if lock.key != "chat" and (rights is None or not rights.can_delete_messages):
+        if fallback:
+            text += "\n" + T.LOCK_NATIVE_FALLBACK
+        if mode == "native":
+            text += "\n" + T.LOCK_NATIVE_NOTE
+            if lock.key in ("gifs", "stickers"):
+                text += "\n" + T.LOCK_NATIVE_SHARED
+        elif lock.key != "chat" and (rights is None or not rights.can_delete_messages):
             text += "\n" + T.LOCK_NEED_RIGHTS
         await cx.reply(text)
+
+
+async def _media_all(cx: CommandContext, on: bool) -> None:
+    done, failed = 0, False
+    for key in MEDIA_KEYS:
+        result = await set_mode(cx.services, cx.bot, cx.chat.id, key, "native" if on else None, cx.user.id)
+        done += result == "ok"
+        failed |= result == "no_rights"
+    if failed and not done:
+        await cx.reply(T.LOCK_CHAT_NEED_RIGHTS)
+        return
+    actor = mention(cx.user.id, cx.user.full_name)
+    await cx.reply((T.MEDIA_LOCKED if on else T.MEDIA_UNLOCKED).format(actor=actor))
+
+
+@registry.command("lock_media", ("قفل الوسائط", "قفل الميديا", "منع الوسائط"), section=S, min_rank=EDIT_RANK,
+                  description="يمنع كل الوسائط من تيليجرام نفسه: «لا يُسمح بإرسال الوسائط» 🚫", order=6)
+async def cmd_lock_media(cx: CommandContext) -> None:
+    await _media_all(cx, True)
+
+
+@registry.command("unlock_media", ("فتح الوسائط", "فتح الميديا"), section=S, min_rank=EDIT_RANK,
+                  description="يرجّع كل الوسائط", order=7)
+async def cmd_unlock_media(cx: CommandContext) -> None:
+    await _media_all(cx, False)
 
 
 @registry.command("unlock_one", ("فتح",), section=S, min_rank=EDIT_RANK, usage="النوع",

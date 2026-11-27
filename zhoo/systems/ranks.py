@@ -163,13 +163,11 @@ async def cmd_demote(cx: CommandContext) -> None:
 
 
 async def send_rank_list(cx: CommandContext, rank: Rank) -> None:
-    rows = [r for r in await cx.services.members.list_ranked(cx.chat.id) if r["rank"] == rank]
-    text = T.RANK_LIST_HEADER.format(plural=RANK_PLURALS[rank]) + "\n"
-    if not rows:
-        text += T.STAFF_EMPTY
-    else:
-        text += "\n".join(f"{i}. {_row_mention(r)}" for i, r in enumerate(rows, 1))
-    await cx.reply(text)
+    """القائمة، ويه أزرار التنزيل إذا اللي طلبها يگدر ينزّل هاي الرتبة."""
+    from zhoo.systems import rank_lists
+    text, kb = await rank_lists.render(cx.services, cx.chat.id, rank,
+                                       buttons=cx.rank >= rank_lists.needed(rank))
+    await cx.reply(text, reply_markup=kb)
 
 
 def _row_mention(row) -> str:
