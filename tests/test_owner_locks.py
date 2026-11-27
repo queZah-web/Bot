@@ -46,10 +46,11 @@ def test_replies_are_iraqi_only():
 # ── ٢) ردود السلام: كل 5 ثواني لنفس الشخص + أمر الإيقاف ──
 async def test_greeting_every_5_seconds_per_person(env):
     await _setup(env)
+    extras._source_limiter.max_hits = 1
     assert "وعليكم السلام" in await say(env, ALI, "السلام عليكم")
-    assert await say(env, ALI, "مساء الخير") is None          # نفس الشخص خلال 5 ثواني
+    assert await say(env, ALI, "مساء الخير") is None          # نفس الشخص خلال 10 ثواني
     assert "مسا" in await say(env, SARA, "مساء الخير")         # شخص ثاني ينرد عليه
-    extras._source_limiter._hits.clear()                       # = مرت 5 ثواني
+    extras._source_limiter._hits.clear()                       # = مرت 10 ثواني
     assert "مسا" in await say(env, ALI, "مساء الخير")
 
 
@@ -80,11 +81,10 @@ async def test_developer_controls_any_group(env):
     svc.command_limiter._hits.clear()
     assert "مالك" in await say(env, DEV, "رفع مالك", reply_to=SARA)
     assert await svc.members.get_rank(GROUP, SARA) == Rank.OWNER
-    # حتى لو زهو موقوفة بالمجموعة
+    # زهو موقوفة بالمجموعة: تسكت حتى ويه المطور (بس أوامر التشغيل)
     await say(env, CREATOR, "ايقاف زهو")
     assert await say(env, CREATOR, "ايدي") is None
-    out = await say(env, DEV, "ايدي")
-    assert out and str(DEV) in out
+    assert await say(env, DEV, "ايدي") is None
     # ومحد يكدر يعاقبه
     svc.command_limiter._hits.clear()
     await say(env, CREATOR, "فتح زهو")

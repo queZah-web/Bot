@@ -59,23 +59,22 @@ ADDED_TO_GROUP = (
 PROMOTED_BOT = f"{BULLET} تسلمون على الثقة 🤍 هسه صرت جاهزة أخدمكم بكل صلاحياتي ✨"
 
 ZHOO_REPLIES = (
-    "عيوني، آني هنا 🤍",
+    "آني هنا 🤍",
     "زهو بالخدمة دايماً 🎀",
     "تفضّل {name}، شلون أگدر أساعدك؟ 🌸",
     "حاضرة ✨",
     "موجودة، لا تشيل هم 🛡",
     "هلا بيك، أسمعك 🤍",
-    "نعم {name}؟ گول عيني 🌷",
-    "نعم عيني، شتحتاج؟ 🤍",
+    "نعم {name}؟ تفضّل 🌷",
+    "نعم، شنو تحتاج؟ 🤍",
     "هنا، ما أطلع من المجموعة أبداً 🛡",
     "يا هلا {name}، آمرني 🎀",
     "حاضرة ومنتبهة، تفضّل ✨",
     "زهو وياك، اكتب «الاوامر» إذا تريد تشوف كلشي 🌸",
-    "عيون زهو، شنو تريد؟ 🤍",
-    "موجودة {name} 🌙 گلبي وعيني على المجموعة",
-    "هلا والله، صوتك وصل 🌷",
-    "نعم نعم، آني هنا وأسمعك 🎀",
-    "تدلل {name}، شنو أسويلك؟ ✨",
+    "موجودة {name} 🌙 عيني على المجموعة",
+    "هلا والله، تفضّل 🌷",
+    "آني هنا وأسمعك 🎀",
+    "تفضّل {name}، شنو أگدر أسويلك؟ ✨",
     "أمرك، بس گول 🤍",
 )
 
@@ -270,7 +269,7 @@ GUARD_LEVEL_SET = f"{BULLET} ضبطت مستوى الحماية على <b>{{leve
 GUARD_LEVEL_BAD = f"{BULLET} اختار مستوى من: <code>خفيف</code> ، <code>متوسط</code> ، <code>صارم</code> 🌸"
 GUARD_NO_DELETE_RIGHT = f"{BULLET} تنبيه: أحتاج صلاحية «<b>حذف الرسائل</b>» حتى تشتغل الحماية 🔐"
 
-GUARD_NOTICE = f"{BULLET} {{mention}} عيني، {{what}} ممنوع هنا 🌸 <i>({{strike}}/{{max}})</i>"
+GUARD_NOTICE = f"{BULLET} {{mention}} {{what}} ممنوع هنا 🌸 <i>({{strike}}/{{max}})</i>"
 GUARD_MUTED = (
     title("تَـمَّ الـكَـتْـم تِـلْـقَـائِـيًّـا", "🛡") + "\n"
     f"{BULLET} العضو: {{mention}}\n"
@@ -365,7 +364,7 @@ SWEAR_KINDS = {"exact": "كلمة كاملة", "stem": "كلمة وتصريفا�
 ZHOO_INSULTED = (
     f"{BULLET} {{mention}} آني أحترم الكل، وأستاهل نفس الاحترام 🌸",
     f"{BULLET} {{mention}} الكلام الحلو يطلع من ناس حلوين، وانت منهم إن شاء الله 🤍",
-    f"{BULLET} {{mention}} عيب عيني، زهو حارسة المجموعة مو مكان للغلط 🛡",
+    f"{BULLET} {{mention}} عيب، زهو حارسة المجموعة مو مكان للغلط 🛡",
     f"{BULLET} {{mention}} سامحتك هالمرة، بس الأدب زينة 🎀",
     f"{BULLET} {{mention}} آني هنا أخدمكم، والاحترام يبقى بينا 🤍",
 )
@@ -892,11 +891,11 @@ UNLOCKED = title("تَـمَّ الـفَـتْـح", "🔓") + f"\n{BULLET} {{w
 ALL_TYPES = "✨ جميع الأنواع"
 ALREADY_LOCKED = f"{BULLET} {{what}} مقفولة من قبل 🔒"
 ALREADY_UNLOCKED = f"{BULLET} {{what}} مفتوحة من قبل 🔓"
-LOCK_NOTICE = f"{BULLET} {{mention}} عيني، <b>{{what}}</b> مقفولة هسه بالمجموعة 🔒"
+LOCK_NOTICE = f"{BULLET} {{mention}} <b>{{what}}</b> مقفولة هسه بالمجموعة 🔒"
 LOCK_NEED_RIGHTS = f"{BULLET} أحتاج صلاحية «<b>حذف الرسائل</b>» حتى تشتغل الأقفال 🔐"
 LOCK_CHAT_NEED_RIGHTS = f"{BULLET} أحتاج صلاحية «<b>حظر المستخدمين</b>» حتى أقفل الدردشة 🔐"
 LOCK_NEED_RANK = "تعديل الأقفال يحتاج رتبة أدمن أو أعلى 🔐"
-REACTION_NOTICE = f"{BULLET} {{mention}} عيني، الرياكت مقفول بالمجموعة 🌸 شلت تفاعلك"
+REACTION_NOTICE = f"{BULLET} {{mention}} الرياكت مقفول بالمجموعة 🌸 شلت تفاعلك"
 
 # ── الأقفال v2: الأوضاع والصفحات ─────────────────────
 LOCK_MODES = {
@@ -920,7 +919,7 @@ LOCK_PANEL_V2 = (
 LOCKED_MODE = title("تَـمَّ الـقَـفْـل", "🔒") + f"\n{BULLET} {{what}}\n{BULLET} العقوبة: <b>{{mode}}</b>\n{BULLET} بواسطة: {{actor}}"
 ALREADY_LOCKED_MODE = f"{BULLET} {{what}} مقفولة من قبل بوضع <b>{{mode}}</b> 🔒"
 LOCK_MODE_NOT_ALLOWED = f"{BULLET} هذا القفل ما يقبل هالوضع 🌸 الأوضاع المتاحة: {{modes}}"
-LOCK_STRIKE_NOTICE = f"{BULLET} {{mention}} عيني، <b>{{what}}</b> مقفولة هسه بالمجموعة 🔒 <i>({{strike}}/{{max}})</i>"
+LOCK_STRIKE_NOTICE = f"{BULLET} {{mention}} <b>{{what}}</b> مقفولة هسه بالمجموعة 🔒 <i>({{strike}}/{{max}})</i>"
 LOCK_PUNISHED = (
     title("{head}", "{emoji}") + "\n"
     f"{BULLET} العضو: {{mention}}\n"
@@ -931,7 +930,7 @@ LOCK_WARNED = f"{BULLET} التحذيرات: <b>{{count}}/{{limit}}</b>\n"
 LOCK_WHY = "مخالفة الأقفال"
 JOIN_KICKED = f"{BULLET} الدخول مقفول هسه 🔒 طلعت {{mention}} تلقائياً"
 BOTS_ADDER_KICKED = f"{BULLET} وطردت {{mention}} اللي ضافه، لأن إضافة البوتات مقفولة بالطرد 👢"
-EDIT_LOCK_NOTICE = f"{BULLET} {{mention}} عيني، التعديل مقفول بالمجموعة 🔒 انمسحت رسالتك المعدّلة"
+EDIT_LOCK_NOTICE = f"{BULLET} {{mention}} التعديل مقفول بالمجموعة 🔒 انمسحت رسالتك المعدّلة"
 HELP_LOCK_TYPES = (
     f"\n{BULLET} <b>الوسائط:</b> الصور، الفيديو، المتحركات، الملصقات، البصمات، الصوتيات، الملفات، "
     "الجهات، المواقع، الاستفتاءات\n"
@@ -1567,7 +1566,7 @@ FILTER_ADDED = title("تَـمَّ الـمَـنْـع", "⛔") + f"\n{BULLET} 
 FILTER_EXISTS = f"{BULLET} هذا ممنوع من قبل ⛔"
 FILTER_REMOVED = f"{BULLET} رجع <b>{{what}}</b> مسموح ✨"
 FILTER_NOT_FOUND = f"{BULLET} هذا مو موجود بقائمة المنع 🌸"
-FILTER_NOTICE = f"{BULLET} {{mention}} عيني، هذا ممنوع بالمجموعة ⛔ رسالتك انمسحت"
+FILTER_NOTICE = f"{BULLET} {{mention}} هذا ممنوع بالمجموعة ⛔ رسالتك انمسحت"
 FILTER_LIST_HEADER = title("قَـائِـمَـة الـمَـنْـع", "⛔") + f"\n{LINE}"
 FILTER_LIST_EMPTY = f"{BULLET} ماكو شي ممنوع 🌸"
 FILTER_KINDS = {"sticker": "🧸 ملصقات", "animation": "🎞 متحركات", "photo": "🖼 صور", "video": "🎬 فيديوهات",
@@ -1709,3 +1708,46 @@ DEV_SWEAR_ADDED = (
 DEV_SWEAR_REENABLED = f"{BULLET} الكلمة جانت موقوفة، ورجعت تنحظر بكل المجموعات ✅"
 DEV_SWEAR_REMOVED = f"{BULLET} انشالت الكلمة من القاموس العام، وما عادت تنحظر ✨"
 DEV_SWEAR_DISABLED = f"{BULLET} توقفت الكلمة، وما عادت تنحظر بأي مجموعة ✨ (ترجعها بـ <code>اضف كلمة سب جديدة</code>)"
+
+# ── ردود زهو المضافة ────────────────────────────────
+ZR_SCOPE = {True: "بكل المجموعات 🌍", False: "بهاي المجموعة 🏘"}
+ZR_ASK_WORD = (
+    f"{title('إِضَـافَـة رَد لِـزَهـو', '💬')}\n{LINE}\n"
+    f"{BULLET} النطاق: <b>{{scope}}</b>\n"
+    f"{BULLET} ارسل الكلام اللي تريد زهو ترد عليه 🌸\n"
+    f"{BULLET} مثال: <code>زهو تحبين الورد</code>\n" + CONV_CANCEL_HINT
+)
+ZR_WORD_BAD = f"{BULLET} الكلام لازم يكون نص، من كلمة لـ 6 كلمات، وأقل من 60 حرف 🌸 جرب مرة ثانية"
+ZR_WORD_IS_COMMAND = f"{BULLET} «<b>{{word}}</b>» أمر من أوامري، ما يصير يكون رد 🌸 اختار كلام ثاني"
+ZR_BAD_CONTENT = f"{BULLET} هذا الكلام بيه ألفاظ ما تليق بزهو 🌸 اكتب غيره"
+ZR_ASK_REPLY = (
+    f"{BULLET} زين ✨ هسه ارسل رد زهو على «<b>{{word}}</b>»\n"
+    f"{BULLET} تگدر ترسل لحد 10 ردود، كل رد برسالة، وزهو تختار وحد كل مرة بدون تكرار\n"
+    f"{BULLET} اكتب <code>{{name_tag}}</code> بالرد حتى ينكتب اسم الشخص\n"
+    f"{BULLET} من تخلص اكتب <code>تم</code>"
+)
+ZR_REPLY_BAD = f"{BULLET} الرد لازم يكون نص وأقل من 500 حرف 🌸"
+ZR_REPLY_ADDED = f"{BULLET} انضاف الرد ✅ ارسل رد ثاني، أو اكتب <code>تم</code> <i>(باقي {{left}})</i>"
+ZR_NO_REPLIES = f"{BULLET} بعدك ما ارسلت ولا رد 🌸 ارسل رد، أو اكتب <code>الغاء</code>"
+ZR_SAVED = (
+    f"{title('تَـمَّ حِـفْـظ الـرَد', '✅')}\n{LINE}\n"
+    f"{BULLET} الكلام: <b>{{word}}</b>\n"
+    f"{BULLET} عدد الردود: <b>{{count}}</b>\n"
+    f"{BULLET} النطاق: <b>{{scope}}</b>"
+)
+ZR_LIMIT = f"{BULLET} وصلت للحد الأعلى ({{n}} رد) 🌸 امسح شي قديم أول"
+ZR_DEL_NEED = f"{BULLET} اكتب الكلام ويه الأمر 🌸 مثال: <code>{{cmd}} زهو تحبين الورد</code>"
+ZR_DELETED = f"{BULLET} انمسحت ردود زهو على «<b>{{word}}</b>» {{scope}} ✨"
+ZR_NOT_FOUND = f"{BULLET} ماكو رد مضاف على هذا الكلام {{scope}} 🌸"
+ZR_LIST_TITLE = title("رُدُود زَهـو الـمُـضَـافَـة", "💬")
+ZR_LIST_GLOBAL = f"{BULLET} <b>بكل المجموعات</b> 🌍"
+ZR_LIST_GROUP = f"{BULLET} <b>بهاي المجموعة</b> 🏘"
+ZR_LIST_LINE = "▫️ {word} ⋅ {n} رد"
+ZR_LIST_EMPTY = f"{BULLET} ماكو ردود مضافة بعد 🌸"
+
+# ── لا تردي عليه / ردي عليه ─────────────────────────
+NOREPLY_ON = f"{BULLET} تمام 🤍 بعد ما أرد على سوالف {{mention}}، والأوامر تبقى شغّالة"
+NOREPLY_ALREADY = f"{BULLET} أصلاً ما أرد على سوالف {{mention}} 🌸"
+NOREPLY_OFF = f"{BULLET} تمام ✨ رجعت أرد على {{mention}}"
+NOREPLY_NOT = f"{BULLET} آني أصلاً أرد على {{mention}} 🌸"
+NOREPLY_OTHERS_RANK = f"{BULLET} تگدر تستخدمها على نفسك بس 🌸 على غيرك تحتاج رتبة <b>{{rank}}</b>"

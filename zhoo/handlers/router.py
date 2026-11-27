@@ -14,7 +14,7 @@ from zhoo.core.ranks import RANK_NAMES, Rank
 from zhoo.core import conversation
 from zhoo.core.normalize import normalize
 from zhoo.systems import (ai, aliases, channels, cleanup, suspect, botstate, extras, features, games, levels, locks, protect, replies,
-                          swear)
+                          swear, zhoo_replies)
 
 log = logging.getLogger(__name__)
 
@@ -73,7 +73,8 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     text = msg.text
     if not text:
         if in_group and not quiet and msg.caption and msg.sender_chat is None and not user.is_bot \
-                and not svc.maintenance and await features.enabled(svc, chat.id, "replies"):
+                and not svc.maintenance and await features.enabled(svc, chat.id, "replies") \
+                and not await zhoo_replies.muted(svc, chat.id, user.id):
             await replies.maybe_reply(svc, msg, chat, user)
         return
     # لعبة شغّالة: نفحص الجواب قبل الأوامر (حتى لو الجواب يشبه أمر مثل «الساعة»)
@@ -91,14 +92,17 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         if in_group and not quiet and msg.sender_chat is None and not user.is_bot and not svc.maintenance:
             await levels.on_message(context, svc, msg, chat, user)       # خبرة الرسائل
             await ai.on_message(svc, msg, chat, user)                    # ذاكرة التلخيص (إذا الذكاء شغّال)
+            if await zhoo_replies.muted(svc, chat.id, user.id):          # «لا تردي عليه»: بلا سوالف
+                return
             if await features.enabled(svc, chat.id, "replies") and await replies.maybe_reply(svc, msg, chat, user):
                 return
-            await extras.maybe_source_reply(svc, msg, chat)              # ردود زهو المدمجة
+            await extras.maybe_source_reply(svc, msg, chat)              # ردود زهو (المضافة ثم الأساسية)
         return
     cmd = parsed.command
 
-    # زهو موقوفة/معطّلة: بس أوامر التشغيل، وتذكير إذا نادوها
-    if quiet and not svc.perms.is_developer(user.id):   # مالك زهو يتحكم حتى لو موقوفة
+    # زهو موقوفة/معطّلة: بس أوامر التشغيل، وتذكير إذا نادوها.
+    # حتى المطور: بس أوامر التشغيل وأوامر المطور الخاصة، وغيرها تسكت مثل الكل.
+    if quiet and not (svc.perms.is_developer(user.id) and cmd.min_rank >= Rank.DEVELOPER):
         if cmd.key not in botstate.ALLOWED_WHEN[state] or msg.sender_chat is not None or user.is_bot:
             return
         if cmd.key == "zhoo":

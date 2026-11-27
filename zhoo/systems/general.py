@@ -218,6 +218,11 @@ async def cmd_about(cx: CommandContext) -> None:
 @registry.command("zhoo", ("زهو", "زهوو", "بوت"), section=S,
                   description="نادِ زهو 🤍", where="any", order=7)
 async def cmd_zhoo(cx: CommandContext) -> None:
+    from zhoo.systems import zhoo_replies
+    if not cx.services.perms.is_developer(cx.user.id) and cx.chat.id < 0 and (
+            await zhoo_replies.muted(cx.services, cx.chat.id, cx.user.id)
+            or not zhoo_replies.allow(cx.chat.id, cx.user.id)):
+        return       # نداء متكرر خلال 10 ثواني، أو «لا تردي عليه»: تسكت بهدوء
     choices = [r for r in T.ZHOO_REPLIES if r != _last_zhoo.get(cx.chat.id)]
     reply = random.choice(choices)
     _last_zhoo[cx.chat.id] = reply

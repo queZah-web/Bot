@@ -104,7 +104,7 @@ async def on_left_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # إذا انطرد (مو طلع بنفسه) ما نودعه
     if msg.from_user is not None and msg.from_user.id != left.id:
         return
-    if (await svc.group_settings.get(chat.id, "goodbye_on")) != "1":
+    if (await svc.group_settings.get(chat.id, "goodbye_on")) != "1" or await botstate.is_quiet(svc, chat.id):
         return
     text = render(await template_of(svc, chat.id, "goodbye"), left, chat, None)
     from zhoo.systems.protect import send_notice

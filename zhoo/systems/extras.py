@@ -354,8 +354,8 @@ for _gid, (_triggers, _) in bank.REPLY_GROUPS.items():
         _TRIGGERS[tuple(normalize(_t).split())] = _gid
 _MAX_TRIGGER_WORDS = max(len(k) for k in _TRIGGERS)
 PREFIX_MAX_WORDS = 7                       # «السلام عليكم يا جماعة الخير» تنحسب، الجمل الطويلة لا
-_source_limiter = RateLimiter(1, 5)         # نفس الشخص: رد وحد كل 5 ثواني
-_chat_source_limiter = RateLimiter(20, 60)  # والمجموعة كلها: 20 رد بالدقيقة (ضد الزحمة)
+from zhoo.systems.zhoo_replies import gate as _source_limiter  # noqa: E402  رد وحد لكل شخص كل 10 ثواني
+_chat_source_limiter = RateLimiter(12, 60)  # المجموعة كلها: 12 رد بالدقيقة (ضد الزحمة)
 _last_reply: dict[tuple[int, str], int] = {}
 _STRIP = " !.،,؟?~…🌸🤍❤️♥️✨🌹🌷💐😍🥰😊☺️🙏"
 
@@ -387,15 +387,19 @@ def pick_reply(chat_id: int, gid: str, name: str) -> str:
 
 
 async def maybe_source_reply(svc: Services, msg: Message, chat) -> bool:
-    from zhoo.systems import features
-    if not msg.text or len(msg.text) > 120:
+    from zhoo.systems import features, zhoo_replies
+    if not msg.text or len(msg.text) > 200 or not await features.enabled(svc, chat.id, "source_replies"):
+        return False
+    if await zhoo_replies.maybe_reply(svc, msg, chat):           # الردود المضافة تغلب الأساسية
+        return True
+    if len(msg.text) > 120:
         return False
     gid = match_reply_group(msg.text)
-    if gid is None or not await features.enabled(svc, chat.id, "source_replies"):
+    if gid is None:
         return False
     user = msg.from_user
     uid = user.id if user else 0
-    if not _source_limiter.hit((chat.id, uid)) or not _chat_source_limiter.hit(chat.id):
+    if not zhoo_replies.allow(chat.id, uid) or not _chat_source_limiter.hit(chat.id):
         return False
     name = (user.first_name if user else "")[:30]
     try:

@@ -94,9 +94,12 @@ async def maybe_reply(svc: Services, msg: Message, chat, user: User) -> bool:
     text = msg.text or msg.caption
     if not text:
         return False
+    from zhoo.systems import zhoo_replies
     reply_id = await find_reply(svc, chat.id, text)
-    if reply_id is None or not svc.reply_limiter.hit(chat.id):
+    if reply_id is None:
         return False
+    if not zhoo_replies.allow(chat.id, user.id) or not svc.reply_limiter.hit(chat.id):
+        return True          # نفس الشخص استلم رد قبل شوية: نسكت (وما نرد بردود زهو بدالها)
     items = await svc.replies.items(reply_id)
     if not items:
         return False
