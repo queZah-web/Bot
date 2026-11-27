@@ -26,7 +26,7 @@ class EconomyRepo:
         new = balance + amount
         if new < 0:
             raise InsufficientFunds(balance)
-        earned = amount if amount > 0 and kind not in ("transfer_in", "admin_give") else 0
+        earned = amount if amount > 0 and kind not in ("transfer_in", "admin_give", "withdraw", "rob_in") else 0
         await conn.execute(
             "INSERT INTO wallets (chat_id, user_id, balance, total_earned) VALUES (?, ?, ?, ?) "
             "ON CONFLICT (chat_id, user_id) DO UPDATE SET balance = ?, total_earned = total_earned + ?",
@@ -35,6 +35,10 @@ class EconomyRepo:
             "INSERT INTO transactions (chat_id, user_id, amount, kind, ref, balance_after, created_at) "
             "VALUES (?, ?, ?, ?, ?, ?, ?)", (chat_id, user_id, amount, kind, ref, new, now()))
         return new
+
+    async def change_in(self, conn, chat_id: int, user_id: int, amount: int, kind: str, ref: str | None = None) -> int:
+        """نفس change بس داخل معاملة مفتوحة (للبنك: إيداع، سحب، زرف)."""
+        return await self._change(conn, chat_id, user_id, amount, kind, ref)
 
     async def change(self, chat_id: int, user_id: int, amount: int, kind: str, ref: str | None = None) -> int:
         """يضيف (موجب) أو يخصم (سالب). يرفع InsufficientFunds إذا الرصيد ما يكفي."""
@@ -86,9 +90,10 @@ class EconomyRepo:
 
     async def richest(self, chat_id: int, limit: int = 10):
         return await self.db.fetchall(
-            "SELECT w.user_id, w.balance AS value, u.first_name, u.last_name FROM wallets w "
-            "LEFT JOIN users u ON u.user_id = w.user_id WHERE w.chat_id = ? AND w.balance > 0 "
-            "ORDER BY w.balance DESC LIMIT ?", (chat_id, limit))
+            "SELECT w.user_id, w.balance + COALESCE(b.balance, 0) AS value, u.first_name, u.last_name FROM wallets w "
+            "LEFT JOIN bank_accounts b ON b.chat_id = w.chat_id AND b.user_id = w.user_id "
+            "LEFT JOIN users u ON u.user_id = w.user_id WHERE w.chat_id = ? AND w.balance + COALESCE(b.balance, 0) > 0 "
+            "ORDER BY value DESC LIMIT ?", (chat_id, limit))
 
     # ── المهام اليومية ──
     async def mission_progress(self, chat_id: int, user_id: int, day: str, key: str, step: int,

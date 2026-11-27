@@ -747,6 +747,14 @@ GAME_HEADER = {
     "riddle": ("لُـغْـز", "🧩"),
     "daily": ("لُـغْـز الـيَـوْم", "🌟"),
     "duel": ("تَـحَـدِّي", "⚔️"),
+    "picture": ("خَـمِّـن الـصُّـورَة", "🖼"),
+    "flag": ("عَـلَـم مِـنُـو", "🏳️"),
+    "capital": ("الـعَـوَاصِـم", "🏙"),
+    "opposite": ("الـعَـكْـس", "↔️"),
+    "proverb": ("كَـمِّـل الـمَـثَـل", "📜"),
+    "truefalse": ("صَـح لَـو خَـطَـأ", "✅"),
+    "count": ("كَـم عَـدَد", "🔢"),
+    "split": ("فَـكِّـك الـكَـلِـمَـة", "✂️"),
 }
 GAME_PROMPTS = {
     "quiz": "{question}",
@@ -756,7 +764,18 @@ GAME_PROMPTS = {
     "riddle": "{question}",
     "daily": "{question}\n\n<i>أول واحد يحله اليوم ياخذ مكافأة كبيرة 🌟</i>",
     "duel": "{a} ضد {b}\nأول واحد منكم يجاوب يفوز:\n\n<b>{question}</b>",
+    "picture": "شنو اسم هاي الصورة؟ 👇",
+    "flag": "هذا علم أي دولة؟ 👇",
+    "capital": "شنو عاصمة <b>{question}</b>؟",
+    "opposite": "شنو عكس كلمة:\n\n<b>{question}</b>",
+    "proverb": "كمّل المثل:\n\n<b>{question}</b>",
+    "truefalse": "<b>{question}</b>\n\nصح لو خطأ؟ <i>(كل واحد إله محاولة وحدة)</i>",
+    "count": "كم {emoji} موجود هنا؟ <i>(محاولة وحدة)</i>\n\n{question}",
+    "split": "فكّك هاي الكلمة لحروف، وبين كل حرف مسافة:\n\n<b>{question}</b>\n\n<i>مثال: باب ← ب ا ب</i>",
 }
+TF_WORDS = {True: "صح ✅", False: "خطأ ❌"}
+GAME_GIVEUP_HINT = f"\n{BULLET} <i>اللي بدأ اللعبة يگدر يكتب «ماعرف» حتى ينكشف الجواب</i>"
+GAME_GAVE_UP = title("انْـكِـشَـف الـجَـوَاب", "👀") + f"\n{BULLET} الجواب: <b>{{answer}}</b>\n{BULLET} الجاية تعرفها إن شاء الله 💪"
 GAME_BODY = (
     "\n" + f"{LINE}\n"
     f"{BULLET} الجائزة: <b>{{xp}}</b> نقطة خبرة ⋅ الوقت: <b>{{secs}}</b> ثانية ⏳"
@@ -785,6 +804,14 @@ BTN_GAMES = {
     "math": "➗ رياضيات",
     "riddle": "🧩 لغز",
     "daily": "🌟 لغز اليوم",
+    "picture": "🖼 صور",
+    "flag": "🏳️ أعلام",
+    "capital": "🏙 عواصم",
+    "opposite": "↔️ عكس",
+    "proverb": "📜 كمل المثل",
+    "truefalse": "✅ صح وخطأ",
+    "count": "🔢 كم عدد",
+    "split": "✂️ تفكيك",
 }
 
 # ── الاقتصاد ───────────────────────────────────────
@@ -869,6 +896,10 @@ TX_KINDS = {
     "daily": "🎁 مكافأة يومية", "mission": "🎯 مهمة", "game": "🎮 فوز بلعبة", "levelup": "📈 ترقية مستوى",
     "transfer_in": "📥 تحويل وارد", "transfer_out": "📤 تحويل صادر", "buy": "🛍 شراء",
     "admin_give": "👑 إضافة من الإدارة", "admin_take": "👑 خصم من الإدارة",
+    "bank_bonus": "🏦 هدية فتح الحساب", "deposit": "🔐 إيداع بالبنك", "withdraw": "💵 سحب من البنك",
+    "interest": "📈 فائدة البنك", "tip": "💵 بخشيش", "treasure": "💰 كنز", "wheel": "🎡 عجلة الحظ",
+    "luck": "🎲 حظ", "invest": "📊 استثمار", "speculate": "📉 مضاربة", "shield": "🛡 حماية",
+    "rob_in": "🥷 زرف ناجح", "rob_out": "🥷 انزرف منه", "rob_fine": "🚓 غرامة زرف", "rob_comp": "🚓 تعويض زرف",
 }
 RICH_HEADER = title("الأَغْـنَـى", "💰")
 ADMIN_GIVE = f"{BULLET} انضاف <b>{{amount}}</b> {COIN} لـ {{mention}} ✨ رصيده هسه <b>{{balance}}</b> {COIN}"
@@ -1751,3 +1782,196 @@ NOREPLY_ALREADY = f"{BULLET} أصلاً ما أرد على سوالف {{mention}
 NOREPLY_OFF = f"{BULLET} تمام ✨ رجعت أرد على {{mention}}"
 NOREPLY_NOT = f"{BULLET} آني أصلاً أرد على {{mention}} 🌸"
 NOREPLY_OTHERS_RANK = f"{BULLET} تگدر تستخدمها على نفسك بس 🌸 على غيرك تحتاج رتبة <b>{{rank}}</b>"
+
+# ── صور لعبة «صور» ──────────────────────────────────
+PIC_ASK_PHOTO = (
+    f"{title('إِضَـافَـة صُـورَة لِـلُّـعْـبَـة', '🖼')}\n{LINE}\n"
+    f"{BULLET} النطاق: <b>{{scope}}</b>\n"
+    f"{BULLET} ارسل الصورة هسه 📸\n" + CONV_CANCEL_HINT
+)
+PIC_NOT_PHOTO = f"{BULLET} ارسل صورة 📸 مو ملف ولا ملصق"
+PIC_ASK_NAME = (
+    f"{BULLET} حلوة ✨ هسه اكتب اسم الصورة\n"
+    f"{BULLET} إذا إلها أكثر من اسم افصل بينهم بـ <code>،</code>\n"
+    f"{BULLET} مثال: <code>برج إيفل، ايفل</code>"
+)
+PIC_NAME_BAD = f"{BULLET} الاسم لازم يكون نص قصير (لحد 4 كلمات) 🌸 جرب مرة ثانية"
+PIC_SAVED = (
+    f"{title('تَـمَّ حِـفْـظ الـصُّـورَة', '✅')}\n{LINE}\n"
+    f"{BULLET} الاسم: <b>{{name}}</b> ⋅ الأسماء المقبولة: <b>{{n}}</b>\n"
+    f"{BULLET} النطاق: <b>{{scope}}</b>\n"
+    f"{BULLET} جربها بأمر <code>صور</code> 🎮"
+)
+PIC_LIMIT = f"{BULLET} وصلت للحد الأعلى ({{n}} صورة) 🌸 امسح شي قديم أول"
+PIC_DEL_NEED = f"{BULLET} اكتب اسم الصورة ويه الأمر 🌸 مثال: <code>{{cmd}} برج إيفل</code>"
+PIC_NOT_FOUND = f"{BULLET} ماكو صورة مضافة بهذا الاسم 🌸"
+PIC_DELETED = f"{BULLET} انمسحت صورة «<b>{{name}}</b>» ✨ <i>({{n}})</i>"
+PIC_LIST = (
+    f"{title('صُـوَر الـلُّـعْـبَـة', '🖼')}\n{LINE}\n"
+    f"{BULLET} صور هاي المجموعة: <b>{{group}}</b>\n{{names}}\n"
+    f"{BULLET} صور عامة لكل المجموعات: <b>{{everywhere}}</b>\n"
+    f"{BULLET} وفوگها <b>67</b> صورة إيموجي جاهزة 🌸"
+)
+
+# ── بنك زهو 🏦 ─────────────────────────────────────
+BANK_MENU = (
+    title("بَـنْـك زَهـو", "🏦") + "\n"
+    f"{LINE}\n"
+    f"💳 <b>الحساب</b>\n"
+    f"{BULLET} <code>انشاء حساب بنكي</code> ⋅ تفتح حساب وتختار بطاقتك (+500 هدية)\n"
+    f"{BULLET} <code>حسابي</code> ⋅ بطاقتك وفلوسك وترتيبك\n"
+    f"{BULLET} <code>ايداع 500</code> ⋅ <code>ايداع الكل</code> ⋅ فلوس البنك محمية من الزرف 🔐\n"
+    f"{BULLET} <code>سحب 500</code> ⋅ <code>سحب الكل</code>\n"
+    f"{BULLET} <code>الفائدة</code> ⋅ 2% كل يوم على فلوس البنك 📈\n"
+    f"{LINE}\n"
+    f"🎁 <b>الكسب</b>\n"
+    f"{BULLET} <code>راتب</code> ⋅ كل يوم 🔥\n"
+    f"{BULLET} <code>بخشيش</code> ⋅ كل 10 دقايق 💵\n"
+    f"{BULLET} <code>كنز</code> ⋅ كل 3 ساعات 💰\n"
+    f"{BULLET} <code>عجلة الحظ</code> ⋅ لفّة مجانية كل يوم 🎡\n"
+    f"{LINE}\n"
+    f"🎲 <b>ألعاب البنك</b>\n"
+    f"{BULLET} <code>حظ 500</code> ⋅ يا تضاعفها يا تخسرها\n"
+    f"{BULLET} <code>استثمار 500</code> ⋅ ربح غالباً وخسارة قليلة\n"
+    f"{BULLET} <code>مضاربة 500</code> ⋅ ربح كبير أو خسارة كبيرة\n"
+    f"{LINE}\n"
+    f"🥷 <b>الزرف</b>\n"
+    f"{BULLET} <code>زرف</code> بالرد ⋅ تزرف من الكاش اللي بالمحفظة\n"
+    f"{BULLET} <code>حماية</code> ⋅ درع 6 ساعات ضد الزرف 🛡\n"
+    f"{LINE}\n"
+    f"🏆 <code>الأغنى</code> ⋅ <code>توب الحرامية</code> ⋅ <code>حركاتي</code> ⋅ <code>تحويل</code>\n"
+    f"<i>كلها فلوس افتراضية للمتعة بس 🌸</i>"
+)
+BANK_NAMES = {
+    "tip": "البخشيش", "treasure": "الكنز", "wheel": "عجلة الحظ", "interest": "الفائدة", "luck": "الحظ",
+    "invest": "الاستثمار", "speculate": "المضاربة", "rob": "الزرف",
+}
+BANK_CMD = {"luck": "حظ", "invest": "استثمار", "speculate": "مضاربة"}
+BANK_WAIT = f"{BULLET} {{what}} يرجع بعد <b>{{left}}</b> ⏳"
+BANK_NO_ACCOUNT = f"{BULLET} ما عندك حساب ببنك زهو 🏦 اكتب <code>انشاء حساب بنكي</code> وخذ هدية 500 {COIN}"
+BANK_THEY_NO_ACCOUNT = f"{BULLET} {{mention}} ما عنده حساب بنكي 🏦"
+BANK_HAS_ACCOUNT = f"{BULLET} عندك حساب من قبل 🌸"
+BANK_CHOOSE_CARD = (
+    title("فَـتْـح حِـسَـاب بِـبَـنْـك زَهـو", "🏦") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} اختار شكل بطاقتك 👇\n"
+    f"{BULLET} وأول ما تفتح الحساب توصلك هدية <b>{{bonus}}</b> {COIN} 🎁"
+)
+BANK_CHOOSE_NEW_CARD = f"{BULLET} اختار شكل بطاقتك الجديدة 👇"
+BANK_NOT_YOURS = "هاي الأزرار مو إلك 🌸 اكتب الأمر بنفسك"
+BANK_OPENED = title("تَـمَّ فَـتْـح حِـسَـابَـك", "🎉") + f"\n{BULLET} وصلتك هدية <b>{{bonus}}</b> {COIN} بالمحفظة 🎁"
+BANK_CARD_CHANGED = title("تَـمَّ تَـغْـيِـيـر الـبِـطَـاقَـة", "✨")
+BANK_CARD = (
+    "╭─── 🏦 <b>بَـنْـك زَهـو</b> ───╮\n"
+    "  {card}\n"
+    "  <code>{no}</code>\n"
+    "╰──────────────────╯\n"
+    f"{BULLET} صاحب الحساب: {{name}}\n"
+    f"{BULLET} الكاش بالمحفظة: <b>{{cash}}</b> {COIN}\n"
+    f"{BULLET} رصيد البنك: <b>{{bank}}</b> {COIN} 🔐\n"
+    f"{BULLET} المجموع: <b>{{total}}</b> {COIN}\n"
+    f"{BULLET} الترتيب بالأغنى: <b>#{{pos}}</b>\n"
+    f"{BULLET} الحماية: {{shield}}"
+)
+BANK_SHIELD_ON = "🛡 شغّالة (باقي <b>{left}</b>)"
+BANK_SHIELD_OFF = "▫️ ماكو"
+BANK_NEED_REPLY = f"{BULLET} اكتب <code>{{cmd}}</code> بالرد على رسالة الشخص 🌸"
+BANK_MOVE_BAD = f"{BULLET} اكتب المبلغ 🌸 مثال: <code>{{cmd}} 500</code> أو <code>{{cmd}} الكل</code>"
+BANK_NO_CASH = f"{BULLET} الكاش اللي بمحفظتك ما يكفي 🌸 عندك <b>{{have}}</b> {COIN}"
+BANK_NO_BANK = f"{BULLET} رصيد البنك ما يكفي 🌸 عندك <b>{{have}}</b> {COIN}"
+BANK_DEPOSITED = (
+    title("تَـمَّ الإِيـدَاع", "🔐") + "\n"
+    f"{BULLET} المبلغ: <b>{{amount}}</b> {COIN}\n"
+    f"{BULLET} رصيد البنك: <b>{{bank}}</b> {COIN} ⋅ الكاش: <b>{{cash}}</b> {COIN}\n"
+    f"{BULLET} <i>فلوس البنك محد يگدر يزرفها 🛡</i>"
+)
+BANK_WITHDRAWN = (
+    title("تَـمَّ الـسَّـحْـب", "💵") + "\n"
+    f"{BULLET} المبلغ: <b>{{amount}}</b> {COIN}\n"
+    f"{BULLET} رصيد البنك: <b>{{bank}}</b> {COIN} ⋅ الكاش: <b>{{cash}}</b> {COIN}"
+)
+BANK_INTEREST_LOW = f"{BULLET} الفائدة تحتاج بالبنك <b>{{n}}</b> {COIN} على الأقل 🌸 سوّي <code>ايداع</code> أول"
+BANK_INTEREST = (
+    title("فَـائِـدَة الـبَـنْـك", "📈") + "\n"
+    f"{BULLET} ربحت <b>+{{amount}}</b> {COIN} ({{pct}}% من <b>{{bank}}</b>)\n"
+    f"{BULLET} انضافت للكاش بمحفظتك ✨"
+)
+BANK_TIP = (
+    f"{BULLET} {{mention}} لگيت بخشيش <b>+{{amount}}</b> {COIN} 💵 ⋅ الكاش: <b>{{cash}}</b>",
+    f"{BULLET} {{mention}} واحد كريم انطاك بخشيش <b>+{{amount}}</b> {COIN} 🤍 ⋅ الكاش: <b>{{cash}}</b>",
+    f"{BULLET} {{mention}} بخشيش حلال <b>+{{amount}}</b> {COIN} ✨ ⋅ الكاش: <b>{{cash}}</b>",
+)
+BANK_TREASURE = f"{BULLET} {{mention}} لگيت صندوق صغير 📦 بيه <b>+{{amount}}</b> {COIN} ⋅ الكاش: <b>{{cash}}</b>"
+BANK_TREASURE_BIG = f"{BULLET} {{mention}} لگيت كنز حلو 💰 بيه <b>+{{amount}}</b> {COIN} ⋅ الكاش: <b>{{cash}}</b>"
+BANK_TREASURE_GOLD = (
+    title("كَـنْـز ذَهَـبِـي", "👑") + "\n"
+    f"{BULLET} {{mention}} يا حظك! لگيت كنز ذهبي بيه <b>+{{amount}}</b> {COIN} 🎉\n"
+    f"{BULLET} الكاش: <b>{{cash}}</b> {COIN}"
+)
+BANK_WHEEL = (
+    title("عَـجَـلَـة الـحَـظ", "🎡") + "\n"
+    f"{LINE}\n"
+    "🔄 {strip}\n"
+    f"{LINE}\n"
+    f"{BULLET} {{mention}} {{prize}}\n"
+    f"{BULLET} <i>لفّتك الجاية بعد 24 ساعة</i>"
+)
+BANK_WHEEL_MONEY = f"وگفت العجلة على <b>{{amount}}</b> {COIN} 🎉"
+BANK_WHEEL_SHIELD = "وگفت العجلة على <b>حماية مجانية {hours} ساعات</b> 🛡"
+BANK_BET_BAD = (
+    f"{BULLET} اكتب مبلغ من <b>{{lo}}</b> لـ <b>{{hi}}</b> {COIN} 🌸\n"
+    f"{BULLET} مثال: <code>{{cmd}} 500</code> أو <code>{{cmd}} الكل</code>"
+)
+BANK_LUCK_WIN = (
+    title("الـحَـظ وِيَّـاك", "🎲") + "\n"
+    f"{BULLET} {{mention}} ربحت <b>+{{amount}}</b> {COIN} 🎉\n"
+    f"{BULLET} الكاش: <b>{{cash}}</b> {COIN}"
+)
+BANK_LUCK_LOSE = (
+    title("مُـو حَـظَّـك", "🎲") + "\n"
+    f"{BULLET} {{mention}} خسرت <b>-{{amount}}</b> {COIN} 🌧\n"
+    f"{BULLET} الكاش: <b>{{cash}}</b> {COIN} ⋅ <i>المرة الجاية أحلى</i>"
+)
+BANK_INVEST_WIN = (
+    title("اسْـتِـثْـمَـار نَـاجِـح", "📊") + "\n"
+    f"{BULLET} {{mention}} استثمرت <b>{{amount}}</b> {COIN} وربحت <b>{{pct}}%</b>\n"
+    f"{BULLET} الربح: <b>+{{change}}</b> {COIN} ⋅ الكاش: <b>{{cash}}</b> {COIN} 📈"
+)
+BANK_INVEST_LOSE = (
+    title("الـسُّـوگ نَـازِل", "📊") + "\n"
+    f"{BULLET} {{mention}} استثمرت <b>{{amount}}</b> {COIN} وخسرت <b>{{pct}}%</b>\n"
+    f"{BULLET} الخسارة: <b>-{{change}}</b> {COIN} ⋅ الكاش: <b>{{cash}}</b> {COIN} 📉"
+)
+BANK_SPEC_WIN = (
+    title("مُـضَـارَبَـة رَابْـحَـة", "🚀") + "\n"
+    f"{BULLET} {{mention}} ضاربت بـ <b>{{amount}}</b> {COIN} وطلعت رابح <b>{{pct}}%</b>\n"
+    f"{BULLET} الربح: <b>+{{change}}</b> {COIN} ⋅ الكاش: <b>{{cash}}</b> {COIN}"
+)
+BANK_SPEC_LOSE = (
+    title("مُـضَـارَبَـة خَـاسْـرَة", "📉") + "\n"
+    f"{BULLET} {{mention}} ضاربت بـ <b>{{amount}}</b> {COIN} وخسرت <b>{{pct}}%</b>\n"
+    f"{BULLET} الخسارة: <b>-{{change}}</b> {COIN} ⋅ الكاش: <b>{{cash}}</b> {COIN}"
+)
+BANK_ROB_SELF = f"{BULLET} تزرف نفسك؟ 😄 لا عاد"
+BANK_ROB_BOT = f"{BULLET} البوتات ما عدهم كاش 🤖"
+BANK_ROB_SHIELD = f"{BULLET} {{victim}} عنده حماية 🛡 ما تگدر تزرفه هسه"
+BANK_ROB_RECENT = f"{BULLET} {{victim}} انزرف قبل شوية 🌸 خلّيه يرتاح"
+BANK_ROB_POOR = f"{BULLET} {{victim}} ما عنده كاش يستاهل الزرف 😅 (يمكن حاطها بالبنك 🔐)"
+BANK_ROB_NEED_CASH = f"{BULLET} حتى تزرف لازم يكون بمحفظتك <b>{{n}}</b> {COIN} على الأقل (احتياط للغرامة 🚓)"
+BANK_ROB_WIN = (
+    title("زَرْفَـة نَـاجْـحَـة", "🥷") + "\n"
+    f"{BULLET} {{robber}} زرف <b>{{amount}}</b> {COIN} من {{victim}} 💸\n"
+    f"{BULLET} <i>نصيحة: حطوا فلوسكم بالبنك بأمر «ايداع» 🔐</i>"
+)
+BANK_ROB_FAIL = (
+    title("انْـكِـشَـفَـت الـزَّرْفَـة", "🚓") + "\n"
+    f"{BULLET} {{robber}} حاول يزرف {{victim}} وانلزم 😅\n"
+    f"{BULLET} دفع غرامة <b>{{amount}}</b> {COIN} تعويض لـ {{victim}}"
+)
+BANK_SHIELD_HAVE = f"{BULLET} عندك حماية شغّالة 🛡 باقي <b>{{left}}</b>"
+BANK_SHIELD_BOUGHT = (
+    title("تَـمَّ تَـفْـعِـيـل الـحِـمَـايَـة", "🛡") + "\n"
+    f"{BULLET} محد يگدر يزرفك <b>{{hours}}</b> ساعات\n"
+    f"{BULLET} السعر: <b>{{price}}</b> {COIN} ⋅ الكاش: <b>{{cash}}</b> {COIN}"
+)
+BANK_THIEVES_HEADER = title("تُـوب الـحَـرَامِـيَّـة", "🥷")

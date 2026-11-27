@@ -35,6 +35,10 @@ ZWNJ = "‌"
 _DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
 _PUNCT = re.compile(r"[^\w\s]")
 
+GIVE_UP = {"ماعرف", "ما اعرف", "معرف", "ما ادري", "مادري", "ما اعرفه", "ماعرفه", "استسلم", "استسلمت",
+           "اكشف الجواب", "شنو الجواب", "شو الجواب", "الجواب"}
+TF_TRUE = ("صح", "صحيح", "صحيحه", "اي", "نعم")
+TF_FALSE = ("خطأ", "خطا", "غلط", "خاطئ", "خاطئه", "لا")
 QUIZ_XP = {"easy": 15, "medium": 25, "hard": 40}
 QUIZ_SECS = {"easy": 30, "medium": 40, "hard": 50}
 MATH_XP = {"easy": 15, "medium": 25, "hard": 35}
@@ -52,6 +56,9 @@ class Game:
     started_at: float = field(default_factory=time.monotonic)
     players: frozenset[int] | None = None
     anti_copy: bool = False
+    media: tuple[str, str] | None = None        # ("emoji", "🦁") أو ("photo", file_id)
+    options: set[str] | None = None             # ألعاب المحاولة الوحدة (صح/خطأ، كم عدد)
+    tried: set[int] = field(default_factory=set)
 
     @property
     def expired(self) -> bool:
@@ -80,6 +87,9 @@ def make_keys(answers: list[str]) -> set[str]:
     return keys
 
 
+GIVE_UP_KEYS = {_norm(w) for w in GIVE_UP}
+
+
 # ── بناء الألعاب ────────────────────────────────────
 def _scramble(word: str) -> str:
     letters = list(word)
@@ -106,7 +116,8 @@ def daily_riddle(day: date | None = None) -> tuple[str, list[str]]:
     return bank.RIDDLES[day.toordinal() % len(bank.RIDDLES)]
 
 
-def build(kind: str, level: str | None, starter: int) -> tuple[Game, str]:
+def build(kind: str, level: str | None, starter: int,
+          pic: tuple[str, list[str]] | None = None) -> tuple[Game, str]:
     """يرجع (اللعبة، نص السؤال المنسق)."""
     if kind == "quiz":
         level = level or random.choice(list(bank.QUIZ))
@@ -136,6 +147,49 @@ def build(kind: str, level: str | None, starter: int) -> tuple[Game, str]:
         game = Game(kind, make_keys(answers), answers[0], 30, 60, starter)
         prompt = T.GAME_PROMPTS["riddle"].format(question=esc(q))
         head = T.GAME_HEADER["riddle"][0]
+    elif kind == "picture":
+        if pic is not None:                                     # صورة مضافة
+            file_id, answers = pic
+            game = Game(kind, make_keys(answers), answers[0], 20, 40, starter, media=("photo", file_id))
+        else:
+            emoji, answers = random.choice(bank.PICTURES)
+            game = Game(kind, make_keys(answers), answers[0], 15, 30, starter, media=("emoji", emoji))
+        prompt = T.GAME_PROMPTS["picture"]
+        head = T.GAME_HEADER["picture"][0]
+    elif kind == "flag":
+        emoji, answers = random.choice(bank.FLAGS)
+        game = Game(kind, make_keys(answers), answers[0], 20, 35, starter, media=("emoji", emoji))
+        prompt = T.GAME_PROMPTS["flag"]
+        head = T.GAME_HEADER["flag"][0]
+    elif kind in ("capital", "opposite", "proverb"):
+        q, answers = random.choice({"capital": bank.CAPITALS, "opposite": bank.OPPOSITES,
+                                    "proverb": bank.PROVERBS}[kind])
+        game = Game(kind, make_keys(answers), answers[0], {"capital": 20, "opposite": 15, "proverb": 25}[kind],
+                    {"capital": 35, "opposite": 30, "proverb": 45}[kind], starter)
+        prompt = T.GAME_PROMPTS[kind].format(question=esc(q))
+        head = T.GAME_HEADER[kind][0]
+    elif kind == "truefalse":
+        q, truth = random.choice(bank.TRUE_FALSE)
+        right = TF_TRUE if truth else TF_FALSE
+        game = Game(kind, make_keys(list(right)), T.TF_WORDS[truth], 15, 25, starter,
+                    options=make_keys(list(TF_TRUE + TF_FALSE)))
+        prompt = T.GAME_PROMPTS["truefalse"].format(question=esc(q))
+        head = T.GAME_HEADER["truefalse"][0]
+    elif kind == "count":
+        a, b = random.sample(bank.COUNT_EMOJI, 2)
+        n, m = random.randint(6, 15), random.randint(3, 9)
+        items = [a] * n + [b] * m
+        random.shuffle(items)
+        rows = " ".join("".join(items[i:i + 6]) for i in range(0, len(items), 6))
+        game = Game(kind, {str(n)}, str(n), 20, 30, starter, options={str(i) for i in range(0, 40)})
+        prompt = T.GAME_PROMPTS["count"].format(emoji=a, question=rows.replace(" ", "\n"))
+        head = T.GAME_HEADER["count"][0]
+    elif kind == "split":
+        word = random.choice([w for w in bank.WORDS if 3 <= len(w) <= 7])
+        spaced = " ".join(word)
+        game = Game(kind, {_norm(spaced)}, spaced, 15, 30, starter)
+        prompt = T.GAME_PROMPTS["split"].format(question=esc(word))
+        head = T.GAME_HEADER["split"][0]
     elif kind == "daily":
         q, answers = daily_riddle()
         game = Game(kind, make_keys(answers), answers[0], 50, 90, starter)
@@ -172,19 +226,44 @@ async def start(context, svc: Services, chat_id: int, starter: User, kind: str, 
             u = await svc.users.get(uid)
             return T.DAILY_SOLVED.format(mention=mention(uid, u.full_name if u else str(uid)))
 
-    game, text = build(kind, level, starter.id)
+    pic = None
+    if kind == "picture":
+        from zhoo.systems import game_pics
+        pic = await game_pics.pick(svc, chat_id)
+    game, text = build(kind, level, starter.id, pic)
     game.players = players
     if prompt_override:
         text = prompt_override.replace("{question}", text.split(f"{T.LINE}\n", 1)[1])
     text += T.GAME_BODY.format(xp=game.xp, secs=game.secs)
+    text += T.GAME_GIVEUP_HINT
     svc.games[chat_id] = game
-    if await _send(context, svc, chat_id, text) is None:
+    if not await _send_game(context, svc, chat_id, game, text):
         svc.games.pop(chat_id, None)
         return None
     jq = getattr(context, "job_queue", None)
     if jq is not None:
         jq.run_once(_timeout_job, game.secs, data=(chat_id, game.token))
     return None
+
+
+async def _send_game(context, svc: Services, chat_id: int, game: Game, text: str) -> bool:
+    """يرسل السؤال، وإذا بيه صورة: الإيموجي برسالة لحاله (حتى يطلع كبير) أو الصورة ويه السؤال."""
+    from telegram.error import TelegramError
+    if game.media and game.media[0] == "photo":
+        try:
+            await context.bot.send_photo(chat_id, game.media[1], caption=text)
+            return True
+        except TelegramError as e:
+            log.info("فشل إرسال صورة اللعبة: %s", e)
+            return False
+    if await _send(context, svc, chat_id, text) is None:
+        return False
+    if game.media:
+        try:
+            await context.bot.send_message(chat_id, game.media[1])
+        except TelegramError:
+            return False
+    return True
 
 
 async def _finish_timeout(context, svc: Services, chat_id: int, game: Game) -> None:
@@ -213,6 +292,21 @@ async def check_answer(context, svc: Services, msg: Message, chat, user: User) -
         return False
     if game.players is not None and user.id not in game.players:
         return False
+    # صاحب اللعبة يگول «ماعرف» ← ينكشف الجواب فوراً
+    if user.id == game.started_by and _norm(msg.text) in GIVE_UP_KEYS:
+        svc.games.pop(chat.id, None)
+        svc.games[("cd", chat.id)] = time.monotonic()
+        await msg.reply_text(T.GAME_GAVE_UP.format(answer=esc(game.display)))
+        return True
+    if game.options is not None:                 # محاولة وحدة لكل شخص
+        if user.id in game.tried:
+            return False
+        keys = answer_keys(msg.text)
+        if not keys & game.options:
+            return False
+        if not keys & game.keys:
+            game.tried.add(user.id)
+            return False
     if game.anti_copy and any(ch in msg.text for ch in (ZWNJ, "​", "‍")):
         if svc.notice_limiter.hit(("copy", chat.id, user.id)):
             await msg.reply_text(T.TYPING_COPY)
@@ -270,6 +364,17 @@ registry.command("game_riddle", ("لغز",), section=S, description="لغز وأ
                  order=8)(_game_cmd("riddle"))
 registry.command("game_daily", ("لغز اليوم",), section=S, description="لغز واحد باليوم بمكافأة كبيرة 🌟",
                  order=9)(_game_cmd("daily"))
+for _kind, _names, _desc, _order in (
+    ("picture", ("صور", "خمن الصورة", "خمن الصوره", "لعبة الصور", "لعبه الصور"), "خمّن اسم الصورة 🖼", 30),
+    ("flag", ("اعلام", "أعلام", "الاعلام", "الأعلام", "علم دولة", "علم دوله"), "خمّن الدولة من علمها 🏳️", 31),
+    ("capital", ("عواصم", "العواصم", "عاصمة", "عاصمه"), "شنو عاصمة الدولة؟ 🏙", 32),
+    ("opposite", ("عكس", "العكس", "اضداد", "الأضداد"), "اكتب عكس الكلمة ↔️", 33),
+    ("proverb", ("كمل المثل", "امثال", "أمثال", "الامثال"), "كمّل المثل 📜", 34),
+    ("truefalse", ("صح وخطأ", "صح وخطا", "صح او خطأ", "صح او خطا", "صح ام خطأ"), "صح لو خطأ؟ محاولة وحدة ✅", 35),
+    ("count", ("كم عدد", "عدد", "العد"), "عدّ الإيموجي بسرعة 🔢 محاولة وحدة", 36),
+    ("split", ("تفكيك", "فكك", "فكك الكلمة", "فكك الكلمه"), "فكّك الكلمة لحروف ✂️", 37),
+):
+    registry.command(f"game_{_kind}", _names, section=S, description=_desc, order=_order)(_game_cmd(_kind))
 
 
 @registry.command("game_duel", ("تحدي",), section=S, args="target", usage="بالرد/اليوزر",
@@ -312,7 +417,7 @@ async def cmd_stop(cx: CommandContext) -> None:
 # ── قائمة الألعاب بالأزرار ──────────────────────────
 def menu_keyboard() -> InlineKeyboardMarkup:
     buttons = [InlineKeyboardButton(label, callback_data=f"gm:{kind}") for kind, label in T.BTN_GAMES.items()]
-    return InlineKeyboardMarkup([buttons[i:i + 2] for i in range(0, len(buttons), 2)])
+    return InlineKeyboardMarkup([buttons[i:i + 3] for i in range(0, len(buttons), 3)])
 
 
 @registry.command("games_menu", ("الالعاب", "الألعاب", "العاب"), section=S,
