@@ -731,10 +731,13 @@ TOGGLE_OFF = f"{BULLET} تم تعطيل {{what}} ▫️"
 
 # ── الألعاب ────────────────────────────────────────
 GAMES_MENU = (
-    title("الألعاب", "🎮") + "\n"
+    title("الألـعَـاب", "🎮") + "\n"
     f"{LINE}\n"
-    f"{BULLET} اختار لعبة، وأول واحد يجاوب صح يفوز بنقاط خبرة 🏆\n"
-    f"{BULLET} لعبة وحدة بكل مرة، والأجوبة تنكتب بالمجموعة عادي ✨"
+    f"{BULLET} <b>17</b> لعبة، وأول واحد يجاوب صح يفوز بخبرة وزهرات 🏆\n"
+    f"{BULLET} اختار لعبة 👇 لعبة وحدة بكل مرة، والأجوبة تنكتب بالمجموعة عادي\n"
+    f"{BULLET} اللي بدأ اللعبة يكتب «ماعرف» حتى ينكشف الجواب\n"
+    f"{LINE}\n"
+    f"🌌 <b>وغيرها:</b> <code>الكون</code> ⋅ <code>البنك</code> ⋅ <code>السوق</code> ⋅ <code>معلومة</code> ⋅ <code>معلومة كونية</code>"
 )
 GAMES_OFF = f"{BULLET} الألعاب معطّلة بهاي المجموعة 🌸"
 GAME_RUNNING = f"{BULLET} اكو لعبة شغّالة هسه 🎮 جاوبوا عليها أول، أو اكتبوا <code>ايقاف اللعبة</code>"
@@ -755,6 +758,8 @@ GAME_HEADER = {
     "truefalse": ("صَـح لَـو خَـطَـأ", "✅"),
     "count": ("كَـم عَـدَد", "🔢"),
     "split": ("فَـكِّـك الـكَـلِـمَـة", "✂️"),
+    "space": ("سُـؤَال كَـوْنِـي", "🔭"),
+    "guess": ("خَـمِّـن الـرَّقَـم", "🎯"),
 }
 GAME_PROMPTS = {
     "quiz": "{question}",
@@ -771,6 +776,8 @@ GAME_PROMPTS = {
     "proverb": "كمّل المثل:\n\n<b>{question}</b>",
     "truefalse": "<b>{question}</b>\n\nصح لو خطأ؟ <i>(كل واحد إله محاولة وحدة)</i>",
     "count": "كم {emoji} موجود هنا؟ <i>(محاولة وحدة)</i>\n\n{question}",
+    "space": "{question}",
+    "guess": "فكرت برقم من <b>1</b> لـ <b>100</b> 🤔\nخمّنوه، وآني أگلكم أكبر لو أصغر 🎯",
     "split": "فكّك هاي الكلمة لحروف، وبين كل حرف مسافة:\n\n<b>{question}</b>\n\n<i>مثال: باب ← ب ا ب</i>",
 }
 TF_WORDS = {True: "صح ✅", False: "خطأ ❌"}
@@ -812,7 +819,16 @@ BTN_GAMES = {
     "truefalse": "✅ صح وخطأ",
     "count": "🔢 كم عدد",
     "split": "✂️ تفكيك",
+    "space": "🔭 سؤال كوني",
+    "guess": "🎯 خمن الرقم",
 }
+GAME_SECTIONS = (
+    ("━━ 🧠 الثقافة والمعلومات ━━", ("quiz", "space", "capital", "flag", "truefalse", "proverb")),
+    ("━━ 🔤 الكلمات والسرعة ━━", ("scramble", "split", "opposite", "typing", "picture")),
+    ("━━ 🎯 الذكاء والأرقام ━━", ("math", "count", "guess", "riddle", "daily")),
+)
+GUESS_UP = "⬆️ أكبر"
+GUESS_DOWN = "⬇️ أصغر"
 
 # ── الاقتصاد ───────────────────────────────────────
 COIN = "🌸"
@@ -899,6 +915,8 @@ TX_KINDS = {
     "bank_bonus": "🏦 هدية فتح الحساب", "deposit": "🔐 إيداع بالبنك", "withdraw": "💵 سحب من البنك",
     "interest": "📈 فائدة البنك", "tip": "💵 بخشيش", "treasure": "💰 كنز", "wheel": "🎡 عجلة الحظ",
     "luck": "🎲 حظ", "invest": "📊 استثمار", "speculate": "📉 مضاربة", "shield": "🛡 حماية",
+    "planet_buy": "🪐 شراء كوكب", "planet_sell": "🪐 بيع كوكب", "asset_buy": "🛍 شراء من السوق",
+    "asset_sell": "💸 بيع للسوق", "passive": "💰 أرباح يومية",
     "rob_in": "🥷 زرف ناجح", "rob_out": "🥷 انزرف منه", "rob_fine": "🚓 غرامة زرف", "rob_comp": "🚓 تعويض زرف",
 }
 RICH_HEADER = title("الأَغْـنَـى", "💰")
@@ -2150,3 +2168,140 @@ DID_YOU_MEAN = f"{BULLET} قصدك <code>{{cmd}}</code>؟ 🌸"
 STARTED = f"✅ <b>زهو اشتغلت</b> ⋅ <code>{{version}}</code>\n{BULLET} المجموعات: <b>{{groups}}</b>"
 STARTED_EMPTY_DB = (f"⚠️ <b>قاعدة البيانات فارغة!</b>\n{BULLET} إذا هذا تحديث، يمكن الاستضافة مسحت مجلد data\n"
                     f"{BULLET} ارسلي ملف آخر نسخة احتياطية هنا بأمر الاستعادة حتى ترجع الرتب والإعدادات")
+
+# ── الكون 🌌 ────────────────────────────────────────
+SP_UNIVERSE = (
+    title("الـكَـوْن", "🌌") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} المجرات: <b>{{galaxies}}</b> ⋅ الكواكب: <b>{{planets}}</b> 🪐\n"
+    f"{BULLET} كواكب مملوكة بهاي المجموعة: <b>{{owned}}</b> ⋅ كواكبك: <b>{{mine}}</b>\n"
+    f"{LINE}\n"
+    f"🏷 <b>التخفيضات هسه:</b> {{sale}}\n"
+    f"⏳ تتبدل بعد: <b>{{left}}</b>\n"
+    f"{LINE}\n"
+    f"{BULLET} اختار مجرة، أو استكشف كوكب عشوائي 👇"
+)
+SP_LINE_CODE = f"{BULLET} الكود: <code>{{code}}</code>"
+SP_LINE_GALAXY = f"{BULLET} المجرة: {{g}}"
+SP_LINE_KIND = f"{BULLET} النوع: {{kind}} ⋅ {{rarity}}"
+SP_LINE_SIZE = f"{BULLET} القطر: <b>{{d}}</b> كم ⋅ 🌙 الأقمار: <b>{{moons}}</b>{{rings}}"
+SP_RINGS = " ⋅ 💫 إله حلقات"
+SP_LINE_TEMP = f"{BULLET} الحرارة: <b>{{t}}°م</b> ⋅ {{life}}"
+SP_LIFE = {True: "🌱 بيه حياة", False: "🌑 ماكو حياة"}
+SP_LINE_PRICE = f"💰 السعر: <b>{{price}}</b> 🌸"
+SP_LINE_PRICE_SALE = f"🔥 السعر: <b>{{price}}</b> 🌸 بدل <s>{{old}}</s> (تخفيض <b>{{off}}%</b>)"
+SP_LINE_VALUE = f"💰 قيمته بالسوق: <b>{{price}}</b> 🌸 ⋅ يتباع للبنك بـ <b>{{sell}}</b>"
+SP_LINE_INCOME = f"📈 الدخل اليومي: <b>{{n}}</b> 🌸"
+SP_LINE_FREE = "🟢 متاح للشراء"
+SP_LINE_OWNER = "👑 المالك: {who}"
+SP_LINE_LISTED = "🏷 معروض للبيع بـ <b>{price}</b> 🌸"
+SP_BTN_BUY = "🛒 شراء بـ {price} 🌸"
+SP_BTN_BUY_LISTED = "🏷 شراء من المالك بـ {price} 🌸"
+SP_BTN_SELL = "💸 بيع للبنك بـ {price}"
+SP_BTN_SELL_CONFIRM = "✅ اي، بيعه بـ {price}"
+SP_BTN_EXPLORE = "🔭 استكشاف"
+SP_BTN_EXPLORE_HERE = "🔭 استكشف بهاي المجرة"
+SP_BTN_GALAXY = "🌌 المجرة"
+SP_BTN_UNIVERSE = "🌌 كل المجرات"
+SP_BTN_RARE = {"legendary": "🟡 الأسطورية", "epic": "🟣 الملحمية"}
+SP_BTN_MINE = "🪐 كواكبي"
+SP_BTN_SALES = "🏷 التخفيضات"
+SP_BTN_MARKET = "🛍 سوق اللاعبين"
+SP_BTN_EMPERORS = "👑 أباطرة الكون"
+SP_G_PLANETS = f"{BULLET} الكواكب: <b>{{n}}</b> ⋅ المملوكة هنا: <b>{{owned}}</b>"
+SP_G_MARKET = f"{BULLET} السوق اليوم: {{arrow}} <b>{{pct}}%</b>"
+SP_G_LEVEL = f"{BULLET} مستوى الأسعار: <b>×{{mult}}</b>"
+SP_G_SALE = f"🔥 <b>عليها تخفيض {{off}}%</b> لمدة {{left}}"
+SP_G_NO_SALE = f"{BULLET} ماكو تخفيض هسه ⏳"
+SP_GALAXY_BAD = f"{BULLET} ما لگيت هالمجرة 🌸 اكتب اسمها أو رقمها، مثل: <code>مجرة أندروميدا</code> أو <code>مجرة 2</code>"
+SP_CODE_BAD = f"{BULLET} اكتب كود الكوكب 🌸 مثال: <code>{{example}}</code>"
+SP_EXPLORE_SLOW = "على كيفك، التلسكوب يحتاج ثواني 🔭"
+SP_BOUGHT = (title("مُـبَـارَك الـكَـوْكَـب", "🪐") + f"\n{BULLET} {{who}} صار يملك <b>{{name}}</b> <code>{{code}}</code> 🎉\n"
+             f"{BULLET} الكاش الباقي: <b>{{cash}}</b> 🌸")
+SP_TRADED = (title("صَـفْـقَـة كَـوْنِـيَّـة", "🤝") + f"\n{BULLET} {{who}} اشترى <b>{{name}}</b> <code>{{code}}</code> "
+             f"من {{seller}} بـ <b>{{price}}</b> 🌸")
+SP_ALREADY_OWNED = f"{BULLET} الكوكب <code>{{code}}</code> إله مالك 🌸 شوف إذا معروض بـ <code>سوق الكواكب</code>"
+SP_LIMIT = f"{BULLET} وصلت للحد الأعلى: <b>{{n}}</b> كوكب 🪐"
+SP_SOLD = f"{BULLET} انباع <b>{{name}}</b> <code>{{code}}</code> للبنك المركزي بـ <b>{{price}}</b> 🌸 💸"
+SP_NOT_YOURS = f"{BULLET} الكوكب <code>{{code}}</code> مو إلك 🌸"
+SP_LIST_HOW = f"{BULLET} اكتب الكود والسعر 🌸 مثال: <code>عرض كوكب 2-1250 50000</code>"
+SP_LIST_RANGE = f"{BULLET} السعر لازم يكون بين 10 و <b>{{hi}}</b> 🌸"
+SP_LISTED = (f"{BULLET} انعرض <b>{{name}}</b> <code>{{code}}</code> بسوق اللاعبين بـ <b>{{price}}</b> 🌸 🏷\n"
+             f"{BULLET} <i>تنخصم عمولة {{fee}}% من البيع</i>")
+SP_UNLISTED = f"{BULLET} انسحب الكوكب <code>{{code}}</code> من السوق ✨"
+SP_NOT_LISTED = f"{BULLET} هذا الكوكب مو معروض، أو مو إلك 🌸"
+SP_MINE_EMPTY = f"{BULLET} {{who}} ما عنده كواكب بعد 🪐 اكتب <code>الكون</code> أو <code>استكشاف</code>"
+SP_MINE_HEAD = (title("إِمْـبِـرَاطُـورِيَّـة", "👑") + "\n"
+                f"{BULLET} {{who}}\n{BULLET} الكواكب: <b>{{n}}</b> ⋅ القيمة: <b>{{value}}</b> 🌸\n"
+                f"{BULLET} الدخل اليومي: <b>{{income}}</b> 🌸 (استلمه بأمر <code>ارباحي</code>)")
+SP_SALES_HEAD = title("تَـخْـفِـيـضَـات الـكَـوْن", "🏷")
+SP_SALE_LINE = "🔥 {g} <code>مجرة {num}</code> ⋅ تخفيض <b>{off}%</b>"
+SP_SALES_LEFT = f"⏳ التخفيضات الجاية بعد: <b>{{left}}</b>"
+SP_SALES_TIP = f"💡 <i>اشتري بالتخفيض وبيع بعدين للبنك (85% من السوق) وتطلع رابح</i>"
+SP_MARKET_HEAD = title("سُـوق الـكَـوَاكِـب", "🛍")
+SP_MARKET_EMPTY = f"{BULLET} ماكو كواكب معروضة هسه 🌸 اعرض كوكبك بأمر <code>عرض كوكب الكود السعر</code>"
+SP_EMPERORS_HEAD = title("أَبَـاطِـرَة الـكَـوْن", "👑")
+SP_RARE_HEAD = title("كَـوَاكِـب نَـادْرَة", "✨") + f"\n{BULLET} {{rarity}} المتاحة بمجرة {{g}} 👇"
+SP_RARE_NONE = f"{BULLET} كل الكواكب النادرة بهاي المجرة انشرت 😅 جرب مجرة ثانية"
+SP_FACT_TITLE = title("مَـعْـلُـومَـة كَـوْنِـيَّـة", "🔭")
+FACT_TITLE = title("هَـل تَـعْـلَـم", "💡")
+SP_ALERT_OWNED = "هذا الكوكب انشرى قبلك 😅"
+SP_ALERT_LIMIT = "وصلت للحد الأعلى ({n} كوكب) 🪐"
+SP_ALERT_FUNDS = "الكاش ما يكفي 🌸 تحتاج {price} وعندك {have}"
+SP_ALERT_BOUGHT = "مبارك الكوكب 🪐🎉"
+SP_ALERT_NOT_LISTED = "هذا الكوكب مو معروض هسه 🌸"
+SP_ALERT_SELF = "هذا كوكبك أصلاً 😄"
+SP_ALERT_NOT_YOURS = "هذا الكوكب مو إلك 🌸"
+SP_ALERT_SOLD = "انباع الكوكب 💸"
+
+# ── سوق الممتلكات 🏙 ───────────────────────────────
+MK_HOME = (
+    title("سُـوق الـمُـمْـتَـلَـكَـات", "🏙") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} الأسعار تتحرك كل يوم: اشتري رخيص وبيع غالي 📊\n"
+    f"{BULLET} العقارات والشركات تعطيك دخل يومي (<code>ارباحي</code>)\n"
+    f"{BULLET} البيع بـ 90% من سعر اليوم\n"
+    f"{LINE}\n"
+    f"{BULLET} اختار قسم 👇"
+)
+MK_LINE = "{emoji} <b>{name}</b> ⋅ {price} 🌸 ⋅ {arrow} {pct}%"
+MK_LINE_INCOME = " ⋅ 💰 {n}/يوم"
+MK_LINE_OWNED = " ⋅ 📦 عندك {n}"
+MK_TIP = "💡 <i>للشراء بعدد: <code>شراء خاتم 5</code> ⋅ للبيع: <code>بيع خاتم 5</code></i>"
+MK_BTN_BUY = "🛒 {emoji} {name}"
+MK_BTN_SELL = "💸 بيع بـ {price}"
+MK_BTN_HOME = "🏙 الأقسام"
+MK_ITEM_BAD = f"{BULLET} ما لگيت هالشي بالسوق 🌸 اكتب <code>السوق</code> وشوف الأسماء، مثال: <code>{{cmd}} لامبورغيني</code>"
+MK_QTY_BAD = f"{BULLET} العدد لازم من 1 لـ {{n}} 🌸"
+MK_BOUGHT = (title("مُـبَـارَك", "🛍") + f"\n{BULLET} {{who}} اشترى {{qty}} × {{emoji}} <b>{{name}}</b> بـ <b>{{total}}</b> 🌸\n"
+             f"{BULLET} الكاش الباقي: <b>{{cash}}</b> 🌸")
+MK_SOLD = f"{BULLET} {{who}} باع {{qty}} × {{emoji}} <b>{{name}}</b> بـ <b>{{total}}</b> 🌸 💸"
+MK_NOT_OWNED = f"{BULLET} ما عندك عدد كافي من <b>{{name}}</b> 🌸 (عندك {{n}})"
+MK_MINE_EMPTY = f"{BULLET} {{who}} ما عنده أملاك بعد 🌸 اكتب <code>السوق</code>"
+MK_MINE_HEAD = title("أَمْـلَاك", "📦") + "\n{who}"
+MK_MINE_TOTAL = "💼 القيمة اليوم: <b>{value}</b> 🌸 ⋅ {icon} الربح/الخسارة: <b>{pl}</b>"
+MK_ALERT_BOUGHT = "اشتريت {name} 🛍 الكاش: {cash}"
+MK_ALERT_FUNDS = "الكاش ما يكفي 🌸 السعر {price} وعندك {have}"
+MK_ALERT_SOLD = "بعت {name} بـ {total} 💸"
+MK_ALERT_NONE = "ما عندك هذا 🌸"
+INCOME_NONE = f"{BULLET} ما عندك دخل يومي بعد 🌸 اشتري كواكب (<code>الكون</code>) أو عقارات وشركات (<code>السوق</code>)"
+INCOME_WAIT = f"{BULLET} أرباحك (<b>{{total}}</b> 🌸) تجهز بعد <b>{{left}}</b> ⏳"
+INCOME_DONE = (
+    title("أَرْبَـاحُـك الـيَـوْمِـيَّـة", "💰") + "\n"
+    f"{LINE}\n"
+    f"🪐 الكواكب: <b>{{planets}}</b> 🌸\n"
+    f"🏢 العقارات والشركات: <b>{{assets}}</b> 🌸\n"
+    f"{LINE}\n"
+    f"{BULLET} المجموع: <b>+{{total}}</b> 🌸 ⋅ الكاش هسه: <b>{{cash}}</b>"
+)
+WORTH = (
+    title("الـثَّـرْوَة", "💼") + "\n"
+    f"{BULLET} {{who}}\n"
+    f"{LINE}\n"
+    f"👛 الكاش: <b>{{cash}}</b> 🌸\n"
+    f"🏦 البنك: <b>{{bank}}</b> 🌸\n"
+    f"📦 الأملاك: <b>{{assets}}</b> 🌸\n"
+    f"🪐 الكواكب: <b>{{planets}}</b> 🌸\n"
+    f"{LINE}\n"
+    f"💎 المجموع: <b>{{total}}</b> 🌸"
+)

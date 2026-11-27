@@ -184,6 +184,17 @@ def build(kind: str, level: str | None, starter: int,
         game = Game(kind, {str(n)}, str(n), 20, 30, starter, options={str(i) for i in range(0, 40)})
         prompt = T.GAME_PROMPTS["count"].format(emoji=a, question=rows.replace(" ", "\n"))
         head = T.GAME_HEADER["count"][0]
+    elif kind == "space":
+        from zhoo.data import space_bank
+        q, answers = random.choice(space_bank.SPACE_QUIZ)
+        game = Game(kind, make_keys(answers), answers[0], 25, 40, starter)
+        prompt = T.GAME_PROMPTS["space"].format(question=esc(q))
+        head = T.GAME_HEADER["space"][0]
+    elif kind == "guess":
+        n = random.randint(1, 100)
+        game = Game(kind, {str(n)}, str(n), 30, 90, starter)
+        prompt = T.GAME_PROMPTS["guess"]
+        head = T.GAME_HEADER["guess"][0]
     elif kind == "split":
         word = random.choice([w for w in bank.WORDS if 3 <= len(w) <= 7])
         spaced = " ".join(word)
@@ -312,6 +323,11 @@ async def check_answer(context, svc: Services, msg: Message, chat, user: User) -
             await msg.reply_text(T.TYPING_COPY)
         return False
     if not answer_keys(msg.text) & game.keys:
+        if game.kind == "guess":                 # خمن الرقم: تلميح أكبر/أصغر
+            guess = _norm(msg.text)
+            if guess.isdigit() and 1 <= int(guess) <= 100 and svc.notice_limiter.hit(("guess", chat.id, user.id)):
+                target = int(game.display)
+                await msg.reply_text(T.GUESS_UP if int(guess) < target else T.GUESS_DOWN)
         return False
 
     svc.games.pop(chat.id, None)
@@ -373,6 +389,8 @@ for _kind, _names, _desc, _order in (
     ("truefalse", ("صح وخطأ", "صح وخطا", "صح او خطأ", "صح او خطا", "صح ام خطأ"), "صح لو خطأ؟ محاولة وحدة ✅", 35),
     ("count", ("كم عدد", "عدد", "العد"), "عدّ الإيموجي بسرعة 🔢 محاولة وحدة", 36),
     ("split", ("تفكيك", "فكك", "فكك الكلمة", "فكك الكلمه"), "فكّك الكلمة لحروف ✂️", 37),
+    ("space", ("سؤال كوني", "سوال كوني", "سؤال فضاء", "اسئلة الفضاء"), "سؤال عن الفضاء والكواكب 🔭", 38),
+    ("guess", ("خمن الرقم", "خمن رقم", "تخمين", "خمن"), "خمّن الرقم من 1 لـ 100، وزهو تگلك أكبر لو أصغر 🎯", 39),
 ):
     registry.command(f"game_{_kind}", _names, section=S, description=_desc, order=_order)(_game_cmd(_kind))
 
@@ -416,8 +434,13 @@ async def cmd_stop(cx: CommandContext) -> None:
 
 # ── قائمة الألعاب بالأزرار ──────────────────────────
 def menu_keyboard() -> InlineKeyboardMarkup:
-    buttons = [InlineKeyboardButton(label, callback_data=f"gm:{kind}") for kind, label in T.BTN_GAMES.items()]
-    return InlineKeyboardMarkup([buttons[i:i + 3] for i in range(0, len(buttons), 3)])
+    """الألعاب مرتبة بأقسام: عنوان القسم زر عريض، وتحته ألعابه (3 بكل سطر)."""
+    rows = []
+    for header, kinds in T.GAME_SECTIONS:
+        rows.append([InlineKeyboardButton(header, callback_data="gm:-")])
+        buttons = [InlineKeyboardButton(T.BTN_GAMES[k], callback_data=f"gm:{k}") for k in kinds]
+        rows += [buttons[i:i + 3] for i in range(0, len(buttons), 3)]
+    return InlineKeyboardMarkup(rows)
 
 
 @registry.command("games_menu", ("الالعاب", "الألعاب", "العاب"), section=S,

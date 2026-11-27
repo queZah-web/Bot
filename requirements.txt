@@ -2,3 +2,4 @@ python-telegram-bot[job-queue]==22.8
 aiosqlite==0.22.1
 yt-dlp==2026.10.26
 anthropic==2.11.0
+pillow==12.3.0

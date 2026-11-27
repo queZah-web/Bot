@@ -126,6 +126,12 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             await social.on_pair_button(q, msg, svc, parts[1], parts[2], parts[3])
         elif kind == "c" and len(parts) == 2:
             await protect.on_captcha_button(q, msg, svc, context.bot, parts[1])
+        elif kind == "sp" and len(parts) == 4:
+            from zhoo.systems import space
+            await space.on_button(q, msg, svc, context.bot, parts[1], parts[2], parts[3])
+        elif kind == "mk" and len(parts) == 3:
+            from zhoo.systems import market
+            await market.on_button(q, msg, svc, parts[1], parts[2])
         elif kind == "rl" and len(parts) == 4:
             from zhoo.systems import rank_lists
             await rank_lists.on_button(q, msg, svc, context.bot, parts[1], parts[2], parts[3])

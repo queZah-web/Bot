@@ -46,7 +46,8 @@ SECTIONS: tuple[Section, ...] = (
     Section("social", "التفاعل", "🤝"),
     Section("games", "الألعاب", "🎮"),
     Section("levels", "المستويات", "📈"),
-    Section("economy", "الاقتصاد", "💰"),
+    Section("economy", "الاقتصاد والبنك", "💰"),
+    Section("space", "الكون والكواكب", "🌌"),
     Section("dev", "المطور", "💎", None, (), Rank.DEVELOPER),
 )
 SECTION_MAP = {s.key: s for s in SECTIONS}
