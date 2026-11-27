@@ -50,6 +50,11 @@ DEFAULTS: dict[str, str] = {
     "ai_on": "0",
     "ai_kb": "",
     "ai_daily": "50",
+    # الحارس: صد الهجوم، الوضع الليلي، انتهاء التحذيرات، قناة السجل
+    "raid_guard": "1", "raid_until": "0",
+    "night_on": "0", "night_from": "2", "night_to": "8", "night_active": "0",
+    "warn_expiry_days": "0",
+    "log_channel": "",
 }
 
 

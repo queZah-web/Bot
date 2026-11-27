@@ -199,7 +199,9 @@ async def on_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                                   ttl=0)
             continue
 
-        from zhoo.systems import locks
+        from zhoo.systems import guardian, locks
+        if await guardian.on_join(context, svc, chat, member, not self_joined and adder_rank >= Rank.ADMIN):
+            continue   # صد الهجوم
         if not member.is_bot and adder_rank < Rank.ADMIN and await locks.is_locked(svc, chat.id, "join"):
             await _kick_join(context, svc, chat.id, member)
             continue

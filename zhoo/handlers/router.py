@@ -92,6 +92,9 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         if in_group and not quiet and msg.sender_chat is None and not user.is_bot and not svc.maintenance:
             await levels.on_message(context, svc, msg, chat, user)       # خبرة الرسائل
             await ai.on_message(svc, msg, chat, user)                    # ذاكرة التلخيص (إذا الذكاء شغّال)
+            from zhoo.systems import suggest
+            if await suggest.maybe_suggest(svc, context.bot, msg, chat, user):   # «قصدك: حظر؟»
+                return
             if await zhoo_replies.muted(svc, chat.id, user.id):          # «لا تردي عليه»: بلا سوالف
                 return
             if await features.enabled(svc, chat.id, "replies") and await replies.maybe_reply(svc, msg, chat, user):

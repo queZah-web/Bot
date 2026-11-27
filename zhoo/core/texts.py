@@ -2065,3 +2065,88 @@ RL_DENIED = {
     "same": "هو أصلاً عضو 🌸",
     "below_floor": "هذا مشرف بتيليجرام، شيل إشرافه من إعدادات المجموعة أول 🌸",
 }
+
+# ── قناة السجل 📒 ───────────────────────────────────
+LOG_ACTIONS = {
+    "ban": "🚫 حظر", "kick": "👢 طرد", "mute": "🔇 كتم", "restrict": "⛓ تقييد", "warn": "⚠️ تحذير",
+    "unban": "🕊 فك حظر", "unmute": "🔊 فك كتم", "unrestrict": "✨ فك تقييد", "unwarn": "🤍 مسح تحذيرات",
+    "unban_all": "🧹 فك حظر الكل", "unmute_all": "🧹 فك كتم الكل", "unrestrict_all": "🧹 فك تقييد الكل",
+    "unwarn_all": "🧹 مسح تحذيرات الكل", "rank_change": "🎖 تغيير رتبة", "ranks_clear": "🧹 مسح رتب",
+    "lift_all": "🧹 رفع كل القيود", "guard_mute": "🛡 كتم تلقائي من الحماية", "guard_bot": "🤖 طرد بوت",
+    "watch_triggered": "🚨 تنبيه أمني (ش)", "bot_state": "⏯ حالة زهو", "lock": "🔒 قفل", "unlock": "🔓 فتح",
+    "chat_title": "✏️ تغيير اسم المجموعة", "chat_photo": "🖼 تغيير صورة المجموعة", "chat_bio": "📝 تغيير البايو",
+    "purge": "🗑 مسح رسائل", "kick_bots": "🤖 طرد البوتات", "kick_deleted": "👻 طرد المحذوفين",
+    "raid_on": "🛡 صد هجوم", "raid_off": "🔓 انهاء الهجوم",
+}
+LOG_SWEAR = "🤬 عقوبة سب ⋅ {kind}"
+LOG_AUTO = "🤖 عقوبة تلقائية (التحذيرات) ⋅ {kind}"
+LOG_BY_ZHOO = "زهو 🤖"
+LOG_HEAD = title("سِـجِـل {title}", "📒")
+LOG_LINE_ACTION = f"{BULLET} العملية: <b>{{v}}</b>"
+LOG_LINE_TARGET = f"{BULLET} على: {{v}}"
+LOG_LINE_ACTOR = f"{BULLET} بواسطة: {{v}}"
+LOG_LINE_REASON = f"{BULLET} السبب: {{v}}"
+LOG_LINE_DURATION = f"{BULLET} المدة: {{v}}"
+LOG_LINE_RANK = f"{BULLET} من {{old}} ← {{new}}"
+LOG_LINE_LOCK = f"{BULLET} النوع: {{v}}"
+LOG_LINE_COUNT = f"{BULLET} العدد: <b>{{v}}</b>"
+LOG_LINE_STATE = f"{BULLET} الحالة: {{v}}"
+LOG_LINE_TIME = f"{BULLET} الوقت: <code>{{v}}</code>"
+LOG_TEST = title("قَـنَـاة الـسِّـجِـل", "📒") + f"\n{BULLET} من هسه كل عقوبة وتغيير رتبة بمجموعة «{{title}}» توصل هنا ✨"
+LOG_SET_HOW = (
+    f"{BULLET} ضيف زهو مشرفة بالقناة أول، وبعدين اكتب واحد من هذني 🌸\n"
+    f"{BULLET} <code>تعيين قناة السجل @يوزر_القناة</code>\n"
+    f"{BULLET} <code>تعيين قناة السجل -100xxxxxxxxxx</code>\n"
+    f"{BULLET} أو حوّل رسالة من القناة للمجموعة واكتب الأمر بالرد عليها"
+)
+LOG_SET_FAILED = f"{BULLET} ما گدرت أرسل للقناة 🌸 تأكد إن زهو مشرفة بيها ومعها صلاحية النشر"
+LOG_SET_DONE = title("تَـمَّ تَـعْـيِـيـن قَـنَـاة الـسِّـجِـل", "📒") + f"\n{BULLET} أرسلت رسالة تجربة للقناة ✨"
+LOG_SHOW = f"{BULLET} قناة السجل: {{v}} 📒"
+LOG_NONE = f"{BULLET} ماكو قناة سجل لهاي المجموعة 🌸 اكتب <code>تعيين قناة السجل</code>"
+LOG_CLEARED = f"{BULLET} توقف إرسال السجل للقناة ✨"
+
+# ── صد الهجوم 🛡 ────────────────────────────────────
+RAID_ON = (
+    title("صَـد هُـجُـوم", "🛡") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} دخل عدد كبير من الحسابات مرة وحدة، وطردتهم: <b>{{n}}</b>\n"
+    f"{BULLET} الدخول مقفول <b>{{minutes}}</b> دقايق، وأي واحد يدخل ينطرد\n"
+    f"{BULLET} للفتح قبل الوقت: <code>انهاء الهجوم</code>\n"
+    f"{BULLET} تنبيه: {{owners}}"
+)
+RAID_NONE = f"{BULLET} ماكو هجوم هسه 🌸 الدخول مفتوح"
+RAID_ENDED = f"{BULLET} انفتح الدخول ✨ بواسطة {{actor}}"
+RAID_TOGGLED = {
+    True: f"{BULLET} تم تفعيل صد الهجوم 🛡 إذا دخل <b>{{n}}</b> حساب خلال <b>{{secs}}</b> ثانية أطردهم وأقفل الدخول",
+    False: f"{BULLET} تم تعطيل صد الهجوم ▫️",
+}
+
+# ── الوضع الليلي 🌙 ─────────────────────────────────
+NIGHT_ON = (
+    title("الـوَضْـع الـلَّـيْـلِـي", "🌙") + "\n"
+    f"{LINE}\n"
+    f"{BULLET} الدردشة تنقفل الساعة <b>{{start}}</b> وتنفتح الساعة <b>{{end}}</b> (توقيت بغداد)\n"
+    f"{BULLET} لتغيير الوقت: <code>تفعيل الوضع الليلي 1 7</code>"
+)
+NIGHT_BAD = f"{BULLET} اكتب ساعتين من 0 لـ 23 🌸 مثال: <code>تفعيل الوضع الليلي 2 8</code>"
+NIGHT_OFF = f"{BULLET} تم تعطيل الوضع الليلي ☀️"
+NIGHT_STATUS = f"{BULLET} الوضع الليلي 🌙 من <b>{{start}}</b> لـ <b>{{end}}</b>"
+NIGHT_STATUS_OFF = f"{BULLET} الوضع الليلي مطفي 🌸 اكتب <code>تفعيل الوضع الليلي 2 8</code>"
+NIGHT_START = (title("تُـصْـبِـحُـون عَـلَـى خَـيْـر", "🌙") + f"\n{BULLET} الدردشة انقفلت لحد الساعة <b>{{end}}</b>\n"
+               f"{BULLET} نوم العوافي للجميع 🤍")
+NIGHT_END = title("صَـبَـاح الـخَـيْـر", "☀️") + f"\n{BULLET} الدردشة انفتحت، نهاركم سعيد 🌸"
+
+# ── انتهاء التحذيرات ────────────────────────────────
+WARN_EXPIRY_DAYS = "<b>{n}</b> يوم"
+WARN_EXPIRY_NEVER = "<b>ما تنتهي</b>"
+WARN_EXPIRY_SHOW = f"{BULLET} مدة التحذيرات: {{v}} ⏳"
+WARN_EXPIRY_SET = f"{BULLET} تم ✅ مدة التحذيرات صارت: {{v}}"
+WARN_EXPIRY_BAD = f"{BULLET} اكتب عدد أيام من 0 لـ 365 🌸 مثال: <code>مدة التحذيرات 7</code>"
+
+# ── قصدك؟ ───────────────────────────────────────────
+DID_YOU_MEAN = f"{BULLET} قصدك <code>{{cmd}}</code>؟ 🌸"
+
+# ── تشغيل زهو ───────────────────────────────────────
+STARTED = f"✅ <b>زهو اشتغلت</b> ⋅ <code>{{version}}</code>\n{BULLET} المجموعات: <b>{{groups}}</b>"
+STARTED_EMPTY_DB = (f"⚠️ <b>قاعدة البيانات فارغة!</b>\n{BULLET} إذا هذا تحديث، يمكن الاستضافة مسحت مجلد data\n"
+                    f"{BULLET} ارسلي ملف آخر نسخة احتياطية هنا بأمر الاستعادة حتى ترجع الرتب والإعدادات")

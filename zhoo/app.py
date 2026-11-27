@@ -21,7 +21,7 @@ from zhoo.database.db import Database
 from zhoo.handlers import callbacks, errors, membership, router, start
 
 # استيراد الأنظمة يسجل أوامرها بالسجل المركزي
-from zhoo.systems import (aliases, backup, channels, chatinfo, cleanup, inspect, media, quicksetup, suspect, watchdog, botstate, general, group, locks, owner, protect, punish, punish_lists,  # noqa: F401
+from zhoo.systems import (aliases, backup, channels, chatinfo, cleanup, inspect, media, quicksetup, suspect, watchdog, botstate, general, group, locks, owner, protect, punish, punish_lists, guardian, logchannel,  # noqa: F401
                           ranks, reports, features, extras, youtube, ai,
                           bank, economy, feedback, game_pics, games, levels, replies, social, swear)
 
@@ -37,6 +37,7 @@ async def _flush_job(context: ContextTypes.DEFAULT_TYPE) -> None:
     await protect.sweep_captcha(context)  # طرد اللي ما تحققوا بالوقت
     await svc.swear_logs.prune()  # سجل السب يبقى 30 يوم بس
     await svc.levels.prune_daily()
+    await guardian.expire_warnings(svc)  # التحذيرات القديمة (إذا المجموعة محددة مدة)
     await economy.prune(svc)  # المهام القديمة  # الخبرة اليومية تبقى 40 يوم (للترتيب الأسبوعي والشهري)
 
 
@@ -59,7 +60,24 @@ async def _post_init(app: Application) -> None:
         app.job_queue.run_daily(backup.daily_job, time=dtime(3, 17), name="daily_backup")
         app.job_queue.run_daily(reports.weekly_job, time=dtime(9, 13), days=(0,), name="weekly_report")
         app.job_queue.run_repeating(extras.azkar_job, interval=3 * 3600, first=600, name="azkar")
+        app.job_queue.run_repeating(guardian.night_job, interval=60, first=30, name="night_mode")
+    # قناة السجل: كل عملية مهمة تنرسل لقناة الإدارة
+    svc.audit.listeners.append(lambda *a: logchannel.on_audit(app.bot, svc, *a))
+    await _notify_started(app, svc)
     log.info("زهو %s اشتغل باسم @%s", __version__, app.bot.username)
+
+
+async def _notify_started(app: Application, svc: Services) -> None:
+    """رسالة للمطور: زهو اشتغلت، وإذا القاعدة فارغة (يمكن الاستضافة مسحتها) تنبيه للاستعادة."""
+    from zhoo.core import texts as T
+    groups = await svc.groups.count_active()
+    text = T.STARTED.format(version=__version__, groups=groups)
+    if groups == 0:
+        text += "\n" + T.STARTED_EMPTY_DB
+    try:
+        await app.bot.send_message(svc.settings.owner_id, text, disable_notification=groups > 0)
+    except TelegramError as e:
+        log.info("ما گدرت أبلغ المطور بالتشغيل: %s", e)
 
 
 async def _post_shutdown(app: Application) -> None:
