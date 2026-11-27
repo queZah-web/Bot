@@ -104,6 +104,13 @@ class PunishmentsRepo:
             (chat_id, user_id), default=0,
         )
 
+    async def list_warned(self, chat_id: int, limit: int = 50):
+        """اللي عندهم تحذيرات فعّالة، الأكثر أول."""
+        return await self.db.fetchall(
+            "SELECT w.user_id, COUNT(*) AS n, NULL AS until, u.first_name, u.last_name FROM warnings w "
+            "LEFT JOIN users u ON u.user_id = w.user_id WHERE w.chat_id = ? AND w.active = 1 "
+            "GROUP BY w.user_id ORDER BY n DESC, MAX(w.created_at) DESC LIMIT ?", (chat_id, limit))
+
     async def clear_warnings(self, chat_id: int, user_id: int) -> int:
         return await self.db.execute(
             "UPDATE warnings SET active = 0 WHERE chat_id = ? AND user_id = ? AND active = 1",

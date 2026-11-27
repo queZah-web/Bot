@@ -314,34 +314,6 @@ def _row_name(r) -> str:
     return " ".join(p for p in (r["first_name"], r["last_name"]) if p) or str(r["user_id"])
 
 
-async def _send_list(cx: CommandContext, kind: str, title: str) -> None:
-    rows = await cx.services.punishments.list_active(cx.chat.id, kind)
-    text = T.PUNISHED_LIST_HEADER.format(name=title) + "\n"
-    if not rows:
-        text += T.PUNISHED_LIST_EMPTY
-    else:
-        now = time.time()
-        lines = []
-        for i, r in enumerate(rows, 1):
-            left = f"⏳ {fmt_remaining(r['until'] - now)}" if r["until"] else "∞"
-            lines.append(f"{i}. {mention(r['user_id'], _row_name(r))}  <i>{left}</i>")
-        text += "\n".join(lines)
-    await cx.reply(text)
-
-
-async def _list_banned(cx): await _send_list(cx, "ban", "المحظورين")          # noqa: E704
-async def _list_muted(cx): await _send_list(cx, "mute", "المكتومين")          # noqa: E704
-async def _list_restricted(cx): await _send_list(cx, "restrict", "المقيّدين")  # noqa: E704
-
-
-registry.command("list_banned", ("المحظورين",), section=S, min_rank=Rank.ADMIN,
-                 description="قائمة المحظورين", order=30)(_list_banned)
-registry.command("list_muted", ("المكتومين",), section=S, min_rank=Rank.ADMIN,
-                 description="قائمة المكتومين", order=31)(_list_muted)
-registry.command("list_restricted", ("المقيدين",), section=S, min_rank=Rank.ADMIN,
-                 description="قائمة المقيّدين", order=32)(_list_restricted)
-
-
 @registry.command("punish_log", ("سجل العقوبات",), section=S, min_rank=Rank.ADMIN, args="target",
                   usage="اختياري: بالرد/اليوزر", description="آخر العقوبات بالمجموعة أو لعضو معيّن", order=33)
 async def cmd_punish_log(cx: CommandContext) -> None:

@@ -1975,3 +1975,58 @@ BANK_SHIELD_BOUGHT = (
     f"{BULLET} السعر: <b>{{price}}</b> {COIN} ⋅ الكاش: <b>{{cash}}</b> {COIN}"
 )
 BANK_THIEVES_HEADER = title("تُـوب الـحَـرَامِـيَّـة", "🥷")
+
+# ── قوائم العقوبات بالأزرار ─────────────────────────
+PL_NAMES = {"ban": "الـمَـحْـظُـورِيـن", "mute": "الـمَـكْـتُـومِـيـن", "restrict": "الـمُـقَـيَّـدِيـن",
+            "warn": "الـمُـحَـذَّرِيـن"}
+PL_HEADER = title("{name}", "📋") + f" <i>({{n}})</i>\n{LINE}"
+PL_PAGE = f"{BULLET} الصفحة <b>{{page}}</b> من <b>{{pages}}</b>"
+PL_BTN_ALL = {"ban": "🧹 الغاء حظر الكل", "mute": "🧹 الغاء كتم الكل", "restrict": "🧹 الغاء تقييد الكل",
+              "warn": "🧹 مسح تحذيرات الكل"}
+PL_BTN_ONE = {
+    "ban": "🕊 الغاء حظر {i}. {name}  {left}",
+    "mute": "🔊 الغاء كتم {i}. {name}  {left}",
+    "restrict": "✨ الغاء تقييد {i}. {name}  {left}",
+    "warn": "🤍 مسح تحذيرات {i}. {name}  {left}",
+}
+PL_BTN_PREV = "◀️ السابق"
+PL_BTN_NEXT = "التالي ▶️"
+PL_BTN_REFRESH = "🔄 تحديث"
+PL_BTN_PANEL = "📋 كل العقوبات"
+PL_BTN_CONFIRM = "✅ اي، فك عن الكل"
+PL_BTN_CANCEL = "↩️ رجوع"
+PL_CONFIRM = {
+    "ban": title("تَـأْكِـيـد", "⚠️") + f"\n{LINE}\n{BULLET} راح أفك الحظر عن <b>{{n}}</b> شخص مرة وحدة\n{BULLET} متأكد؟",
+    "mute": title("تَـأْكِـيـد", "⚠️") + f"\n{LINE}\n{BULLET} راح أفك الكتم عن <b>{{n}}</b> شخص مرة وحدة\n{BULLET} متأكد؟",
+    "restrict": title("تَـأْكِـيـد", "⚠️") + f"\n{LINE}\n{BULLET} راح أفك التقييد عن <b>{{n}}</b> شخص مرة وحدة\n{BULLET} متأكد؟",
+    "warn": title("تَـأْكِـيـد", "⚠️") + f"\n{LINE}\n{BULLET} راح أمسح تحذيرات <b>{{n}}</b> شخص مرة وحدة\n{BULLET} متأكد؟",
+}
+PL_DONE_ONE = {
+    "ban": f"🕊 انفك الحظر عن {{who}} ⋅ بواسطة {{actor}}",
+    "mute": f"🔊 انفك الكتم عن {{who}} ⋅ بواسطة {{actor}}",
+    "restrict": f"✨ انفك التقييد عن {{who}} ⋅ بواسطة {{actor}}",
+    "warn": f"🤍 انمسحت تحذيرات {{who}} ⋅ بواسطة {{actor}}",
+}
+PL_DONE_ONE_ALERT = {"ban": "انفك الحظر 🕊", "mute": "انفك الكتم 🔊", "restrict": "انفك التقييد ✨",
+                     "warn": "انمسحت التحذيرات 🤍"}
+PL_DONE_ALL = {
+    "ban": f"🧹 انفك الحظر عن <b>{{n}}</b> شخص ⋅ بواسطة {{actor}}",
+    "mute": f"🧹 انفك الكتم عن <b>{{n}}</b> شخص ⋅ بواسطة {{actor}}",
+    "restrict": f"🧹 انفك التقييد عن <b>{{n}}</b> شخص ⋅ بواسطة {{actor}}",
+    "warn": f"🧹 انمسحت تحذيرات <b>{{n}}</b> شخص ⋅ بواسطة {{actor}}",
+}
+PL_WORKING = "لحظات ⏳"
+PL_EMPTY_ALERT = "القائمة فارغة هسه 🌸"
+PL_NOT_ALLOWED = "هذا يحتاج رتبة {rank} أو أعلى 🔐"
+PL_PANEL = (
+    title("الـعُـقُـوبَـات", "⚖️") + "\n"
+    f"{LINE}\n"
+    f"🚫 المحظورين: <b>{{ban}}</b>\n"
+    f"🔇 المكتومين: <b>{{mute}}</b>\n"
+    f"⛓ المقيّدين: <b>{{restrict}}</b>\n"
+    f"⚠️ المحذّرين: <b>{{warn}}</b>\n"
+    f"{LINE}\n"
+    f"{BULLET} اختار قائمة حتى تشوفها وتفك عن أي شخص بضغطة 👇"
+)
+PL_PANEL_BTN = {"ban": "🚫 المحظورين ({n})", "mute": "🔇 المكتومين ({n})", "restrict": "⛓ المقيّدين ({n})",
+                "warn": "⚠️ المحذّرين ({n})"}

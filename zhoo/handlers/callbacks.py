@@ -126,6 +126,9 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             await social.on_pair_button(q, msg, svc, parts[1], parts[2], parts[3])
         elif kind == "c" and len(parts) == 2:
             await protect.on_captcha_button(q, msg, svc, context.bot, parts[1])
+        elif kind == "pl" and len(parts) == 4:
+            from zhoo.systems import punish_lists
+            await punish_lists.on_button(q, msg, svc, context.bot, parts[1], parts[2], parts[3])
         elif kind == "p" and len(parts) == 3:
             await punish.on_undo_button(q, msg, svc, context.bot, parts[1], parts[2])
         else:

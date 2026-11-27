@@ -21,7 +21,7 @@ from zhoo.database.db import Database
 from zhoo.handlers import callbacks, errors, membership, router, start
 
 # استيراد الأنظمة يسجل أوامرها بالسجل المركزي
-from zhoo.systems import (aliases, backup, channels, chatinfo, cleanup, inspect, media, quicksetup, suspect, watchdog, botstate, general, group, locks, owner, protect, punish,  # noqa: F401
+from zhoo.systems import (aliases, backup, channels, chatinfo, cleanup, inspect, media, quicksetup, suspect, watchdog, botstate, general, group, locks, owner, protect, punish, punish_lists,  # noqa: F401
                           ranks, reports, features, extras, youtube, ai,
                           bank, economy, feedback, game_pics, games, levels, replies, social, swear)
 
